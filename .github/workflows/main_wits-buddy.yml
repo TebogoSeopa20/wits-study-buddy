@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Avoid "Filename too long" issues
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -74,6 +74,9 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write   # Required for OIDC login
+      contents: read
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
