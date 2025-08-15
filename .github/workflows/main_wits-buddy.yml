@@ -11,10 +11,9 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # Avoid "Filename too long" issues
     permissions:
-      contents: read #This is required for actions/checkout
-
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -23,12 +22,46 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
+      - name: npm install and build
         run: |
           npm install
           npm run build --if-present
-          npm run test --if-present
-      
+
+      - name: Run tests (optional)
+        run: |
+          npm test --if-present
+
+      - name: Create web.config
+        run: |
+          echo '<?xml version="1.0" encoding="utf-8"?>' > web.config
+          echo '<configuration>' >> web.config
+          echo '  <system.webServer>' >> web.config
+          echo '    <handlers>' >> web.config
+          echo '      <add name="iisnode" path="src/server.js" verb="*" modules="iisnode" />' >> web.config
+          echo '    </handlers>' >> web.config
+          echo '    <rewrite>' >> web.config
+          echo '      <rules>' >> web.config
+          echo '        <rule name="nodejs">' >> web.config
+          echo '          <match url="/*" />' >> web.config
+          echo '          <action type="Rewrite" url="src/server.js" />' >> web.config
+          echo '        </rule>' >> web.config
+          echo '      </rules>' >> web.config
+          echo '    </rewrite>' >> web.config
+          echo '    <iisnode watchedFiles="*.js;node_modules\*;routes\*.js;views\*.js" />' >> web.config
+          echo '  </system.webServer>' >> web.config
+          echo '</configuration>' >> web.config
+
+      - name: Create .env file
+        run: |
+          echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" > .env
+          echo "SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env
+          echo "SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}" >> .env
+          echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
+          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
+          echo "PORT=8080" >> .env
+          echo "NODE_ENV=production" >> .env
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -38,13 +71,39 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_WITSBUDDY }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_WITSBUDDY }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_WITSBUDDY }}
+
+      - name: Configure App Settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'wits-buddy'
+          slot-name: 'Production'
+          app-settings-json: |
+            [
+              { "name": "SUPABASE_URL", "value": "${{ secrets.SUPABASE_URL }}", "slotSetting": false },
+              { "name": "SUPABASE_ANON_KEY", "value": "${{ secrets.SUPABASE_ANON_KEY }}", "slotSetting": false },
+              { "name": "SUPABASE_SERVICE_KEY", "value": "${{ secrets.SUPABASE_SERVICE_KEY }}", "slotSetting": false },
+              { "name": "SESSION_SECRET", "value": "${{ secrets.SESSION_SECRET }}", "slotSetting": false },
+              { "name": "GOOGLE_CLIENT_ID", "value": "${{ secrets.GOOGLE_CLIENT_ID }}", "slotSetting": false },
+              { "name": "GOOGLE_CLIENT_SECRET", "value": "${{ secrets.GOOGLE_CLIENT_SECRET }}", "slotSetting": false },
+              { "name": "NODE_ENV", "value": "production", "slotSetting": false },
+              { "name": "WEBSITE_NODE_DEFAULT_VERSION", "value": "~20", "slotSetting": false }
+            ]
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
@@ -52,4 +111,3 @@ jobs:
           app-name: 'wits-buddy'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1873F0F0B5AC4CD1B9959DB6EB33F422 }}
