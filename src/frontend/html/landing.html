@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wits - Campus Study Buddy</title>
+    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta name="author" content="Wits">
+    
+    <meta property="og:title" content="Wits - Campus Study Buddy">
+    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="../css/landing.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/form-status.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <header class="logo">
+            <a href="landing.html" class="logo-link">
+              <i class="fas fa-graduation-cap book-logo"></i>
+              Wits
+            </a>
+          </header>
+        <ul class="nav-links">
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#community">Community</a></li>
+        </ul>
+        <aside class="auth-buttons">
+            <a href="login.html">
+                <button class="btn btn-outline" onclick="location.href='login.html'">Sign In</button>
+            </a>
+          <button class="btn btn-primary" onclick="location.href='signup.html'">Join Now</button>
+        </aside>
+        <button id="mobile-menu-button" class="mobile-menu">
+          <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+      
+    <!-- Mobile Navigation -->
+    <nav id="mobile-nav" class="mobile-nav">
+        <header class="mobile-nav-header">
+          <h1 class="logo">
+            <i class="fas fa-graduation-cap book-logo"></i>
+            Wits
+          </h1>
+          <button id="mobile-nav-close" class="mobile-nav-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </header>
+        <ul class="mobile-nav-links">
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="#community">Community</a></li>
+        </ul>
+        <aside class="mobile-auth-buttons">
+          <button class="btn btn-outline" onclick="location.href='login.html'">Sign In</button>
+          <button class="btn btn-primary" onclick="location.href='signup.html'">Join Now</button>
+        </aside>
+    </nav>
+
+    <main>
+        <!-- Hero Section with Image -->
+        <section class="hero" id="about">
+            <article class="hero-container">
+                <section class="hero-content">
+                    <h1 class="animate-on-scroll">Find Your Perfect <mark class="gradient-text">Study Partner</mark></h1>
+                    <p class="animate-on-scroll">Connect with fellow students, join study groups, and master your modules together. Wits makes collaborative learning as easy as creating a study session.</p>
+                    <aside class="auth-buttons animate-on-scroll">
+                        <button class="btn btn-primary" onclick="location.href='signup.html'">Start Studying Together</button>
+                        <button class="btn btn-outline">Explore Features</button>
+                    </aside>
+                </section>
+                <figure class="hero-image animate-on-scroll">
+                    <img src="../images/display.jpg" 
+                         alt="Students studying together" />
+                </figure>
+            </article>
+            <div class="hero-particles">
+                <div class="particle particle-1"></div>
+                <div class="particle particle-2"></div>
+                <div class="particle particle-3"></div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <article class="container">
+                <h2>Powerful Tools for Academic Success</h2>
+                <section class="features-grid">
+                    <article class="feature-card animate-on-scroll">
+                        <figure class="feature-icon">
+                            <i class="fas fa-user-friends"></i>
+                        </figure>
+                        <h3>Find Study Partners</h3>
+                        <p>Match with students in your course based on shared modules, study preferences, and academic goals.</p>
+                    </article>
+                    <article class="feature-card animate-on-scroll">
+                        <figure class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </figure>
+                        <h3>Create Study Groups</h3>
+                        <p>Form collaborative study groups, share notes, set group goals, and chat with your study buddies.</p>
+                    </article>
+                    <article class="feature-card animate-on-scroll">
+                        <figure class="feature-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </figure>
+                        <h3>Track Your Progress</h3>
+                        <p>Log completed topics, track study hours, and visualize your academic journey with detailed analytics.</p>
+                    </article>
+                    <article class="feature-card animate-on-scroll">
+                        <figure class="feature-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </figure>
+                        <h3>Plan Study Sessions</h3>
+                        <p>Schedule future study sessions, set reminders, and coordinate with your study group members.</p>
+                    </article>
+                </section>
+            </article>
+        </section>
+        
+        <!-- Testimonials Section -->
+        <section class="testimonials" id="testimonials">
+            <article class="container">
+                <h2 class="animate-on-scroll">What Students Are Saying</h2>
+                <p class="testimonials-subtitle animate-on-scroll">Real stories from students who transformed their academic journey with Wits</p>
+                <section class="testimonials-grid">
+                    <article class="testimonial-card animate-on-scroll">
+                        <div class="testimonial-content">
+                            <div class="quote-icon">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
+                            <p>"Wits completely changed how I approach studying. I found amazing study partners in my Computer Science course, and our group sessions have boosted my grades from B's to A's!"</p>
+                            <div class="testimonial-author">
+                                <img src="../images/person1.jpg" alt="Sarah Chen" class="author-image">
+                                <div class="author-info">
+                                    <h4>Piet Waters</h4>
+                                    <p>Computer Science, 3rd Year</p>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="testimonial-card animate-on-scroll">
+                        <div class="testimonial-content">
+                            <div class="quote-icon">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
+                            <p>"The progress tracking feature is incredible! Being able to see my study hours and completed topics keeps me motivated. Plus, the study groups make learning so much more engaging."</p>
+                            <div class="testimonial-author">
+                                <img src="../images/person2.jpg" alt="Marcus Johnson" class="author-image">
+                                <div class="author-info">
+                                    <h4>Thato Rathoka</h4>
+                                    <p>Business Studies, 2nd Year</p>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="testimonial-card animate-on-scroll">
+                        <div class="testimonial-content">
+                            <div class="quote-icon">
+                                <i class="fas fa-quote-left"></i>
+                            </div>
+                            <p>"I was struggling with Chemistry until I joined a study group through Wits. My study partners helped me understand complex concepts, and I finally feel confident about my exams!"</p>
+                            <div class="testimonial-author">
+                                <img src="../images/person3.jpg" alt="Emma Rodriguez" class="author-image">
+                                <div class="author-info">
+                                    <h4>Frank Ndlovu</h4>
+                                    <p>Mining Engineering, 3rd Year</p>
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </section>
+            </article>
+            <div class="floating-elements">
+                <div class="floating-element floating-1"></div>
+                <div class="floating-element floating-2"></div>
+                <div class="floating-element floating-3"></div>
+            </div>
+        </section>
+        
+        <!-- Stats Section -->
+        <section class="stats" id="community">
+            <article class="container">
+                <h2 class="animate-on-scroll">Join the Campus Study Community</h2>
+                <p class="animate-on-scroll">Thousands of students are already using Wits to improve their academic performance and build lasting study partnerships.</p>
+                <section class="stats-grid">
+                    <article class="stat-card animate-on-scroll">
+                        <p class="stat-number" data-target="2500">0</p>
+                        <p>Active Students</p>
+                    </article>
+                    <article class="stat-card animate-on-scroll">
+                        <p class="stat-number" data-target="850">0</p>
+                        <p>Study Groups</p>
+                    </article>
+                    <article class="stat-card animate-on-scroll">
+                        <p class="stat-number" data-target="15000">0</p>
+                        <p>Study Hours Logged</p>
+                    </article>
+                    <article class="stat-card animate-on-scroll">
+                        <p class="stat-number" data-target="95">0</p>
+                        <p>Improved Grades</p>
+                    </article>
+                </section>
+            </article>
+            <div class="stats-background">
+                <div class="particle particle-1"></div>
+                <div class="particle particle-2"></div>
+                <div class="particle particle-3"></div>
+                <div class="particle particle-4"></div>
+            </div>
+        </section>
+        
+        <!-- CTA Section -->
+        <section class="cta">
+            <article class="container">
+                <h2>Ready to Level Up Your Studies?</h2>
+                <p>Join Wits today and connect with students who share your academic goals. Start building your study network now.</p>
+                <aside class="cta-buttons">
+                    <button class="btn btn-white" onclick="location.href='signup.html'">Create Your Profile</button>
+                    <button class="btn btn-outline-white">Learn More <i class="fas fa-arrow-right"></i></button>
+                </aside>
+            </article>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <article class="container">
+            <section class="footer-content">
+                <article class="footer-column">
+                    <header class="footer-logo">
+                        <i class="fas fa-graduation-cap book-logo"></i>
+                        Wits
+                    </header>
+                    <p>Connecting students, enhancing learning, and building academic success through collaborative study partnerships.</p>
+                </article>
+                <article class="footer-column">
+                    <h3>For Students</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Find Study Partners</a></li>
+                        <li><a href="#">Join Study Groups</a></li>
+                        <li><a href="#">Track Progress</a></li>
+                        <li><a href="#">Plan Sessions</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Study Tips</a></li>
+                        <li><a href="#">Academic Guides</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Platform</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </article>
+            </section>
+            <footer class="footer-bottom">
+                <p>&copy; 2025 Wits Campus Study Buddy. All rights reserved.</p>
+            </footer>
+        </article>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/landing.js"></script>
+</body>
+</html>

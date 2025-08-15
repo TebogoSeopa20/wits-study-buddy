@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wits - Sign In</title>
+    <meta name="description" content="Sign in to CollabNexus Research Hub - Connect with researchers who share your passion and complement your expertise">
+    <meta name="author" content="CollabNexus">
+    
+    <meta property="og:title" content="Sign In - CollabNexus Research Hub">
+    <meta property="og:description" content="Sign in to CollabNexus Research Hub - Connect with researchers who share your passion and complement your expertise">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="../css/signin.css">
+    <link rel="stylesheet" href="../css/form-status.css" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <header class="logo">
+            <a href="landing.html" class="logo-link">
+              <i class="fas fa-graduation-cap book-logo"></i>
+              Wits
+            </a>
+          </header>
+        <aside class="auth-buttons">
+          <button class="btn btn-primary" onclick="location.href='signup.html'">Join Now</button>
+        </aside>
+        <button id="mobile-menu-button" class="mobile-menu">
+          <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+      
+    <!-- Mobile Navigation -->
+    <nav id="mobile-nav" class="mobile-nav">
+        <header class="mobile-nav-header">
+          <h1 class="logo">
+            <i class="fas fa-graduation-cap book-logo"></i>
+            Wits
+          </h1>
+          <button id="mobile-nav-close" class="mobile-nav-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </header>
+        <aside class="mobile-auth-buttons">
+          <button class="btn btn-primary" onclick="location.href='signup.html'">Join Now</button>
+        </aside>
+    </nav>
+
+    <main class="login-container">
+        <section class="login-form-container">
+            <h1>Welcome Back</h1>
+            <p class="login-intro">Sign in to continue to Wits - Campus Study Buddy</p>
+            
+            <!-- Add formStatus element for displaying messages -->
+            <div id="formStatus" class="form-status-message"></div>
+            
+            <!-- Google Login button -->
+            <button id="googleSignInBtn" class="google-btn" onclick="window.location.href='/auth/google'">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
+                Sign in with Google
+            </button>
+            
+            <!-- Error message for Google login -->
+            <div id="googleError" class="google-error"></div>
+            
+            <!-- Separator -->
+            <div class="separator">or sign in with email</div>
+            
+            <form id="loginForm" class="login-form" novalidate>
+                <fieldset class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="your.email@example.com" class="styled-input" required>
+                    <output class="error-message" for="email"></output>
+                </fieldset>
+                <fieldset class="form-group">
+                    <label for="password">Password</label>
+                    <section class="password-input-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Enter your password" class="styled-input" required>
+                        <button type="button" class="toggle-password-visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </section>
+                    <output class="error-message" for="password"></output>
+                </fieldset>
+                <fieldset class="form-group remember-forgot">
+                    <section class="checkbox-group">
+                        <input type="checkbox" id="rememberMe" name="rememberMe" class="styled-checkbox">
+                        <label for="rememberMe">Remember me</label>
+                    </section>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </fieldset>
+                <button type="submit" class="btn btn-primary login-btn">Sign In</button>
+            </form>
+            <footer class="login-footer">
+                <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
+            </footer>
+        </section>
+        <section class="login-image">
+            <img src="../images/display2.jpg" alt="Research collaboration">
+            <article class="login-overlay">
+                <blockquote class="testimonial">
+                    <p>"Your academic journey doesn’t have to be solo. With Wits, you’ll find the right people, the right tools, and the right support to thrive."</p>
+                    <cite>— Let's connect you with your peers!</cite>
+                </blockquote>
+            </article>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <article class="container">
+            <section class="footer-content">
+                <article class="footer-column">
+                    <header class="footer-logo">
+                        <i class="fas fa-graduation-cap book-logo"></i>
+                        Wits
+                    </header>
+                    <p>Connecting students, enhancing learning, and building academic success through collaborative study partnerships.</p>
+                </article>
+                <article class="footer-column">
+                    <h3>For Students</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Find Study Partners</a></li>
+                        <li><a href="#">Join Study Groups</a></li>
+                        <li><a href="#">Track Progress</a></li>
+                        <li><a href="#">Plan Sessions</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Study Tips</a></li>
+                        <li><a href="#">Academic Guides</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Platform</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </article>
+            </section>
+            <footer class="footer-bottom">
+                <p>&copy; 2025 Wits Campus Study Buddy. All rights reserved.</p>
+            </footer>
+        </article>
+    </footer>
+
+
+    <script src="../js/main.js"></script>
+    <script src="../js/login.js"></script>

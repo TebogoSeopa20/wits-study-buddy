@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wits - Sign Up</title>
+    <meta name="description" content="Join Wits Campus Study Buddy - Connect with like minded students to enhance your academic journey and achieve more together">
+    <meta name="author" content="CollabNexus">
+    
+    <meta property="og:title" content="Sign Up - Wits Campus Studdy Buddy">
+    <meta property="og:description" content="Join Wits Campus Study Buddy - Connect with like minded students to enhance your academic journey and achieve more together">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="../css/signup.css">
+    <link rel="stylesheet" href="../css/form-status.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <header class="logo">
+            <a href="landing.html" class="logo-link">
+              <i class="fas fa-graduation-cap book-logo"></i>
+              Wits
+            </a>
+          </header>
+        <aside class="auth-buttons">
+            <a href="login.html">
+                <button class="btn btn-outline" onclick="location.href='login.html'">Sign In</button>
+            </a>
+        </aside>
+        <button id="mobile-menu-button" class="mobile-menu">
+          <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+      
+    <!-- Mobile Navigation -->
+    <nav id="mobile-nav" class="mobile-nav">
+        <header class="mobile-nav-header">
+          <h1 class="logo">
+            <i class="fas fa-graduation-cap book-logo"></i>
+            Wits
+          </h1>
+          <button id="mobile-nav-close" class="mobile-nav-close">
+            <i class="fas fa-times"></i>
+          </button>
+        </header>
+        <aside class="mobile-auth-buttons">
+          <button class="btn btn-outline" onclick="location.href='login.html'">Sign In</button>
+        </aside>
+    </nav>
+
+    <main class="signup-container">
+        <section class="signup-form-container">
+            <h1>Create Your Account</h1>
+            <p class="signup-intro">Join Wits to connect with like-minded students, share knowledge, and achieve more together.</p>
+            
+            <form id="signupForm" class="signup-form" novalidate>
+                <!-- Step 1: Role Selection -->
+                <fieldset class="form-step active" id="step1">
+                    <legend class="step-title">Select Your Role</legend>
+                    <section class="role-selection">
+                        <section class="role-option">
+                            <input type="radio" id="student" name="role" value="student" checked>
+                            <label for="student">
+                                <i class="fas fa-user-graduate"></i>
+                                <span>Student</span>
+                            </label>
+                        </section>
+                        <section class="role-option">
+                            <input type="radio" id="tutor" name="role" value="tutor">
+                            <label for="tutor">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <span>Tutor</span>
+                            </label>
+                        </section>
+                    </section>
+                    <section class="form-navigation">
+                        <button type="button" class="btn btn-primary next-btn">Continue</button>
+                    </section>
+                </fieldset>
+
+                <!-- Step 2: Personal Information -->
+                <fieldset class="form-step" id="step2">
+                    <legend class="step-title">Personal Information</legend>
+                    <fieldset class="form-group">
+                        <label for="name">Full Name*</label>
+                        <input type="text" id="name" name="name" placeholder="John Doe" class="styled-input" required>
+                        <output class="error-message" for="name"></output>
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <label for="email">Email Address*</label>
+                        <input type="email" id="email" name="email" placeholder="studentnumber@students.wits.ac.za" class="styled-input" required>
+                        <output class="error-message" for="email"></output>
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <label for="phone">Contact Number*</label>
+                        <input type="text" id="phone" name="phone" placeholder="(+27) 63 123 0144 " class="styled-input" required>
+                        <output class="error-message" for="phone"></output>
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <label for="password">Password*</label>
+                        <section class="password-input-wrapper">
+                            <input type="password" id="password" name="password" placeholder="Create a strong password" class="styled-input" required>
+                            <button type="button" class="toggle-password-visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </section>
+                        <output class="error-message" for="password"></output>
+                        <section class="password-requirements">
+                            <p>Password must:</p>
+                            <ul>
+                                <li id="length">Be at least 8 characters long</li>
+                                <li id="uppercase">Contain at least 1 uppercase letter</li>
+                                <li id="lowercase">Contain at least 1 lowercase letter</li>
+                                <li id="number">Contain at least 1 number</li>
+                                <li id="special">Contain at least 1 special character</li>
+                            </ul>
+                        </section>
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <label for="confirmPassword">Confirm Password*</label>
+                        <section class="password-input-wrapper">
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" class="styled-input" required>
+                            <button type="button" class="toggle-password-visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </section>
+                        <output class="error-message" for="confirmPassword"></output>
+                    </fieldset>
+                    <section class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-btn">Back</button>
+                        <button type="button" class="btn btn-primary next-btn">Continue</button>
+                    </section>
+                </fieldset>
+
+                <!-- Step 3: Academic Information -->
+                <fieldset class="form-step" id="step3">
+                    <legend class="step-title">Academic Information</legend>
+                    
+                    <!-- Faculty Selection -->
+                    <fieldset class="form-group">
+                        <label for="faculty">Faculty*</label>
+                        <select id="faculty" name="faculty" class="styled-input" required>
+                            <option value="">Select a Faculty</option>
+                            <option value="Faculty of Commerce, Law & Management">Faculty of Commerce, Law & Management</option>
+                            <option value="Faculty of Engineering & the Built Environment">Faculty of Engineering & the Built Environment</option>
+                            <option value="Faculty of Health Sciences">Faculty of Health Sciences</option>
+                            <option value="Faculty of Humanities">Faculty of Humanities</option>
+                            <option value="Faculty of Science">Faculty of Science</option>
+                        </select>
+                        <output class="error-message" for="faculty"></output>
+                    </fieldset>
+                    
+                    <!-- Course Selection - Will be populated based on faculty selection -->
+                    <fieldset class="form-group">
+                        <label for="course">Course*</label>
+                        <select id="course" name="course" class="styled-input" required disabled>
+                            <option value="">Select a Faculty first</option>
+                        </select>
+                        <output class="error-message" for="course"></output>
+                    </fieldset>
+                    
+                    <!-- Year of Study -->
+                    <fieldset class="form-group">
+                        <label for="yearOfStudy">Year of Study*</label>
+                        <select id="yearOfStudy" name="yearOfStudy" class="styled-input" required>
+                            <option value="">Select Year of Study</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                            <option value="5th Year">5th Year</option>
+                            <option value="6th Year">6th Year</option>
+                        </select>
+                        <output class="error-message" for="yearOfStudy"></output>
+                    </fieldset>
+                    
+                   
+                    <!-- Terms and conditions with improved styling -->
+                    <!-- Enhanced Terms and Conditions Section -->
+                    <fieldset class="form-group terms-container">
+                        <section class="terms-agreement-wrapper">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="termsAgree" name="termsAgree" class="styled-checkbox" required>
+                                <span class="checkmark">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                            </div>
+                            <label for="termsAgree" class="terms-label">
+                                I have read and agree to the 
+                                <button type="button" class="terms-link" id="openTerms" aria-label="Open Terms of Service">
+                                    <i class="fas fa-file-contract"></i>
+                                    Terms of Service
+                                </button> 
+                                and 
+                                <button type="button" class="privacy-link" id="openPrivacy" aria-label="Open Privacy Policy">
+                                    <i class="fas fa-shield-alt"></i>
+                                    Privacy Policy
+                                </button>
+                            </label>
+                        </section>
+                        <output class="error-message" for="termsAgree"></output>
+                    </fieldset>
+
+                    <!-- Enhanced Terms of Service Modal -->
+                    <div id="termsModal" class="modal" role="dialog" aria-labelledby="termsTitle" aria-hidden="true">
+                        <div class="modal-overlay"></div>
+                        <div class="modal-content">
+                            <header class="modal-header">
+                                <h2 id="termsTitle" class="modal-title">
+                                    <i class="fas fa-file-contract"></i>
+                                    Terms of Service
+                                </h2>
+                                <button type="button" class="close-btn" id="closeTerms" aria-label="Close Terms of Service">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </header>
+                            
+                            <div class="modal-body">
+                                <div class="terms-content">
+                                    <section class="terms-section">
+                                        <h3><i class="fas fa-handshake"></i> Welcome to Wits Study Platform</h3>
+                                        <p>By creating an account and using our platform, you agree to the following terms and conditions. Please read them carefully.</p>
+                                    </section>
+
+                                    <section class="terms-section">
+                                        <h3><i class="fas fa-users"></i> Community Guidelines</h3>
+                                        <ul>
+                                            <li>Collaborate respectfully with fellow students</li>
+                                            <li>Maintain academic integrity in all interactions</li>
+                                            <li>Share knowledge and resources constructively</li>
+                                            <li>Report inappropriate behavior or content</li>
+                                        </ul>
+                                    </section>
+
+                                    <section class="terms-section">
+                                        <h3><i class="fas fa-graduation-cap"></i> Academic Integrity</h3>
+                                        <ul>
+                                            <li>Do not engage in plagiarism or academic dishonesty</li>
+                                            <li>Respect intellectual property rights</li>
+                                            <li>Use shared materials for legitimate study purposes only</li>
+                                            <li>Give proper credit when sharing others' work</li>
+                                        </ul>
+                                    </section>
+
+                                    <section class="terms-section">
+                                        <h3><i class="fas fa-exclamation-triangle"></i> Prohibited Activities</h3>
+                                        <ul>
+                                            <li>Harassment, bullying, or discriminatory behavior</li>
+                                            <li>Sharing inappropriate or offensive content</li>
+                                            <li>Attempting to hack or compromise the platform</li>
+                                            <li>Commercial use without prior authorization</li>
+                                        </ul>
+                                    </section>
+
+                                    <section class="terms-section">
+                                        <h3><i class="fas fa-user-shield"></i> Account Responsibility</h3>
+                                        <p>You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+                                    </section>
+
+                                    <div class="terms-footer">
+                                        <p><strong>Last updated:</strong> August 2025</p>
+                                        <p>By clicking "I agree," you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.</p>
+                                    </div>
+                                                                <footer class="modal-footer">
+                                <button type="button" class="btn btn-outline" id="closeTermsBtn">Close</button>
+                                <button type="button" class="btn btn-primary" id="acceptTermsBtn">I Agree</button>
+                            </footer>
+                                <hr>
+                                <p><small><em>Last updated:</em> August 2025</small></p>
+                                </div>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Privacy Policy Modal -->
+                    <div id="privacyModal" class="modal" role="dialog" aria-labelledby="privacyTitle" aria-hidden="true">
+                        <div class="modal-overlay"></div>
+                        <div class="modal-content">
+                            <header class="modal-header">
+                                <h2 id="privacyTitle" class="modal-title">
+                                    <i class="fas fa-shield-alt"></i>
+                                    Privacy Policy
+                                </h2>
+                                <button type="button" class="close-btn" id="closePrivacy" aria-label="Close Privacy Policy">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </header>
+                            
+                            <div class="modal-body">
+                                <div class="privacy-content">
+                                    <section class="privacy-section">
+                                        <h3><i class="fas fa-info-circle"></i> Information We Collect</h3>
+                                        <ul>
+                                            <li><strong>Personal Information:</strong> Name, student ID, email, phone number</li>
+                                            <li><strong>Academic Information:</strong> Faculty, course, year of study</li>
+                                            <li><strong>Usage Data:</strong> How you interact with our platform</li>
+                                            <li><strong>Communication Data:</strong> Messages and study group interactions</li>
+                                        </ul>
+                                    </section>
+
+                                    <section class="privacy-section">
+                                        <h3><i class="fas fa-bullseye"></i> How We Use Your Information</h3>
+                                        <ul>
+                                            <li>Connect you with compatible study partners</li>
+                                            <li>Facilitate study group organization and communication</li>
+                                            <li>Improve our platform and user experience</li>
+                                            <li>Send important updates and notifications</li>
+                                            <li>Ensure platform security and prevent misuse</li>
+                                        </ul>
+                                    </section>
+
+                                    <section class="privacy-section">
+                                        <h3><i class="fas fa-lock"></i> Data Protection</h3>
+                                        <ul>
+                                            <li>We use industry-standard encryption to protect your data</li>
+                                            <li>Access to personal information is restricted to authorized personnel</li>
+                                            <li>We regularly update our security measures</li>
+                                            <li>We comply with applicable data protection regulations</li>
+                                        </ul>
+                                    </section>
+
+                                    <section class="privacy-section">
+                                        <h3><i class="fas fa-share-alt"></i> Information Sharing</h3>
+                                        <ul>
+                                            <li>We do <strong>NOT</strong> sell your personal information</li>
+                                            <li>Limited data sharing with study group members (name, course)</li>
+                                            <li>Anonymous usage statistics may be shared for research</li>
+                                            <li>Legal compliance when required by law</li>
+                                        </ul>
+                                    </section>
+
+                                    <section class="privacy-section">
+                                        <h3><i class="fas fa-user-cog"></i> Your Rights</h3>
+                                        <ul>
+                                            <li>Access and download your personal data</li>
+                                            <li>Correct inaccurate information</li>
+                                            <li>Delete your account and associated data</li>
+                                            <li>Control privacy settings and visibility</li>
+                                        </ul>
+                                    </section>
+
+                                    <div class="privacy-footer">
+                                        <p><strong>Contact:</strong> privacy@wits.ac.za</p>
+                                        <p><strong>Phone:</strong> +27 11 717 1000</p>
+                                        <p><strong>Office Hours:</strong> Monday – Friday, 8:00 AM – 4:30 PM</p>
+                                        <p><strong>Address:</strong> University of the Witwatersrand, 1 Jan Smuts Avenue, Braamfontein 2000, Johannesburg, South Africa</p>
+                                        <p><a href="/privacy-policy.html" target="_blank">View Full Privacy Policy</a></p>
+                                        <p><strong>Last updated:</strong> August 2025</p>
+                                    </div>
+
+                                </div>
+                            </div>
+                            
+                            <footer class="modal-footer">
+                                <button type="button" class="btn btn-outline" id="closePrivacyBtn">Close</button>
+                                <button type="button" class="btn btn-primary" id="acceptPrivacyBtn">I Understand</button>
+                            </footer>
+                        </div>
+                    </div>
+                                        
+                    <!-- Form submission area with status message -->
+                    <section class="form-navigation">
+                        <button type="button" class="btn btn-outline prev-btn">Back</button>
+                        <button type="submit" class="btn btn-primary submit-btn">Create Account</button>
+                    </section>
+                    <div id="formStatus" class="form-status-message"></div>
+                </fieldset>
+            </form>
+            
+            <footer class="signup-footer">
+                <p>Already have an account? <a href="login.html">Sign in here</a></p>
+            </footer>
+        </section>
+        <section class="signup-image">
+            <img src="../images/display.jpg" alt="Collaboration">
+            <article class="signup-overlay">
+                <h2>Join our community of <span class="gradient-text">passionate learners</span></h2>
+
+                <ul class="benefit-list">
+                <li><i class="fas fa-check"></i> Find the perfect study partners</li>
+                <li><i class="fas fa-check"></i> Join or create collaborative study groups</li>
+                <li><i class="fas fa-check"></i> Plan and manage your study sessions with ease</li>
+                <li><i class="fas fa-check"></i> Share notes and discover helpful study resources</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <article class="container">
+            <section class="footer-content">
+                <article class="footer-column">
+                    <header class="footer-logo">
+                        <i class="fas fa-graduation-cap book-logo"></i>
+                        Wits
+                    </header>
+                    <p>Connecting students, enhancing learning, and building academic success through collaborative study partnerships.</p>
+                </article>
+                <article class="footer-column">
+                    <h3>For Students</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Find Study Partners</a></li>
+                        <li><a href="#">Join Study Groups</a></li>
+                        <li><a href="#">Track Progress</a></li>
+                        <li><a href="#">Plan Sessions</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Study Tips</a></li>
+                        <li><a href="#">Academic Guides</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Platform</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </article>
+            </section>
+            <footer class="footer-bottom">
+                <p>&copy; 2025 Wits Campus Study Buddy. All rights reserved.</p>
+            </footer>
+        </article>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/signup.js"></script>
+    <script src="../js/terms-and-conditions.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+</html>

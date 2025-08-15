@@ -1,0 +1,195 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: #ffffff;
+  --foreground: #1e293b;
+  --primary: #1e40af;
+  --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1e293b;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #dbeafe;
+  --accent-foreground: #1e40af;
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #1e40af;
+  --radius: 0.5rem;
+  --study-blue: #1e40af;
+  --study-gold: #fbbf24;
+  --study-light-blue: #dbeafe;
+  --study-dark: #1e293b;
+  --study-accent: #3b82f6;
+  --form-error: #dc2626;
+  --form-success: #16a34a;
+  --input-focus: rgba(59, 130, 246, 0.1);
+  --input-placeholder: #94a3b8;
+}
+
+/* ... keep existing code (hero, features, testimonials, stats, animations sections) */
+
+/* Testimonials Section */
+.testimonials {
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonials h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  color: var(--study-dark);
+}
+
+.testimonials-subtitle {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 4rem;
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.testimonial-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(30, 64, 175, 0.1);
+  border: 1px solid rgba(30, 64, 175, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonial-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--study-blue), var(--study-gold));
+}
+
+.testimonial-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px rgba(30, 64, 175, 0.15);
+}
+
+.quote-icon {
+  font-size: 2rem;
+  color: var(--study-accent);
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.testimonial-card p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.author-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--study-light-blue);
+}
+
+.author-info h4 {
+  color: var(--study-dark);
+  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
+}
+
+.author-info p {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  font-style: normal;
+}
+
+.rating {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.rating i {
+  color: var(--study-gold);
+  font-size: 0.9rem;
+}
+
+/* ... keep existing code (remaining sections) */
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* Animation Classes */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-on-scroll.fade-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.logo-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
