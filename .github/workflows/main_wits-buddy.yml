@@ -61,19 +61,11 @@ jobs:
           echo "PORT=3000" >> .env
           echo "NODE_ENV=production" >> .env
 
-      # New step: create a unique package for this build
-      - name: Package app artifact
-        id: package
-        run: |
-          PACKAGE_NAME=node-app-$(date +'%Y%m%d%H%M%S').zip
-          zip -r $PACKAGE_NAME . -x "*.git*" "*.github*" "node_modules/**/node_modules/*"
-          echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
-
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ${{ steps.package.outputs.package_name }}
+          path: .
 
   deploy:
     runs-on: ubuntu-latest
@@ -89,7 +81,7 @@ jobs:
         with:
           app-name: 'wits-buddy'
           slot-name: 'Production'
-          package: ${{ steps.package.outputs.package_name }}
+          package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_WITSBUDDY }}
 
   create-release:
@@ -124,3 +116,5 @@ jobs:
             * Deployed to Azure Web App - wits-buddy
           draft: false
           prerelease: false
+
+
