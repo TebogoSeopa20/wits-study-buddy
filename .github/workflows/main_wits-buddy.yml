@@ -56,7 +56,8 @@ jobs:
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
-          echo "PORT=8080" >> .env
+          echo "GOOGLE_CALLBACK_URL=https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/auth/google/callback" >> .env
+          echo "PORT=3000" >> .env
           echo "NODE_ENV=production" >> .env
 
       - name: Upload artifact for deployment job
@@ -114,3 +115,4 @@ jobs:
             * Deployed to Azure Web App - wits-buddy
           draft: false
           prerelease: false
+
