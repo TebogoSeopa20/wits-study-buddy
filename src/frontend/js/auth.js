@@ -33,12 +33,12 @@ const auth = {
                 id: userData.id,
                 email: userData.email,
                 role: userMetadata.role || 'student', // Default to student if no role specified
-                name: userMetadata.name || '',
+                name: userMetadata.name || 'Tebogo Seopa', // Default name
                 phone: userMetadata.phone || '',
-                faculty: userMetadata.faculty || '',
-                course: userMetadata.course || '',
-                year_of_study: userMetadata.year_of_study || '',
-                studentNumber: userMetadata.studentNumber || (userData.email ? userData.email.split('@')[0] : ''),
+                faculty: userMetadata.faculty || 'Not provided',
+                course: userMetadata.course || 'Not provided',
+                year_of_study: userMetadata.year_of_study || 'Not provided',
+                studentNumber: userMetadata.studentNumber || (userData.email ? userData.email.split('@')[0] : '2563912'), // Extract from email or use default
                 authProvider: userMetadata.authProvider || 'email',
                 created_at: userData.created_at || new Date().toISOString()
             };
