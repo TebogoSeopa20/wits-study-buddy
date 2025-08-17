@@ -767,3 +767,892 @@ h1, h2, h3, h4, h5 {
     font-size: 2rem;
   }
 }
+
+/* student-dash.css */
+/* Extends the base styles with dashboard-specific components */
+
+/* Dashboard Section */
+.dashboard-section {
+  padding: 4rem 2rem;
+  background-color: var(--background);
+}
+
+.dashboard-section h2 {
+  font-size: 2.5rem;
+  color: var(--study-dark);
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+  color: var(--muted-foreground);
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  background: var(--background);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(30, 64, 175, 0.1);
+  border-color: var(--study-accent);
+}
+
+.stat-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--study-accent), var(--study-gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.stat-info h3 {
+  font-size: 1rem;
+  color: var(--muted-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: var(--study-dark);
+  line-height: 1;
+}
+
+.stat-change {
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.stat-change.positive {
+  color: var(--form-success);
+}
+
+.stat-change.negative {
+  color: var(--form-error);
+}
+
+.stat-change.neutral {
+  color: var(--muted-foreground);
+}
+
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.upcoming-sessions, .recent-activity {
+  background: var(--background);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+}
+
+.upcoming-sessions h3, .recent-activity h3 {
+  font-size: 1.25rem;
+  color: var(--study-dark);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.session-list, .activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--secondary);
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.session-card:hover {
+  background: var(--accent);
+}
+
+.session-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 50px;
+}
+
+.session-day {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.session-date-num {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--study-blue);
+  line-height: 1;
+}
+
+.session-info {
+  flex: 1;
+}
+
+.session-info h4 {
+  color: var(--study-dark);
+  margin-bottom: 0.25rem;
+}
+
+.session-info p {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.session-info i {
+  width: 16px;
+  color: var(--study-accent);
+}
+
+.session-actions {
+  align-self: flex-start;
+}
+
+.activity-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+  background: var(--secondary);
+}
+
+.activity-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--study-accent);
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-content p {
+  margin-bottom: 0.25rem;
+  color: var(--study-dark);
+}
+
+.activity-content small {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+/* Participants Section */
+.participants-section {
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, var(--background) 0%, var(--study-light-blue) 100%);
+}
+
+.participants-section h2 {
+  font-size: 2.5rem;
+  color: var(--study-dark);
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  color: var(--muted-foreground);
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+}
+
+.participants-filter {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+}
+
+.search-box i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-foreground);
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--background);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--study-accent);
+  box-shadow: 0 0 0 3px var(--input-focus);
+}
+
+.filter-select {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--background);
+  font-size: 1rem;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--study-accent);
+  box-shadow: 0 0 0 3px var(--input-focus);
+}
+
+.participants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.participant-card {
+  background: var(--background);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+.participant-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(30, 64, 175, 0.1);
+  border-color: var(--study-accent);
+}
+
+.participant-avatar {
+  width: 5rem;
+  height: 5rem;
+  margin: 0 auto 1rem;
+}
+
+.participant-avatar i {
+  font-size: 5rem;
+  color: var(--study-accent);
+}
+
+.participant-info {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.participant-info h4 {
+  color: var(--study-dark);
+  margin-bottom: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.participant-info p {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.participant-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* Progress Section */
+.progress-section {
+  padding: 4rem 2rem;
+  background: var(--background);
+}
+
+.progress-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 1024px) {
+  .progress-content {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.progress-chart {
+  background: var(--background);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.progress-stat {
+  background: var(--background);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+}
+
+.progress-stat h3 {
+  font-size: 1rem;
+  color: var(--study-dark);
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--secondary);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--study-accent), var(--study-gold));
+  transition: width 1s ease;
+}
+
+.progress-stat p {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+.progress-goals {
+  background: var(--background);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+}
+
+.progress-goals h3 {
+  font-size: 1.25rem;
+  color: var(--study-dark);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.goal-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+}
+
+.goal-item:hover {
+  background: var(--secondary);
+}
+
+.goal-item i {
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+}
+
+.goal-item.complete i {
+  color: var(--form-success);
+}
+
+.goal-content p {
+  color: var(--study-dark);
+  margin-bottom: 0.25rem;
+}
+
+.goal-content small {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+/* Groups Section */
+.groups-section {
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, var(--study-light-blue) 0%, var(--background) 100%);
+}
+
+.groups-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.group-card {
+  background: var(--background);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.group-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(30, 64, 175, 0.1);
+  border-color: var(--study-accent);
+}
+
+.group-header {
+  padding: 1.5rem 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.group-header h3 {
+  color: var(--study-dark);
+  margin-bottom: 0.5rem;
+}
+
+.group-members {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+}
+
+.group-content {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.group-content p {
+  color: var(--muted-foreground);
+  margin-bottom: 1rem;
+}
+
+.group-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+.group-meta i {
+  width: 16px;
+  color: var(--study-accent);
+  margin-right: 0.5rem;
+}
+
+.group-actions {
+  padding: 0 1.5rem 1.5rem;
+}
+
+/* Profile Section */
+.profile-section {
+  padding: 4rem 2rem;
+  background: var(--background);
+}
+
+.profile-card {
+  background: var(--background);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 6px rgba(30, 64, 175, 0.05);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.profile-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-avatar i {
+  font-size: 8rem;
+  color: var(--study-accent);
+}
+
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .profile-info {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.info-group {
+  background: var(--secondary);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+}
+
+.info-group h3 {
+  color: var(--study-blue);
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.info-label {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.info-value {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.profile-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .participants-filter {
+    flex-direction: column;
+  }
+  
+  .search-box, .filter-select {
+    width: 100%;
+  }
+  
+  .profile-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+  }
+}
+
+/* Button Sizes */
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* Utility Classes */
+.section-title {
+  font-size: 2.5rem;
+  color: var(--study-dark);
+  margin-bottom: 0.5rem;
+  font-family: 'Playfair Display', serif;
+}
+
+.section-subtitle {
+  color: var(--muted-foreground);
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+}
+
+/* Animation for dashboard elements */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-element {
+  animation: slideIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.dashboard-element:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.dashboard-element:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dashboard-element:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* Add to student-dash.css */
+.profile-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--foreground);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    transition: all 0.3s ease;
+    margin-right: 0.5rem;
+}
+
+.profile-link:hover {
+    background: var(--secondary);
+}
+
+.profile-link i {
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .profile-link span {
+        display: none;
+    }
+}
+
+/* Add to student-dash.css */
+.auth-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.profile-logout-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--foreground);
+    transition: all 0.3s ease;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+}
+
+.profile-btn:hover {
+    background: var(--accent);
+    color: var(--study-blue);
+}
+
+.profile-btn i {
+    font-size: 1.2rem;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logout-btn i {
+    font-size: 1rem;
+}
+
+/* Mobile styles */
+.mobile-profile-logout {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.mobile-profile-btn,
+.mobile-logout-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Hide text on smaller screens */
+@media (max-width: 480px) {
+    .profile-text,
+    .logout-btn span,
+    .mobile-profile-btn span,
+    .mobile-logout-btn span {
+        display: none;
+    }
+    
+    .profile-btn,
+    .logout-btn,
+    .mobile-profile-btn,
+    .mobile-logout-btn {
+        padding: 0.5rem;
+        min-width: 40px;
+        justify-content: center;
+    }
+}
+
+/* Navigation and User Controls */
+.user-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--foreground);
+    transition: all 0.3s ease;
+    background: var(--secondary);
+    border: 1px solid var(--border);
+}
+
+.profile-btn:hover {
+    background: var(--accent);
+    color: var(--study-blue);
+}
+
+.profile-btn i {
+    font-size: 1.2rem;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logout-btn i {
+    font-size: 1rem;
+}
+
+/* Mobile User Controls */
+.mobile-user-controls {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+}
+
+.mobile-profile-btn,
+.mobile-logout-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .user-controls {
+        display: none;
+    }
+    
+    .profile-text,
+    .logout-text {
+        display: none;
+    }
+    
+    .profile-btn,
+    .logout-btn {
+        padding: 0.5rem;
+        min-width: 40px;
+        justify-content: center;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-user-controls {
+        display: none;
+    }
+}
