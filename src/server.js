@@ -6,6 +6,7 @@ const session = require('express-session');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const usersApi = require('./backend/users-api');
 
 // Create the Express application
 const app = express();
@@ -37,6 +38,8 @@ const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const redirectUrl = process.env.NODE_ENV === 'production' 
   ? process.env.PRODUCTION_REDIRECT_URL
   : 'http://localhost:3000/auth/google/callback';
+//path for the users api
+app.use('/api', usersApi);
 
 // Configure middleware
 app.use(bodyParser.json());
