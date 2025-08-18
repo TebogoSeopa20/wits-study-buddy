@@ -1,0 +1,462 @@
+/* map.css - Updated with light blue and gold theme */
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    overflow: hidden;
+}
+
+/* Map Container */
+.map-container {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+/* Navigation Panel */
+.navigation-panel {
+    position: fixed;
+    top: 0;
+    left: -400px;
+    width: 380px;
+    height: 100vh;
+    background: white;
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(30, 41, 59, 0.1);
+    box-shadow: 2px 0 40px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+.navigation-panel.active {
+    left: 0;
+}
+
+.panel-header {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    padding: 24px;
+    position: relative;
+    color: white;
+}
+
+.panel-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.panel-header i {
+    margin-right: 10px;
+    color: #fbbf24;
+}
+
+.close-btn {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Navigation Form */
+.navigation-form {
+    padding: 20px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.location-select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #1e293b;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.location-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.navigate-btn,
+.clear-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.navigate-btn {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+}
+
+.navigate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+}
+
+.clear-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+}
+
+.clear-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(30, 64, 175, 0.1);
+    background: #f8fafc;
+}
+
+/* Directions Panel */
+.directions-panel {
+    padding: 20px;
+    border-top: 1px solid #e2e8f0;
+    display: none;
+}
+
+.directions-panel.active {
+    display: block;
+}
+
+.directions-panel h3 {
+    margin-bottom: 15px;
+    color: #1e40af;
+}
+
+.route-summary {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #e2e8f0;
+}
+
+.route-steps {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.route-step {
+    padding: 10px;
+    border-left: 3px solid #3b82f6;
+    margin-bottom: 10px;
+    background: #f8fafc;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Map Controls */
+.map-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 500;
+}
+
+.map-controls::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    z-index: -1;
+    border: 1px solid rgba(30, 41, 59, 0.1);
+}
+
+.control-btn {
+    width: 56px;
+    height: 56px;
+    background: white;
+    border: 1px solid rgba(30, 41, 59, 0.1);
+    border-radius: 16px;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 30px rgba(30, 64, 175, 0.2);
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+}
+
+/* Loading Indicator */
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    z-index: 2000;
+    display: none;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.loading.active {
+    display: block;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e2e8f0;
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    color: #dc2626;
+    padding: 15px 20px;
+    border-radius: 8px;
+    z-index: 1500;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    max-width: 90%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid #fecaca;
+}
+
+.error-message.active {
+    display: flex;
+}
+
+.close-error {
+    background: none;
+    border: none;
+    color: #dc2626;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+}
+
+/* Mapbox Popup Customization */
+.mapboxgl-popup-content {
+    background: white;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(30, 41, 59, 0.1);
+    color: #1e293b;
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+    padding: 0;
+}
+
+.mapboxgl-popup-close-button {
+    color: #64748b;
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    right: 8px;
+    top: 8px;
+}
+
+/* Custom campus marker styles */
+.campus-marker {
+    cursor: pointer;
+}
+
+.campus-marker:hover {
+    z-index: 1000;
+}
+
+/* Enhanced 3D building styles */
+.building-info {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: white;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(30, 41, 59, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    color: #1e293b;
+    z-index: 400;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.building-info h3 {
+    margin: 0 0 8px 0;
+    color: #1e40af;
+    font-size: 16px;
+}
+
+.building-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+}
+
+/* Route styling */
+.mapboxgl-ctrl-group {
+    background: white;
+    border: 1px solid rgba(30, 41, 59, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-ctrl-icon {
+    color: #1e293b;
+}
+
+.mapboxgl-ctrl-icon:hover {
+    background-color: #f1f5f9;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .navigation-panel {
+        width: 100%;
+        left: -100%;
+    }
+    
+    .map-controls {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .control-btn {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .error-message {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .panel-header {
+        padding: 15px;
+    }
+    
+    .panel-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .navigation-form {
+        padding: 15px;
+    }
+    
+    .directions-panel {
+        padding: 15px;
+    }
+}
+
+/* Gold accent elements */
+.accent-gold {
+    color: #fbbf24;
+}
+
+/* Blue accent elements */
+.accent-blue {
+    color: #3b82f6;
+}
+
+/* Add gold accents to buttons on hover */
+.navigate-btn:hover:after,
+.control-btn:hover:after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    bottom: -2px;
+    left: -2px;
+    border-radius: inherit;
+    border: 2px solid rgba(251, 191, 36, 0.3);
+    pointer-events: none;
+}
+
+/* Custom route line color */
+.route-line {
+    stroke: #3b82f6;
+    stroke-width: 4;
+    stroke-opacity: 0.8;
+}
+
+/* Custom marker colors */
+.start-marker {
+    background-color: #1e40af;
+}
+
+.end-marker {
+    background-color: #fbbf24;
+}
+
+/* Add subtle gold gradient to panel header */
+.panel-header:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #fbbf24);
+}

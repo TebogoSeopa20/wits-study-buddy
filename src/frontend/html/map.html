@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wits University - Interactive Campus Map</title>
+    <meta name="description" content="Interactive 3D map of University of the Witwatersrand campus with navigation">
+    
+    <!-- Mapbox GL JS -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
+    
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="../css/map.css">
+    <link rel="stylesheet" href="../css/landing.css">
+    <link rel="stylesheet" href="../css/student-dash.css">
+</head>
+<body>
+        <!-- Navigation Bar -->
+    <nav class="navbar">
+        <header class="logo">
+            <a href="Student-dash.html" class="logo-link">
+              <i class="fas fa-graduation-cap book-logo"></i>
+              Wits
+            </a>
+        </header>
+        
+        <ul class="nav-links">
+            <li><a href="Student-dash.html#">Dashboard</a></li>
+            <li><a href="#participants">Participants</a></li>
+            <li><a href="#progress">Progress</a></li>
+            <li><a href="#groups">Groups</a></li>
+            <li><a href="#weather">Weather</a></li>
+            <li><a href="map.html">Campus Map</a></li>
+        </ul>
+        
+        <div class="user-controls">
+            <a href="profile.html" class="profile-btn">
+                <i class="fas fa-user-circle"></i>
+                <span class="profile-text">Profile</span>
+            </a>
+            <button class="btn btn-outline logout-btn" id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="logout-text">Log Out</span>
+            </button>
+        </div>
+        
+        <button id="mobile-menu-button" class="mobile-menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+    <!-- Navigation Panel -->
+    <div class="navigation-panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-map-marked-alt"></i> Wits Campus Navigation</h2>
+            <button class="close-btn" id="closePanel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="navigation-form">
+            <div class="input-group">
+                <label for="startLocation">From:</label>
+                <select id="startLocation" class="location-select">
+                    <option value="">Select starting point</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="endLocation">To:</label>
+                <select id="endLocation" class="location-select">
+                    <option value="">Select destination</option>
+                </select>
+            </div>
+            
+            <button class="navigate-btn" id="getDirectionsBtn">
+                <i class="fas fa-route"></i> Get Directions
+            </button>
+            
+            <button class="clear-btn" id="clearDirectionsBtn">
+                <i class="fas fa-trash"></i> Clear Route
+            </button>
+        </div>
+        
+        <div class="directions-panel" id="directionsPanel">
+            <h3>Directions</h3>
+            <div class="route-summary" id="routeSummary"></div>
+            <div class="route-steps" id="routeSteps"></div>
+        </div>
+    </div>
+    
+    <!-- Map Container -->
+    <div id="map" class="map-container"></div>
+    
+    <!-- Map Controls -->
+    <div class="map-controls">
+        <button class="control-btn" id="showNavigationBtn" title="Show Navigation Panel">
+            <i class="fas fa-route"></i>
+        </button>
+        <button class="control-btn" id="locateBtn" title="Find My Location">
+            <i class="fas fa-crosshairs"></i>
+        </button>
+        <button class="control-btn" id="resetViewBtn" title="Reset View">
+            <i class="fas fa-home"></i>
+        </button>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <p>Loading map...</p>
+    </div>
+    
+    <!-- Error Message -->
+    <div class="error-message" id="errorMessage">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span id="errorText"></span>
+        <button class="close-error" onclick="this.parentElement.style.display='none'">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+        <!-- Footer -->
+    <footer class="footer">
+        <article class="container">
+            <section class="footer-content">
+                <article class="footer-column">
+                    <header class="footer-logo">
+                        <i class="fas fa-graduation-cap book-logo"></i>
+                        Wits
+                    </header>
+                    <p>Connecting students, enhancing learning, and building academic success through collaborative study partnerships.</p>
+                </article>
+                <article class="footer-column">
+                    <h3>For Students</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Find Study Partners</a></li>
+                        <li><a href="#">Join Study Groups</a></li>
+                        <li><a href="#">Track Progress</a></li>
+                        <li><a href="#">Plan Sessions</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Study Tips</a></li>
+                        <li><a href="#">Academic Guides</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Platform</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </article>
+            </section>
+            <footer class="footer-bottom">
+                <p>&copy; 2025 Wits Campus Study Buddy. All rights reserved.</p>
+            </footer>
+        </article>
+    </footer>
+    <script src="../js/map.js"></script>
+</body>
+</html>
