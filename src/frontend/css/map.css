@@ -1,25 +1,70 @@
 /* map.css - Updated with light blue and gold theme */
-
+:root {
+  --background: #ffffff;
+  --foreground: #1e293b;
+  --primary: #1e40af;
+  --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1e293b;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #dbeafe;
+  --accent-foreground: #1e40af;
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #1e40af;
+  --radius: 0.5rem;
+  --study-blue: #1e40af;
+  --study-gold: #fbbf24;
+  --study-light-blue: #dbeafe;
+  --study-dark: #1e293b;
+  --study-accent: #3b82f6;
+  --research-accent: #4F46E5;
+  --form-error: #dc2626;
+  --form-success: #16a34a;
+  --input-focus: rgba(59, 130, 246, 0.1);
+  --input-placeholder: #94a3b8;
+}
 /* Reset and base styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f8fafc;
-    color: #1e293b;
-    overflow: hidden;
+  background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 100%);
+  min-height: 100vh;     /* make sure gradient covers full screen */
+  margin: 0;             /* remove default body margin */
+  font-family: system-ui, sans-serif; /* optional: consistent font */
+  
 }
-
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000; /* Ensure it stays above other elements */
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* Add any other navbar styles you need */
+}
 /* Map Container */
 .map-container {
     width: 100%;
-    height: 100vh;
+    height: 90vh;
     position: relative;
 }
+
+a.active {
+  background-color: var(--study-blue); /* deep study blue */
+  color: white;                        /* white text */
+  border-radius: var(--radius);        /* matches your theme radius */
+  padding: 6px 12px;
+  text-decoration: none;               /* remove underline */
+}
+
 
 /* Navigation Panel */
 .navigation-panel {
@@ -186,7 +231,7 @@ body {
 /* Map Controls */
 .map-controls {
     position: fixed;
-    top: 20px;
+    top: 90px;
     right: 20px;
     display: flex;
     flex-direction: column;

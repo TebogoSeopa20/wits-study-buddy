@@ -990,8 +990,19 @@ showBuildingInfo(building, lngLat) {
     }
 }
 
+
+
 // Initialize the map when page loads
 let witsMap;
 document.addEventListener('DOMContentLoaded', () => {
     witsMap = new WitsCampusMap();
 });
+
+            // Logout functionality
+            const logoutButtons = document.querySelectorAll('#logoutButton, #mobileLogoutButton');
+            logoutButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    auth.handleLogout();
+                    window.location.href = 'login.html';
+                });
+            });

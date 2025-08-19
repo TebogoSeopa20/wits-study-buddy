@@ -77,3 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         });
+            // Logout functionality
+            const logoutButtons = document.querySelectorAll('#logoutButton, #mobileLogoutButton');
+            logoutButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    auth.handleLogout();
+                    window.location.href = 'login.html';
+                });
+            });

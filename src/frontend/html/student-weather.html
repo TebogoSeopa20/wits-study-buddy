@@ -3,20 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta name="author" content="Wits">
+    <title>Wits - Weather Forecast</title>
+    <meta name="description" content="7-day weather forecast for your location">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="../images/icon.png" type="image/png">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/tutor-dash.css">
-    <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/form-status.css">
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/weather.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -29,16 +24,16 @@
         </header>
         
         <ul class="nav-links">
-            <li><a href="tutor-dash.html#" class="active">Dashboard</a></li>
+            <li><a href="Student-dash.html#">Dashboard</a></li>
             <li><a href="#participants">Participants</a></li>
             <li><a href="#progress">Progress</a></li>
             <li><a href="#groups">Groups</a></li>
-            <li><a href="tutor-weather.html#">Weather</a></li>
-            <li><a href="tutor-map.html#">Campus Map</a></li>
+            <li><a href="student-weather.html#" class="active">Weather</a></li>
+            <li><a href="student-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="user-controls">
-            <a href="profile.html" class="profile-btn">
+            <a href="student-profile.html" class="profile-btn">
                 <i class="fas fa-user-circle"></i>
                 <span class="profile-text">Profile</span>
             </a>
@@ -66,16 +61,16 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="tutor-dash.html#" class="active">Dashboard</a></li>
+            <li><a href="Student-dash.html#">Dashboard</a></li>
             <li><a href="#participants">Participants</a></li>
             <li><a href="#progress">Progress</a></li>
             <li><a href="#groups">Groups</a></li>
-            <li><a href="tutor-weather.html#">Weather</a></li>
-            <li><a href="tutor-map.html#">Campus Map</a></li>
+            <li><a href="student-weather.html#" class="active">Weather</a></li>
+            <li><a href="student-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
-            <a href="profile.html" class="btn btn-outline mobile-profile-btn">
+            <a href="student-profile.html" class="btn btn-outline mobile-profile-btn">
                 <i class="fas fa-user-circle"></i>
                 <span>Profile</span>
             </a>
@@ -86,32 +81,90 @@
         </div>
     </nav>
 
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Welcome Back, <span id="welcomeName"> Tutor</span>! This is Tutor Dashboard</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students, join study groups, and master your modules together. Wits makes collaborative learning as easy as creating a study session.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='signup.html'">Start Studying Together</button>
-                        <button class="btn btn-outline">Explore Features</button>
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
+    <!-- Main Content -->
+    <main class="weather-container">
+        <section class="current-weather">
+            <div class="weather-header">
+                <h1><i class="fas fa-map-marker-alt"></i> <span id="location">Loading location...</span></h1>
+                <button id="refresh-btn" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            
+            <div class="current-weather-card">
+                <div class="current-main">
+                    <div class="weather-icon" id="current-icon">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="weather-temp">
+                        <span id="current-temp">--</span>
+                        <span class="temp-unit">°C</span>
+                    </div>
+                    <div class="weather-desc" id="current-desc">Loading weather...</div>
+                </div>
+                
+                <div class="current-details">
+                    <div class="detail-item">
+                        <i class="fas fa-temperature-high"></i>
+                        <span>Feels like</span>
+                        <span id="feels-like">--°C</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-tint"></i>
+                        <span>Humidity</span>
+                        <span id="humidity">--%</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-wind"></i>
+                        <span>Wind</span>
+                        <span id="wind">-- km/h</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-eye"></i>
+                        <span>Visibility</span>
+                        <span id="visibility">-- km</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-cloud"></i>
+                        <span>Clouds</span>
+                        <span id="clouds">--%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="forecast-section">
+            <h2><i class="fas fa-calendar-alt"></i> 7-Day Forecast</h2>
+            <div class="forecast-container" id="forecast-container">
+                <!-- Forecast cards will be inserted here by JavaScript -->
+                <div class="forecast-card loading">
+                    <div class="forecast-day">Loading...</div>
+                    <div class="forecast-icon">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="forecast-temp">--°</div>
+                    <div class="forecast-desc">--</div>
+                </div>
             </div>
         </section>
     </main>
     
-    <!-- Footer -->
+    <!-- Loading Indicator -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <!-- Error Message -->
+    <div class="error-message" id="error-message">
+        <div class="error-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="error-text"></span>
+            <button class="close-error" id="close-error">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+        <!-- Footer -->
     <footer class="footer">
         <article class="container">
             <section class="footer-content">
@@ -159,8 +212,6 @@
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
-    <script src="../js/student-dash.js"></script>
+    <script src="../js/student-weather.js"></script>
 </body>
 </html>

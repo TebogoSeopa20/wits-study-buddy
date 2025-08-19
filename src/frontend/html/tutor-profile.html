@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <title>Wits - My Profile</title>
+    <meta name="description" content="View and update your profile">
     <meta name="author" content="Wits">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta property="og:title" content="Wits - My Profile">
+    <meta property="og:description" content="View and update your profile">
     <meta property="og:type" content="website">
     <link rel="icon" href="../images/icon.png" type="image/png">
     <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/tutor-dash.css">
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="../css/form-status.css">
     <!-- Font Awesome for icons -->
@@ -22,24 +21,23 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <header class="logo">
-            <a href="Student-dash.html" class="logo-link">
+            <a href="tutor-dash.html" class="logo-link">
               <i class="fas fa-graduation-cap book-logo"></i>
               Wits
             </a>
         </header>
         
         <ul class="nav-links">
-            <li><a href="tutor-dash.html#" class="active">Dashboard</a></li>
+            <li><a href="Student-dash.html#">Dashboard</a></li>
             <li><a href="#participants">Participants</a></li>
-            <li><a href="#progress">Progress</a></li>
-            <li><a href="#groups">Groups</a></li>
             <li><a href="tutor-weather.html#">Weather</a></li>
             <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="user-controls">
-            <a href="profile.html" class="profile-btn">
+            <a href="tutor-profile.html" class="profile-btn">
                 <i class="fas fa-user-circle"></i>
+                <i class="active"></i>
                 <span class="profile-text">Profile</span>
             </a>
             <button class="btn btn-outline logout-btn" id="logoutButton">
@@ -66,17 +64,16 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="tutor-dash.html#" class="active">Dashboard</a></li>
+            <li><a href="Student-dash.html#">Dashboard</a></li>
             <li><a href="#participants">Participants</a></li>
-            <li><a href="#progress">Progress</a></li>
-            <li><a href="#groups">Groups</a></li>
             <li><a href="tutor-weather.html#">Weather</a></li>
             <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
-            <a href="profile.html" class="btn btn-outline mobile-profile-btn">
+            <a href="tutor-profile.html" class="btn btn-outline mobile-profile-btn">
                 <i class="fas fa-user-circle"></i>
+                <i class="active"></i>
                 <span>Profile</span>
             </a>
             <button class="btn btn-outline mobile-logout-btn" id="mobileLogoutButton">
@@ -85,32 +82,43 @@
             </button>
         </div>
     </nav>
+    <main class="profile-container">
+        <section class="profile-header">
+            <h1>My Profile</h1>
+            <p>View and manage your account information</p>
+        </section>
 
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Welcome Back, <span id="welcomeName"> Tutor</span>! This is Tutor Dashboard</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students, join study groups, and master your modules together. Wits makes collaborative learning as easy as creating a study session.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='signup.html'">Start Studying Together</button>
-                        <button class="btn btn-outline">Explore Features</button>
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
+        <section class="profile-card">
+            <div class="profile-avatar">
+                <i class="fas fa-user-circle"></i>
+                <button class="btn btn-outline btn-small">Change Photo</button>
+            </div>
+
+            <div class="profile-info">
+                <div class="info-group">
+                    <h3>Personal Information</h3>
+                    <div class="info-item">
+                        <span class="info-label">Full Name:</span>
+                        <span class="info-value" id="profile-name">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value" id="profile-email">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Student Number:</span>
+                        <span class="info-value" id="profile-studentNumber">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <button class="btn btn-primary" id="editProfileBtn">Edit Profile</button>
+                <button class="btn btn-outline" id="changePasswordBtn">Change Password</button>
             </div>
         </section>
     </main>
-    
+
     <!-- Footer -->
     <footer class="footer">
         <article class="container">
@@ -156,11 +164,7 @@
         </article>
     </footer>
 
-    <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
-    <script src="../js/student-dash.js"></script>
+    <script src="../js/profile.js"></script>
 </body>
 </html>
