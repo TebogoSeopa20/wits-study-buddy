@@ -42,6 +42,14 @@ body {
   line-height: 1.6;
 }
 
+a.active {
+  background-color: var(--study-blue); /* deep study blue */
+  color: white;                        /* white text */
+  border-radius: var(--radius);        /* matches your theme radius */
+  padding: 6px 12px;
+  text-decoration: none;               /* remove underline */
+}
+
 h1, h2, h3, h4, h5 {
   font-family: 'Playfair Display', serif;
 }
@@ -1528,51 +1536,6 @@ h1, h2, h3, h4, h5 {
 
 .profile-btn i {
     font-size: 1.2rem;
-}
-
-.logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.logout-btn i {
-    font-size: 1rem;
-}
-
-/* Mobile styles */
-.mobile-profile-logout {
-    display: flex;
-    gap: 0.75rem;
-    width: 100%;
-}
-
-.mobile-profile-btn,
-.mobile-logout-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-/* Hide text on smaller screens */
-@media (max-width: 480px) {
-    .profile-text,
-    .logout-btn span,
-    .mobile-profile-btn span,
-    .mobile-logout-btn span {
-        display: none;
-    }
-    
-    .profile-btn,
-    .logout-btn,
-    .mobile-profile-btn,
-    .mobile-logout-btn {
-        padding: 0.5rem;
-        min-width: 40px;
-        justify-content: center;
-    }
 }
 
 /* Navigation and User Controls */

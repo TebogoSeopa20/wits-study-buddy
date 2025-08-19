@@ -1,0 +1,433 @@
+/* Weather Page Styles */
+:root {
+  --background: #ffffff;
+  --foreground: #1e293b;
+  --primary: #1e40af;
+  --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1e293b;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #dbeafe;
+  --accent-foreground: #1e40af;
+  --destructive: #ef4444;
+  --destructive-foreground: #f8fafc;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #1e40af;
+  --radius: 0.5rem;
+  --study-blue: #1e40af;
+  --study-gold: #fbbf24;
+  --study-light-blue: #dbeafe;
+  --study-dark: #1e293b;
+  --study-accent: #3b82f6;
+  --research-accent: #4F46E5;
+  --form-error: #dc2626;
+  --form-success: #16a34a;
+  --input-focus: rgba(59, 130, 246, 0.1);
+  --input-placeholder: #94a3b8;
+}
+/* Weather Page Background */
+body {
+  background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 100%);
+  min-height: 100vh;     /* make sure gradient covers full screen */
+  margin: 0;             /* remove default body margin */
+  font-family: system-ui, sans-serif; /* optional: consistent font */
+   padding-top: 70px;
+}
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000; /* Ensure it stays above other elements */
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* Add any other navbar styles you need */
+}
+.weather-container {
+    max-width: 1400px; /* Increased from 1200px */
+    margin: 2rem auto;
+    padding: 0 clamp(2rem, 5vw, 4rem); /* Dynamic side padding */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .weather-container {
+        padding: 0 clamp(1.5rem, 4vw, 3rem);
+    }
+}
+
+@media (max-width: 768px) {
+    .weather-container {
+        padding: 0 clamp(1.25rem, 3vw, 2rem);
+        margin: 1.5rem auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .weather-container {
+        padding: 0 clamp(1rem, 2.5vw, 1.5rem);
+        margin: 1rem auto;
+    }
+}
+
+.weather-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.weather-header h1 {
+    font-size: 1.8rem;
+    color: var(--study-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#refresh-btn {
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.current-weather-card {
+    background: linear-gradient(135deg, var(--study-accent), var(--study-blue));
+    border-radius: 1rem;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 10px 20px rgba(30, 64, 175, 0.2);
+    margin-bottom: 2rem;
+}
+
+.current-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.weather-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.weather-temp {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.weather-temp span:first-child {
+    font-size: 3.5rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.temp-unit {
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+.weather-desc {
+    font-size: 1.2rem;
+    text-transform: capitalize;
+    opacity: 0.9;
+}
+
+.current-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.detail-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.8rem;
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.detail-item i {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: var(--study-gold);
+}
+
+.detail-item span:first-of-type {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 0.3rem;
+}
+
+.detail-item span:last-of-type {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.forecast-section {
+    margin-top: 2rem;
+}
+
+.forecast-section h2 {
+    font-size: 1.5rem;
+    color: var(--study-dark);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.forecast-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.forecast-card {
+    background: var(--background);
+    border-radius: 0.8rem;
+    padding: 1.2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.forecast-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(30, 64, 175, 0.15);
+}
+
+.forecast-day {
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    color: var(--study-dark);
+}
+
+.forecast-icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+    color: var(--study-accent);
+}
+
+.forecast-temp {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--study-dark);
+}
+
+.forecast-desc {
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+    text-align: center;
+    text-transform: capitalize;
+}
+
+/* Loading and Error States */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    display: none;
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--study-light-blue);
+    border-top: 5px solid var(--study-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    display: none;
+    z-index: 1000;
+}
+
+.error-message.active {
+    display: block;
+}
+
+.error-content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.close-error {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .current-details {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .forecast-container {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .weather-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .current-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .forecast-container {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+}
+
+
+a.active {
+  background-color: var(--study-blue); /* deep study blue */
+  color: white;                        /* white text */
+  border-radius: var(--radius);        /* matches your theme radius */
+  padding: 6px 12px;
+  text-decoration: none;               /* remove underline */
+}
+
+/* Study Recommendations Section - Theme Matching */
+.recommendations-container {
+    background: var(--secondary);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-top: 2rem;
+    box-shadow: 0 2px 8px rgba(30, 41, 59, 0.1);
+    border: 1px solid var(--border);
+}
+
+.recommendations-container h3 {
+    color: var(--study-dark);
+    margin-bottom: 1.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recommendations-container h3 i {
+    color: var(--study-blue);
+}
+
+.recommendation-card {
+    background: var(--background);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+}
+
+.recommendation-card h4 {
+    color: var(--study-blue);
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.recommendation-card h4 i {
+    margin-right: 0.5rem;
+    width: 1.25rem;
+    text-align: center;
+    color: var(--study-accent);
+}
+
+.recommendation-card p {
+    margin: 0;
+    color: var(--study-dark);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Specific recommendation card accents */
+.recommendation-card:nth-child(1) h4 {
+    color: var(--study-blue);
+}
+.recommendation-card:nth-child(2) h4 {
+    color: var(--research-accent);
+}
+.recommendation-card:nth-child(3) h4 {
+    color: var(--study-gold);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .recommendations-container {
+        padding: 1.25rem;
+    }
+    
+    .recommendation-card {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .recommendations-container {
+        margin-top: 1.5rem;
+    }
+    
+    .recommendation-card {
+        margin-bottom: 1rem;
+    }
+}
