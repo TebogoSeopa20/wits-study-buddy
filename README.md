@@ -10,5 +10,7 @@
 ### git commit -m "commit message"
 ### git push origin name-of-new-branch
 
+### Add  the name of the buildings to get your trajectory when viewing the map 
+
 ## How to run the App locally
 ### npm start
