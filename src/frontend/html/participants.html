@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - My Profile</title>
-    <meta name="description" content="View and update your profile">
-    <meta name="author" content="Wits">
+    <title>Wits - Participants</title>
+    <meta name="description" content="Connect with other students and tutors">
     
-    <meta property="og:title" content="Wits - My Profile">
-    <meta property="og:description" content="View and update your profile">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="../images/icon.png" type="image/png">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/form-status.css">
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/participants.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -28,18 +24,17 @@
         </header>
         
         <ul class="nav-links">
-            <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="#participants">Participants</a></li>
+            <li><a href="Student-dash.html">Dashboard</a></li>
+            <li><a href="participants.html" class="active">Participants</a></li>
             <li><a href="#progress">Progress</a></li>
             <li><a href="#groups">Groups</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
         <div class="user-controls">
             <a href="student-profile.html" class="profile-btn">
                 <i class="fas fa-user-circle"></i>
-                <i class="active"></i>
                 <span class="profile-text">Profile</span>
             </a>
             <button class="btn btn-outline logout-btn" id="logoutButton">
@@ -66,18 +61,17 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="#participants">Participants</a></li>
+            <li><a href="Student-dash.html">Dashboard</a></li>
+            <li><a href="participants.html" class="active">Participants</a></li>
             <li><a href="#progress">Progress</a></li>
             <li><a href="#groups">Groups</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
             <a href="student-profile.html" class="btn btn-outline mobile-profile-btn">
                 <i class="fas fa-user-circle"></i>
-                <i class="active"></i>
                 <span>Profile</span>
             </a>
             <button class="btn btn-outline mobile-logout-btn" id="mobileLogoutButton">
@@ -87,58 +81,42 @@
         </div>
     </nav>
 
-    <main class="profile-container">
-        <section class="profile-header">
-            <h1>My Profile</h1>
-            <p>View and manage your account information</p>
-        </section>
-
-        <section class="profile-card">
-            <div class="profile-avatar">
-                <i class="fas fa-user-circle"></i>
-                <button class="btn btn-outline btn-small">Change Photo</button>
-            </div>
-
-            <div class="profile-info">
-                <div class="info-group">
-                    <h3>Personal Information</h3>
-                    <div class="info-item">
-                        <span class="info-label">Full Name:</span>
-                        <span class="info-value" id="profile-name">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Email:</span>
-                        <span class="info-value" id="profile-email">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Student Number:</span>
-                        <span class="info-value" id="profile-studentNumber">Loading...</span>
-                    </div>
-                </div>
-            </div>
-
+    <!-- Main Content -->
+    <main class="participants-container">
+        <section class="participants-header">
+            <h1><i class="fas fa-users"></i> Connect with Participants</h1>
+            <p>Find study partners, tutors, and classmates from across Wits University</p>
             
-            <div class="profile-info">
-                <div class="info-group">
-                    <h3>Academic Information</h3>
-                    <div class="info-item">
-                        <span class="info-label"> Faculty:</span>
-                        <span class="info-value" id="faculty">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Course Name:</span>
-                        <span class="info-value" id="course">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Year of Study:</span>
-                        <span class="info-value" id="yos">Loading...</span>
-                    </div>
+            <div class="search-filter-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by name, course, or faculty...">
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="roleFilter" class="filter-select">
+                        <option value="">All Roles</option>
+                        <option value="student">Students</option>
+                        <option value="tutor">Tutors</option>
+                    </select>
+                    
+                    <select id="facultyFilter" class="filter-select">
+                        <option value="">All Faculties</option>
+                        <option value="Faculty of Science">Science</option>
+                        <option value="Faculty of Engineering">Engineering</option>
+                        <option value="Faculty of Health Sciences">Health Sciences</option>
+                        <option value="Faculty of Commerce">Commerce</option>
+                        <option value="Faculty of Humanities">Humanities</option>
+                    </select>
                 </div>
             </div>
-
-            <div class="profile-actions">
-                <button class="btn btn-primary" id="editProfileBtn">Edit Profile</button>
-                <button class="btn btn-outline" id="changePasswordBtn">Change Password</button>
+        </section>
+        
+        <section class="participants-grid" id="participantsGrid">
+            <!-- Participants cards will be loaded here via JavaScript -->
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading participants...</p>
             </div>
         </section>
     </main>
@@ -188,7 +166,8 @@
         </article>
     </footer>
 
+    <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/profile.js"></script>
+    <script src="../js/participants.js"></script>
 </body>
 </html>

@@ -1097,3 +1097,16 @@ h1, h2, h3, h4, h5 {
         display: none;
     }
 }
+
+.info-list {
+  
+  font-weight: 500;
+ 
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  min-width: 200px;
+  text-align: right;
+  transition: all 0.3s ease;
+}
+
