@@ -18,13 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profile-studentNumber').textContent = studentNumber;
     
     // Set faculty to default if not provided
-    document.getElementById('profile-faculty').textContent = user.faculty || 'Not provided';
+    document.getElementById('faculty').textContent = user.faculty || 'Not provided';
     
     // Set course to default if not provided
-    document.getElementById('profile-course').textContent = user.course || 'Not provided';
+    document.getElementById('course').textContent = user.course || 'Not provided';
     
     // Set year of study to default if not provided
-    document.getElementById('profile-year').textContent = user.year_of_study || 'Not provided';
+    document.getElementById('yos').textContent = user.year_of_study || 'Not provided';
     
     // Logout button functionality
     document.getElementById('logoutButton').addEventListener('click', () => {
