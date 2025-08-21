@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wits - Weather Forecast</title>
-    <meta name="description" content="7-day weather forecast for your location">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../images/icon.png" type="image/png">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/weather.css">
+
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -25,7 +26,7 @@
         
         <ul class="nav-links">
             <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="#participants">Participants</a></li>
+            <li><a href="student-participants.html">Participants</a></li>
             <li><a href="#progress">Progress</a></li>
             <li><a href="#groups">Groups</a></li>
             <li><a href="student-weather.html#" class="active">Weather</a></li>
@@ -62,7 +63,7 @@
         
         <ul class="mobile-nav-links">
             <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="#participants">Participants</a></li>
+            <li><a href="student-participants.html">Participants</a></li>
             <li><a href="#progress">Progress</a></li>
             <li><a href="#groups">Groups</a></li>
             <li><a href="student-weather.html#" class="active">Weather</a></li>
@@ -133,6 +134,19 @@
             </div>
         </section>
         
+        <!-- Split content section for recommendations and animation -->
+        <div class="weather-content-split">
+            <!-- Recommendations container (moved to left side) -->
+            <div id="recommendations-container" class="recommendations-container">
+                <!-- Recommendations will be inserted here by JavaScript -->
+            </div>
+            
+            <!-- Weather animation container (right side) -->
+            <div class="weather-animation-container" id="weather-animation">
+                <!-- Animation elements will be inserted here by JavaScript -->
+            </div>
+        </div>
+        
         <section class="forecast-section">
             <h2><i class="fas fa-calendar-alt"></i> 7-Day Forecast</h2>
             <div class="forecast-container" id="forecast-container">
@@ -164,7 +178,8 @@
             </button>
         </div>
     </div>
-        <!-- Footer -->
+    
+    <!-- Footer -->
     <footer class="footer">
         <article class="container">
             <section class="footer-content">

@@ -30,6 +30,7 @@ class WitsCampusMap {
             { id: 'sunnyside', name: 'Sunnyside Residence', coordinates: [ 28.031615, -26.189722] },
             { id: 'jubilee', name: 'Jubilee Hall', coordinates: [28.032408, -26.188388] },
             { id: 'rsb', name: 'RSB', coordinates: [28.030376, -26.192157] },
+            { id: 'thembi', name: 'Thembiso', coordinates: [28.029570, -26.191123] },
             { id: 'wcco', name: 'WCCO', coordinates: [ 28.030786, -26.188163] },
             { id: 'dj-du-plessis', name: 'DJ du Plessis', coordinates: [28.024073, -26.188209] },
             { id: 'john-moffat', name: 'John Moffat', coordinates: [28.029308, -26.190220] },
@@ -89,6 +90,10 @@ class WitsCampusMap {
             ]},
             { name: "Library Walkway", coordinates: [
                 [28.0295, -26.1910], [28.0305, -26.1910], [28.0315, -26.1910]
+            ]},
+            { name: "Great Walk", coordinates: [
+                [ 28.032219, -26.191168], [28.031636, -26.191396], [28.031124, -26.191301], [28.030304, -26.191678], 
+                [28.029561, -26.191474], [28.029005, -26.191759], [28.027344, -26.191560], [28.027298, -26.191115]
             ]},
             { name: "West Campus Connector", coordinates: [
                 [28.0265, -26.1915], [28.0265, -26.1900], [28.0265, -26.1885], [28.0265, -26.1870]
@@ -997,12 +1002,3 @@ let witsMap;
 document.addEventListener('DOMContentLoaded', () => {
     witsMap = new WitsCampusMap();
 });
-
-            // Logout functionality
-            const logoutButtons = document.querySelectorAll('#logoutButton, #mobileLogoutButton');
-            logoutButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    auth.handleLogout();
-                    window.location.href = 'login.html';
-                });
-            });

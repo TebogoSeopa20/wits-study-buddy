@@ -3,22 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits University - Interactive Campus Map</title>
-    <meta name="description" content="Interactive 3D map of University of the Witwatersrand campus with navigation">
+    <title>Wits - Participants</title>
+    <meta name="description" content="Connect with other students and tutors">
     
-    <!-- Mapbox GL JS -->
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
-    <link rel="icon" href="../images/icon.png" type="image/png">
-    <!-- Google Maps API -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
-    
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Custom styles -->
-    <link rel="stylesheet" href="../css/map.css">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/participants.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -32,9 +25,9 @@
         
         <ul class="nav-links">
             <li><a href="tutor-dash.html#">Dashboard</a></li>
-            <li><a href="tutor-participants.html">Participants</a></li>
+            <li><a href="tutor-participants.html" class="active">Participants</a></li>
             <li><a href="tutor-weather.html#">Weather</a></li>
-            <li><a href="tutor-map.html#"  class="active">Campus Map</a></li>
+            <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="user-controls">
@@ -67,9 +60,9 @@
         
         <ul class="mobile-nav-links">
             <li><a href="tutor-dash.html#">Dashboard</a></li>
-            <li><a href="tutor-participants.html">Participants</a></li>
+            <li><a href="tutor-participants.html" class="active">Participants</a></li>
             <li><a href="tutor-weather.html#">Weather</a></li>
-            <li><a href="tutor-map.html#"  class="active">Campus Map</a></li>
+            <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
@@ -83,77 +76,48 @@
             </button>
         </div>
     </nav>
-    <!-- Navigation Panel -->
-    <div class="navigation-panel">
-        <div class="panel-header">
-            <h2><i class="fas fa-map-marked-alt"></i> Wits Campus Navigation</h2>
-            <button class="close-btn" id="closePanel">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        
-        <div class="navigation-form">
-            <div class="input-group">
-                <label for="startLocation">From:</label>
-                <select id="startLocation" class="location-select">
-                    <option value="">Select starting point</option>
-                </select>
+
+    <!-- Main Content -->
+    <main class="participants-container">
+        <section class="participants-header">
+            <h1><i class="fas fa-users"></i> Connect with Participants</h1>
+            <p>Find study partners, tutors, and classmates from across Wits University</p>
+            
+            <div class="search-filter-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by name, course, or faculty...">
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="roleFilter" class="filter-select">
+                        <option value="">All Roles</option>
+                        <option value="student">Students</option>
+                        <option value="tutor">Tutors</option>
+                    </select>
+                    
+                    <select id="facultyFilter" class="filter-select">
+                        <option value="">All Faculties</option>
+                        <option value="Faculty of Science">Science</option>
+                        <option value="Faculty of Engineering">Engineering</option>
+                        <option value="Faculty of Health Sciences">Health Sciences</option>
+                        <option value="Faculty of Commerce">Commerce</option>
+                        <option value="Faculty of Humanities">Humanities</option>
+                    </select>
+                </div>
             </div>
-            
-            <div class="input-group">
-                <label for="endLocation">To:</label>
-                <select id="endLocation" class="location-select">
-                    <option value="">Select destination</option>
-                </select>
-            </div>
-            
-            <button class="navigate-btn" id="getDirectionsBtn">
-                <i class="fas fa-route"></i> Get Directions
-            </button>
-            
-            <button class="clear-btn" id="clearDirectionsBtn">
-                <i class="fas fa-trash"></i> Clear Route
-            </button>
-        </div>
+        </section>
         
-        <div class="directions-panel" id="directionsPanel">
-            <h3>Directions</h3>
-            <div class="route-summary" id="routeSummary"></div>
-            <div class="route-steps" id="routeSteps"></div>
-        </div>
-    </div>
-    
-    <!-- Map Container -->
-    <div id="map" class="map-container"></div>
-    
-    <!-- Map Controls -->
-    <div class="map-controls">
-        <button class="control-btn" id="showNavigationBtn" title="Show Navigation Panel">
-            <i class="fas fa-route"></i>
-        </button>
-        <button class="control-btn" id="locateBtn" title="Find My Location">
-            <i class="fas fa-crosshairs"></i>
-        </button>
-        <button class="control-btn" id="resetViewBtn" title="Reset View">
-            <i class="fas fa-home"></i>
-        </button>
-    </div>
-    
-    <!-- Loading Indicator -->
-    <div class="loading" id="loadingIndicator">
-        <div class="spinner"></div>
-        <p>Loading map...</p>
-    </div>
-    
-    <!-- Error Message -->
-    <div class="error-message" id="errorMessage">
-        <i class="fas fa-exclamation-triangle"></i>
-        <span id="errorText"></span>
-        <button class="close-error" onclick="this.parentElement.style.display='none'">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-        <!-- Footer -->
+        <section class="participants-grid" id="participantsGrid">
+            <!-- Participants cards will be loaded here via JavaScript -->
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading participants...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
     <footer class="footer">
         <article class="container">
             <section class="footer-content">
@@ -197,6 +161,9 @@
             </footer>
         </article>
     </footer>
-    <script src="../js/map.js"></script>
+
+    <!-- JavaScript Files -->
+    <script src="../js/auth.js"></script>
+    <script src="../js/participants.js"></script>
 </body>
 </html>

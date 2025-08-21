@@ -49,6 +49,48 @@ a.active {
   padding: 6px 12px;
   text-decoration: none;               /* remove underline */
 }
+/* Add this to your student-dash.css file */
+
+/* Fix for active navigation link styling */
+.nav-links a.active {
+    background-color: var(--study-blue);
+    color: white !important; /* Force white text on active state */
+    border-radius: var(--radius);
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+}
+
+/* Ensure hover state doesn't override active state */
+.nav-links a.active:hover {
+    background-color: var(--study-blue);
+    color: white !important;
+}
+
+/* Mobile navigation active state fix */
+.mobile-nav-links a.active {
+    background-color: var(--study-blue);
+    color: white !important;
+    border-radius: var(--radius);
+    padding: 0.5rem 1rem;
+    margin: -0.5rem 0;
+    border-bottom: none;
+}
+
+.mobile-nav-links a.active:hover {
+    background-color: var(--study-blue);
+    color: white !important;
+}
+
+/* If you're using the profile-link class for navigation */
+.profile-link.active {
+    background-color: var(--study-blue);
+    color: white !important;
+}
+
+.profile-link.active:hover {
+    background-color: var(--study-blue);
+    color: white !important;
+}
 
 h1, h2, h3, h4, h5 {
   font-family: 'Playfair Display', serif;
