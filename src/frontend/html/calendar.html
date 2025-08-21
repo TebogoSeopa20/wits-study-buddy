@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Participants</title>
-    <meta name="description" content="Connect with other students and tutors">
+    <title>Wits - Student Dashboard</title>
+    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta name="author" content="Wits">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta property="og:title" content="Wits - Campus Study Buddy">
+    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta property="og:type" content="website">
     <link rel="icon" href="../images/icon.png" type="image/png">
-    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/landing.css">
+    <link rel="stylesheet" href="../css/calendar.css">
     <link rel="stylesheet" href="../css/student-dash.css">
-    <link rel="stylesheet" href="../css/participants.css">
+    <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="../css/form-status.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -24,14 +30,14 @@
         </header>
         
         <ul class="nav-links">
-            <li><a href="Student-dash.html">Dashboard</a></li>
-            <li><a href="student-participants.html" class="active">Participants</a></li>
+            <li><a href="Student-dash.html#">Dashboard</a></li>
+            <li><a href="student-participants.html#">Participants</a></li>
             <li><a href="progress.html#">Progress</a></li>
             <li><a href="groups.html#">Groups</a></li>
-            <li><a href="calendar.html#">Calendar</a></li>
+            <li><a href="calendar.html#" class="active">Calendar</a></li>
             <li><a href="chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-weather.html">Weather</a></li>
-            <li><a href="student-map.html">Campus Map</a></li>
+            <li><a href="student-weather.html#">Weather</a></li>
+            <li><a href="student-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="user-controls">
@@ -63,14 +69,14 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html">Dashboard</a></li>
-            <li><a href="student-participants.html" class="active">Participants</a></li>
+            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
+            <li><a href="student-articipants.html#">Participants</a></li>
             <li><a href="progress.html#">Progress</a></li>
             <li><a href="groups.html#">Groups</a></li>
-            <li><a href="calendar.html#">Calendar</a></li>
+            <li><a href="calendar.html#" class="active">Calendar</a></li>
             <li><a href="chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-weather.html">Weather</a></li>
-            <li><a href="student-map.html">Campus Map</a></li>
+            <li><a href="student-weather.html#" class="active">Weather</a></li>
+            <li><a href="student-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
@@ -84,47 +90,32 @@
             </button>
         </div>
     </nav>
+    <main>
+    <!-- Hero Section with Image -->
+        <section class="hero" id="about">
+            <article class="hero-container">
+                <section class="hero-content">
+                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our Calendar page. <span id="welcomeName"> Student</span>!</mark></h1>
+                    <p class="animate-on-scroll">Connect with fellow students and organise your calendar and schedules here.</p>
+                    <aside class="auth-buttons animate-on-scroll">
+                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
+    
+                    </aside>
+                </section>
+                <figure class="hero-image animate-on-scroll">
+                    <img src="../images/display2.jpg" 
+                         alt="Students studying together" />
+                </figure>
+            </article>
+            <div class="hero-particles">
+                <div class="particle particle-1"></div>
+                <div class="particle particle-2"></div>
+                <div class="particle particle-3"></div>
+            </div>
+        </section>
 
-    <!-- Main Content -->
-    <main class="participants-container">
-        <section class="participants-header">
-            <h1><i class="fas fa-users"></i> Connect with Participants</h1>
-            <p>Find study partners, tutors, and classmates from across Wits University</p>
-            
-            <div class="search-filter-container">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search by name, course, or faculty...">
-                </div>
-                
-                <div class="filter-controls">
-                    <select id="roleFilter" class="filter-select">
-                        <option value="">All Roles</option>
-                        <option value="student">Students</option>
-                        <option value="tutor">Tutors</option>
-                    </select>
-                    
-                    <select id="facultyFilter" class="filter-select">
-                        <option value="">All Faculties</option>
-                        <option value="Faculty of Science">Science</option>
-                        <option value="Faculty of Engineering">Engineering</option>
-                        <option value="Faculty of Health Sciences">Health Sciences</option>
-                        <option value="Faculty of Commerce">Commerce</option>
-                        <option value="Faculty of Humanities">Humanities</option>
-                    </select>
-                </div>
-            </div>
-        </section>
-        
-        <section class="participants-grid" id="participantsGrid">
-            <!-- Participants cards will be loaded here via JavaScript -->
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-                <p>Loading participants...</p>
-            </div>
-        </section>
     </main>
-
+    
     <!-- Footer -->
     <footer class="footer">
         <article class="container">
@@ -172,6 +163,10 @@
 
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/participants.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/calendar.js"></script>
+    <script src="../js/landing.js"></script>
+    <script src="../js/weather.js"></script>
+    <script src="../js/student-dash.js"></script>
 </body>
 </html>
