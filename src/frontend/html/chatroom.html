@@ -3,21 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta name="author" content="Wits">
+    <title>Wits - ChatRoom</title>
+    <meta name="description" content="Connect and chat with your study partners">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="../images/icon.png" type="image/png">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/chatroom.css">
-    <link rel="stylesheet" href="../css/student-dash.css">
-    <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/form-status.css">
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/chatroom.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -30,17 +24,17 @@
         </header>
         
         <ul class="nav-links">
-            <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="student-participants.html#">Participants</a></li>
+            <li><a href="Student-dash.html">Dashboard</a></li>
+            <li><a href="participants.html">Participants</a></li>
             <li><a href="progress.html#">Progress</a></li>
             <li><a href="groups.html#">Groups</a></li>
             <li><a href="calendar.html#">Calendar</a></li>
-            <li><a href="chatroom.html#" class="active">ChatRoom</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="chatroom.html" class="active">ChatRoom</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
-        <div class="user-controls">
+        <section class="user-controls">
             <a href="student-profile.html" class="profile-btn">
                 <i class="fas fa-user-circle"></i>
                 <span class="profile-text">Profile</span>
@@ -49,7 +43,7 @@
                 <i class="fas fa-sign-out-alt"></i>
                 <span class="logout-text">Log Out</span>
             </button>
-        </div>
+        </section>
         
         <button id="mobile-menu-button" class="mobile-menu">
             <i class="fas fa-bars"></i>
@@ -69,17 +63,17 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
-            <li><a href="student-articipants.html#">Participants</a></li>
+            <li><a href="Student-dash.html">Dashboard</a></li>
+            <li><a href="participants.html">Participants</a></li>
             <li><a href="progress.html#">Progress</a></li>
             <li><a href="groups.html#">Groups</a></li>
             <li><a href="calendar.html#">Calendar</a></li>
-            <li><a href="chatroom.html#" class="active">ChatRoom</a></li>
-            <li><a href="student-weather.html#" class="active">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="chatroom.html" class="active">ChatRoom</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
-        <div class="mobile-user-controls">
+        <section class="mobile-user-controls">
             <a href="student-profile.html" class="btn btn-outline mobile-profile-btn">
                 <i class="fas fa-user-circle"></i>
                 <span>Profile</span>
@@ -88,34 +82,164 @@
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Log Out</span>
             </button>
-        </div>
-    </nav>
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our ChatRoom page. <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students and chat with everything here.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
-    
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
-            </div>
         </section>
+    </nav>
 
+    <!-- Content Wrapper -->
+    <main class="content-wrapper">
+        <!-- Main Content -->
+        <section class="chatroom-container">
+            <header class="chatroom-header">
+                <h1><i class="fas fa-comments"></i> ChatRoom</h1>
+                <p>Connect and chat with your study partners and tutors</p>
+                
+                <section class="chatroom-stats">
+                    <article class="stat-item">
+                        <span class="stat-number" id="onlineCount">0</span>
+                        <span class="stat-label">Online</span>
+                    </article>
+                    <article class="stat-item">
+                        <span class="stat-number" id="conversationsCount">0</span>
+                        <span class="stat-label">Conversations</span>
+                    </article>
+                    <article class="stat-item">
+                        <span class="stat-number" id="connectionsCount">0</span>
+                        <span class="stat-label">Connections</span>
+                    </article>
+                </section>
+            </header>
+
+            <!-- Connections Sidebar -->
+            <section class="chatroom-content"> 
+                <aside class="connections-sidebar">
+                    <header class="sidebar-header">
+                        <h2><i class="fas fa-comments"></i> Conversations</h2>
+                        <button class="new-chat-btn" id="newChatBtn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </header>
+                    
+                    <section class="search-conversations">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search conversations..." id="conversationSearch">
+                    </section>
+                    
+                    <section class="conversations-list" id="conversationsList">
+                        <article class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Loading conversations...</p>
+                        </article>
+                    </section>
+                </aside>
+                
+                <!-- Chat Interface -->
+                <section class="chat-interface">
+                    <!-- No chat selected state -->
+                    <article class="no-chat-selected" id="noChatSelected">
+                        <section class="no-chat-content">
+                            <i class="fas fa-comments"></i>
+                            <h2>Select a conversation to start chatting</h2>
+                            <p>Or start a new conversation with a connected participant</p>
+                            <button class="btn btn-primary" id="startNewChat">Start New Chat</button>
+                        </section>
+                    </article>
+                    
+                    <!-- Chat header (hidden by default) -->
+                    <header class="chat-header" id="chatHeader">
+                        <section class="chat-user-info">
+                            <figure class="user-avatar" id="chatUserAvatar"></figure>
+                            <section class="user-details">
+                                <h3 id="chatUserName">User Name</h3>
+                                <span class="user-status" id="chatUserStatus">Online</span>
+                            </section>
+                        </section>
+                        <nav class="chat-actions">
+                            <button class="action-btn" id="viewProfileBtn" title="View Profile">
+                                <i class="fas fa-user"></i>
+                            </button>
+                            <button class="action-btn" id="voiceCallBtn" title="Voice Call">
+                                <i class="fas fa-phone"></i>
+                            </button>
+                            <button class="action-btn" id="videoCallBtn" title="Video Call">
+                                <i class="fas fa-video"></i>
+                            </button>
+                            <button class="action-btn" id="moreOptionsBtn" title="More Options">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                        </nav>
+                    </header>
+                    
+                    <!-- Messages container (hidden by default) -->
+                    <section class="messages-container" id="messagesContainer">
+                        <section class="messages" id="messages">
+                            <!-- Messages will be loaded here -->
+                        </section>
+                    </section>
+                    
+                    <!-- Message input (hidden by default) -->
+                    <footer class="message-input-container" id="messageInputContainer">
+                        <nav class="input-actions">
+                            <button class="action-btn" id="emojiBtn" title="Emoji">
+                                <i class="far fa-smile"></i>
+                            </button>
+                            <button class="action-btn" id="attachBtn" title="Attach File">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <input type="file" id="fileInput" multiple style="display: none;">
+                        </nav>
+                        <section class="message-input-wrapper">
+                            <input type="text" placeholder="Type a message..." id="messageInput">
+                            <button class="voice-message-btn" id="voiceMessageBtn" title="Voice Message">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </section>
+                        <button class="send-btn" id="sendMessageBtn" title="Send Message">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </footer>
+                    
+                    <!-- Connection verification modal -->
+                    <dialog class="modal" id="connectionModal">
+                        <article class="modal-content">
+                            <header class="modal-header">
+                                <h3>Connection Required</h3>
+                                <button class="close-modal" id="closeModal">&times;</button>
+                            </header>
+                            <section class="modal-body">
+                                <i class="fas fa-users-slash"></i>
+                                <p>You need to be connected with this user to start chatting.</p>
+                                <p>We've sent both of you an email notification about this chat attempt.</p>
+                            </section>
+                            <footer class="modal-footer">
+                                <button class="btn btn-outline" id="cancelChatBtn">Cancel</button>
+                                <button class="btn btn-primary" id="sendConnectionRequestBtn">Send Connection Request</button>
+                            </footer>
+                        </article>
+                    </dialog>
+                </section>
+                
+                <!-- New Chat Modal -->
+                <dialog class="modal" id="newChatModal">
+                    <article class="modal-content">
+                        <header class="modal-header">
+                            <h3>Start New Conversation</h3>
+                            <button class="close-modal" id="closeNewChatModal">&times;</button>
+                        </header>
+                        <section class="modal-body">
+                            <section class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search connected participants..." id="participantSearch">
+                            </section>
+                            <section class="participants-list" id="modalParticipantsList">
+                                <!-- Connected participants will be listed here -->
+                            </section>
+                        </section>
+                    </article>
+                </dialog>
+            </section>
+        </section>
     </main>
-    
+
     <!-- Footer -->
     <footer class="footer">
         <article class="container">
@@ -163,10 +287,7 @@
 
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
     <script src="../js/chatroom.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
     <script src="../js/student-dash.js"></script>
 </body>
 </html>

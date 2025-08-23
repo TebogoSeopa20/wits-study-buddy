@@ -1,0 +1,759 @@
+
+
+1. Profiles API Documentation
+
+Base URL
+
+https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/api
+
+Overview
+
+The Profiles API provides endpoints to retrieve user profile information from the Wits Buddy system. It allows fetching all profiles or a specific profile by ID.
+
+Authentication
+
+This API currently does not require authentication for the documented endpoints.
+
+Endpoints
+
+1. Get All Profiles
+
+Endpoint: /profiles  
+Method: GET  
+Description: Retrieves a list of all user profiles in the system.
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Array of profile objects
+
+Example Request:
+
+GET /api/profiles HTTP/1.1
+Host: wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net
+
+Example Response:
+
+[
+  {
+    "id": "a15cfb9d-6318-488b-8be3-f03788df4aa2",
+    "user_id": "262bb0b5-5018-4a0a-b7f7-302712ccde3f",
+    "role": "student",
+    "name": "Samukelo MATHUSI",
+    "email": "2609046@students.wits.ac.za",
+    "phone": "+27730685058",
+    "faculty": "Faculty of Science",
+    "course": "Bachelor of Science (BSc) - Computer Science",
+    "year_of_study": "3rd Year",
+    "terms_agreed": true,
+    "terms_agreed_at": "2025-08-15T11:22:11.605+00:00",
+    "created_at": "2025-08-15T11:22:12.619663+00:00",
+    "updated_at": "2025-08-15T11:22:12.619663+00:00"
+  },
+  {
+    "id": "5dc923e6-953d-458e-a41b-397e8ab76fcb",
+    "user_id": "5b22fce2-6f2b-4c7e-ac17-1a3ba858db73",
+    "role": "tutor",
+    "name": "thembi",
+    "email": "2543085@students.wits.ac.za",
+    "phone": "0766781709",
+    "faculty": "Faculty of Science",
+    "course": "Bachelor of Science (BSc) - Actuarial Science",
+    "year_of_study": "3rd Year",
+    "terms_agreed": true,
+    "terms_agreed_at": "2025-08-18T14:33:49.647+00:00",
+    "created_at": "2025-08-18T14:33:50.143905+00:00",
+    "updated_at": "2025-08-18T14:33:50.143905+00:00"
+  }
+]
+
+2. Get Profile by ID
+
+Endpoint: /profiles/{id}  
+Method: GET  
+Description: Retrieves a specific user profile by its unique identifier.
+
+Parameters:
+
+id (path parameter, required): The unique ID of the profile to retrieve
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Single profile object
+
+Example Request:
+
+GET /api/profiles/a15cfb9d-6318-488b-8be3-f03788df4aa2 HTTP/1.1
+Host: wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net
+
+Example Response:
+
+{
+  "id": "a15cfb9d-6318-488b-8be3-f03788df4aa2",
+  "user_id": "262bb0b5-5018-4a0a-b7f7-302712ccde3f",
+  "role": "student",
+  "name": "Samukelo MATHUSI",
+  "email": "2609046@students.wits.ac.za",
+  "phone": "+27730685058",
+  "faculty": "Faculty of Science",
+  "course": "Bachelor of Science (BSc) - Computer Science",
+  "year_of_study": "3rd Year",
+  "terms_agreed": true,
+  "terms_agreed_at": "2025-08-15T11:22:11.605+00:00",
+  "created_at": "2025-08-15T11:22:12.619663+00:00",
+  "updated_at": "2025-08-15T11:22:12.619663+00:00"
+}
+
+Error Responses
+
+Both endpoints may return the following error response:
+
+Status Code: 500 Internal Server Error  
+Response Body:
+
+{
+  "error": "Error message describing what went wrong"
+}
+
+Profile Object Structure
+
+All profile objects have the following fields:
+
+Field
+
+Type
+
+Description
+
+id 
+
+string 
+
+Unique identifier for the profile 
+
+user_id 
+
+string 
+
+Unique identifier for the associated user account 
+
+role 
+
+string 
+
+User role (e.g., "student", "tutor") 
+
+name 
+
+string 
+
+Full name of the user 
+
+email 
+
+string 
+
+User's email address 
+
+phone 
+
+string 
+
+User's phone number 
+
+faculty 
+
+string 
+
+Faculty the user belongs to 
+
+course 
+
+string 
+
+Course the user is enrolled in 
+
+year_of_study 
+
+string 
+
+Current year of study 
+
+terms_agreed 
+
+boolean 
+
+Whether the user has agreed to terms 
+
+terms_agreed_at 
+
+string (ISO 8601) 
+
+Timestamp of when terms were agreed to 
+
+created_at 
+
+string (ISO 8601) 
+
+Timestamp of when the profile was created 
+
+updated_at 
+
+string (ISO 8601) 
+
+Timestamp of when the profile was last updated 
+
+
+
+
+
+2. Connections API Documentation
+
+Base URL
+
+https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/api
+
+Overview
+
+The Connections API manages user relationships in the Wits Buddy system, including friend requests, connections, blocking, and relationship status tracking. It supports various connection statuses: pending, accepted, blocked, and pending_approval.
+
+Authentication
+
+This API currently does not require authentication for the documented endpoints.
+
+Database Schema
+
+Connections Table
+
+Column
+
+Type
+
+Description
+
+id 
+
+uuid 
+
+Unique identifier for the connection record 
+
+user_id 
+
+uuid 
+
+ID of the user who owns this connection list 
+
+connected_users 
+
+jsonb 
+
+Array of connection objects with status and metadata 
+
+created_at 
+
+timestamptz 
+
+When the connection record was created 
+
+updated_at 
+
+timestamptz 
+
+When the connection record was last updated 
+
+Connection Object Structure
+
+Each connection in the connected_users array has:
+
+status: Relationship status (pending, accepted, blocked, pending_approval)
+
+user_id: ID of the connected user
+
+connected_at: Timestamp when the connection was established
+
+Endpoints
+
+1. Get User Connections
+
+Endpoint: /connections/:user_id  
+Method: GET  
+Description: Retrieves all connections for a specific user with optional status filtering.
+
+Parameters:
+
+user_id (path, required): The ID of the user whose connections to retrieve
+
+status (query, optional): Filter connections by status (pending, accepted, blocked, pending_approval)
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Connection object with array of connected users
+
+Example Request:
+
+GET /api/connections/79bb1a45-8581-47c7-988a-f0524f0971e6?status=pending HTTP/1.1
+Host: wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net
+
+Example Response:
+
+{
+  "id": "aa91542a-907c-4648-a4ab-46921eee0558",
+  "user_id": "79bb1a45-8581-47c7-988a-f0524f0971e6",
+  "connected_users": [
+    {
+      "status": "pending",
+      "user_id": "213a9d2a-bcea-441e-9643-8655a66eb612",
+      "connected_at": "2025-08-23T09:48:50.285154+00:00"
+    },
+    {
+      "status": "pending",
+      "user_id": "52f7abe7-3d1f-49d6-b3f5-890bdd0fed6e",
+      "connected_at": "2025-08-23T09:50:14.77154+00:00"
+    }
+  ],
+  "created_at": "2025-08-23T09:39:50.542+00:00",
+  "updated_at": "2025-08-23T09:50:14.77154+00:00"
+}
+
+2. Get Connections with Profile Details
+
+Endpoint: /connections/:user_id/details  
+Method: GET  
+Description: Retrieves connections with full profile information of connected users.
+
+Parameters:
+
+user_id (path, required): The ID of the user whose connections to retrieve
+
+status (query, optional): Filter connections by status
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Array of connection objects with full profile details
+
+Example Request:
+
+GET /api/connections/79bb1a45-8581-47c7-988a-f0524f0971e6/details HTTP/1.1
+Host: wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net
+
+Example Response:
+
+{
+  "connections": [
+    {
+      "status": "pending",
+      "user_id": "213a9d2a-bcea-441e-9643-8655a66eb612",
+      "connected_at": "2025-08-23T09:48:50.285154+00:00",
+      "name": "John Doe",
+      "email": "john@students.wits.ac.za",
+      "role": "student",
+      "faculty": "Faculty of Science",
+      "course": "Computer Science",
+      "year_of_study": "2nd Year"
+    }
+  ]
+}
+
+3. Send Connection Request
+
+Endpoint: /connections/:user_id/send-request  
+Method: POST  
+Description: Sends a connection request to another user.
+
+Parameters:
+
+user_id (path, required): The ID of the user sending the request
+
+target_user_id (body, required): The ID of the user receiving the request
+
+Request Body:
+
+{
+  "target_user_id": "213a9d2a-bcea-441e-9643-8655a66eb612"
+}
+
+Response:
+
+Status Code: 200 (Success), 400 (Bad Request), or 500 (Error)
+
+Body: Success message and status
+
+Example Response:
+
+{
+  "message": "Connection request sent successfully",
+  "status": "pending"
+}
+
+4. Accept Connection Request
+
+Endpoint: /connections/:user_id/accept  
+Method: POST  
+Description: Accepts a pending connection request.
+
+Parameters:
+
+user_id (path, required): The ID of the user accepting the request
+
+requester_id (body, required): The ID of the user who sent the request
+
+Request Body:
+
+{
+  "requester_id": "213a9d2a-bcea-441e-9643-8655a66eb612"
+}
+
+Response:
+
+Status Code: 200 (Success), 400 (Bad Request), or 500 (Error)
+
+Body: Success message and status
+
+Example Response:
+
+{
+  "message": "Connection request accepted successfully",
+  "status": "accepted"
+}
+
+5. Reject Connection Request
+
+Endpoint: /connections/:user_id/reject  
+Method: POST  
+Description: Rejects a pending connection request.
+
+Parameters:
+
+user_id (path, required): The ID of the user rejecting the request
+
+requester_id (body, required): The ID of the user who sent the request
+
+Request Body:
+
+{
+  "requester_id": "213a9d2a-bcea-441e-9643-8655a66eb612"
+}
+
+Response:
+
+Status Code: 200 (Success), 400 (Bad Request), or 500 (Error)
+
+Body: Success message
+
+Example Response:
+
+{
+  "message": "Connection request rejected successfully"
+}
+
+6. Block User
+
+Endpoint: /connections/:user_id/block  
+Method: POST  
+Description: Blocks another user.
+
+Parameters:
+
+user_id (path, required): The ID of the user doing the blocking
+
+blocked_user_id (body, required): The ID of the user being blocked
+
+Request Body:
+
+{
+  "blocked_user_id": "213a9d2a-bcea-441e-9643-8655a66eb612"
+}
+
+Response:
+
+Status Code: 200 (Success), 400 (Bad Request), or 500 (Error)
+
+Body: Success message and status
+
+Example Response:
+
+{
+  "message": "User blocked successfully",
+  "status": "blocked"
+}
+
+7. Get Connection Status Between Users
+
+Endpoint: /connections/:user_id/status/:other_user_id  
+Method: GET  
+Description: Checks the connection status between two users.
+
+Parameters:
+
+user_id (path, required): The first user's ID
+
+other_user_id (path, required): The second user's ID
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Connection status and user IDs
+
+Example Request:
+
+GET /api/connections/79bb1a45-8581-47c7-988a-f0524f0971e6/status/213a9d2a-bcea-441e-9643-8655a66eb612 HTTP/1.1
+Host: wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net
+
+Example Response:
+
+{
+  "status": "pending",
+  "user1_id": "79bb1a45-8581-47c7-988a-f0524f0971e6",
+  "user2_id": "213a9d2a-bcea-441e-9643-8655a66eb612"
+}
+
+8. Remove Connection
+
+Endpoint: /connections/:user_id/remove  
+Method: POST  
+Description: Removes a connection entirely.
+
+Parameters:
+
+user_id (path, required): The ID of the user removing the connection
+
+connection_id (body, required): The ID of the connection to remove
+
+Request Body:
+
+{
+  "connection_id": "213a9d2a-bcea-441e-9643-8655a66eb612"
+}
+
+Response:
+
+Status Code: 200 (Success), 400 (Bad Request), or 500 (Error)
+
+Body: Success message
+
+Example Response:
+
+{
+  "message": "Connection removed successfully"
+}
+
+9. Get Connection Statistics
+
+Endpoint: /connections/:user_id/stats  
+Method: GET  
+Description: Retrieves statistics about a user's connections.
+
+Parameters:
+
+user_id (path, required): The ID of the user
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Connection counts by status
+
+Example Request:
+
+GET /api/connections/79bb1a45-8581-47c7-988a-f0524f0971e6/stats HTTP/1.1
+Host: wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net
+
+Example Response:
+
+{
+  "stats": {
+    "pending": 2,
+    "accepted": 5,
+    "blocked": 1,
+    "total": 8
+  }
+}
+
+10. Get Pending Connection Requests
+
+Endpoint: /connections/:user_id/pending-requests  
+Method: GET  
+Description: Retrieves incoming connection requests that need approval.
+
+Parameters:
+
+user_id (path, required): The ID of the user
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Array of pending requests with count
+
+Example Response:
+
+{
+  "pending_requests": [
+    {
+      "status": "pending_approval",
+      "user_id": "213a9d2a-bcea-441e-9643-8655a66eb612",
+      "connected_at": "2025-08-23T09:48:50.285154+00:00",
+      "name": "John Doe",
+      "email": "john@students.wits.ac.za"
+    }
+  ],
+  "count": 1
+}
+
+11. Get Sent Connection Requests
+
+Endpoint: /connections/:user_id/sent-requests  
+Method: GET  
+Description: Retrieves outgoing connection requests waiting for response.
+
+Parameters:
+
+user_id (path, required): The ID of the user
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Array of sent requests with count
+
+Example Response:
+
+{
+  "sent_requests": [
+    {
+      "status": "pending",
+      "user_id": "52f7abe7-3d1f-49d6-b3f5-890bdd0fed6e",
+      "connected_at": "2025-08-23T09:50:14.77154+00:00",
+      "name": "Jane Smith",
+      "email": "jane@students.wits.ac.za"
+    }
+  ],
+  "count": 1
+}
+
+12. Get Accepted Connections (Friends)
+
+Endpoint: /connections/:user_id/friends  
+Method: GET  
+Description: Retrieves accepted connections (friends).
+
+Parameters:
+
+user_id (path, required): The ID of the user
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Array of friends with count
+
+Example Response:
+
+{
+  "friends": [
+    {
+      "status": "accepted",
+      "user_id": "a15cfb9d-6318-488b-8be3-f03788df4aa2",
+      "connected_at": "2025-08-22T14:30:25.123456+00:00",
+      "name": "Samukelo MATHUSI",
+      "email": "2609046@students.wits.ac.za"
+    }
+  ],
+  "count": 1
+}
+
+13. Update Connection Status (Admin/Debug)
+
+Endpoint: /connections/:user_id/update-status  
+Method: PATCH  
+Description: Manually updates a connection status (admin/debug endpoint).
+
+Parameters:
+
+user_id (path, required): The ID of the user
+
+connection_id (body, required): The ID of the connection to update
+
+status (body, required): New status (pending, accepted, blocked, pending_approval)
+
+Request Body:
+
+{
+  "connection_id": "213a9d2a-bcea-441e-9643-8655a66eb612",
+  "status": "accepted"
+}
+
+Response:
+
+Status Code: 200 (Success), 400 (Bad Request), or 500 (Error)
+
+Body: Success message and new status
+
+Example Response:
+
+{
+  "message": "Connection status updated successfully",
+  "status": "accepted"
+}
+
+14. Delete All Connections (Admin)
+
+Endpoint: /connections/:user_id  
+Method: DELETE  
+Description: Deletes all connections for a user (admin endpoint).
+
+Parameters:
+
+user_id (path, required): The ID of the user
+
+Response:
+
+Status Code: 200 (Success) or 500 (Error)
+
+Body: Success message
+
+Example Response:
+
+{
+  "message": "All connections deleted successfully"
+}
+
+Error Responses
+
+All endpoints may return the following error response:
+
+Status Code: 500 Internal Server Error  
+Response Body:
+
+{
+  "error": "Error message describing what went wrong"
+}
+
+Some endpoints may also return:
+
+Status Code: 400 Bad Request  
+Response Body:
+
+{
+  "error": "Specific validation error message"
+}
+
+Connection Status Types
+
+pending: Outgoing request waiting for response
+
+pending_approval: Incoming request waiting for approval
+
+accepted: Connection is accepted (friends)
+
+blocked: User is blocked
+
+none: No connection exists

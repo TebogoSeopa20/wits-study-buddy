@@ -1,0 +1,184 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5; /* Light grey background similar to some apps */
+}
+
+.messaging-container {
+    display: flex;
+    height: 100vh; /* Full viewport height */
+    overflow: hidden; /* Prevent scrolling on the container */
+}
+
+/* Sidebar for Groups/Conversations */
+.group-sidebar {
+    width: 300px; /* Fixed width for the sidebar */
+    background-color: #fff; /* White background */
+    border-right: 1px solid #e4e4e4; /* Subtle border */
+    display: flex;
+    flex-direction: column;
+}
+
+.group-sidebar h2 {
+    padding: 15px;
+    margin: 0;
+    font-size: 1.2em;
+    border-bottom: 1px solid #e4e4e4;
+}
+
+.group-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Allow the list to take up available space */
+    overflow-y: auto; /* Enable scrolling for the group list */
+}
+
+.group-item {
+    padding: 15px;
+    border-bottom: 1px solid #e4e4e4;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.group-item:hover {
+    background-color: #f0f0f0;
+}
+
+.group-item.active {
+    background-color: #e9e9e9; /* Highlight active group */
+}
+
+.group-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.last-message {
+    color: #555;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Main Message Area */
+.message-area {
+    flex-grow: 1; /* Allow the message area to take up remaining space */
+    display: flex;
+    flex-direction: column;
+    background-color: #f0f2f5; /* Match body background */
+}
+
+.message-header {
+    padding: 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #e4e4e4;
+    display: flex;
+    align-items: center;
+}
+
+.message-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+    flex-grow: 1; /* Allow the group name to take up space */
+}
+
+.message-list {
+    flex-grow: 1; /* Allow message list to take up space */
+    padding: 15px;
+    overflow-y: auto; /* Enable scrolling for messages */
+    display: flex;
+    flex-direction: column; /* Stack messages vertically */
+}
+
+.message {
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 70%; /* Limit message width */
+    word-wrap: break-word; /* Break long words */
+}
+
+.message.sent {
+    align-self: flex-end; /* Align sent messages to the right */
+    background-color: #dcf8c6; /* Light green for sent messages */
+}
+
+.message.received {
+    align-self: flex-start; /* Align received messages to the left */
+    background-color: #fff; /* White for received messages */
+    border: 1px solid #e4e4e4; /* Subtle border for received messages */
+}
+
+.message-text {
+    margin: 0;
+}
+
+.message-time {
+    display: block;
+    font-size: 0.7em;
+    color: #888;
+    margin-top: 5px;
+    text-align: right; /* Align time to the right for sent messages */
+}
+
+.message.received .message-time {
+     text-align: left; /* Align time to the left for received messages */
+}
+
+
+.message-input-area {
+    padding: 15px;
+    background-color: #fff;
+    border-top: 1px solid #e4e4e4;
+    display: flex;
+    align-items: center;
+}
+
+.message-input {
+    flex-grow: 1; /* Allow input field to take up space */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    margin-right: 10px;
+    font-size: 1em;
+}
+
+.send-button {
+    padding: 10px 15px;
+    background-color: #007bff; /* Primary button color */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+.send-button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .messaging-container {
+        flex-direction: column; /* Stack sidebar and message area on smaller screens */
+    }
+
+    .group-sidebar {
+        width: 100%; /* Full width sidebar on smaller screens */
+        height: 40vh; /* Allocate some height for the sidebar */
+        border-right: none;
+        border-bottom: 1px solid #e4e4e4;
+    }
+
+    .message-area {
+        flex-grow: 1; /* Allow message area to take remaining height */
+        height: 60vh; /* Allocate remaining height for message area */
+    }
+
+    .message {
+        max-width: 80%; /* Adjust max width for messages */
+    }
+}

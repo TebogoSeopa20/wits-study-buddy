@@ -6,10 +6,16 @@ const session = require('express-session');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const connectionsApi = require('./backend/connections-api');
 const usersApi = require('./backend/users-api');
 
 // Create the Express application
 const app = express();
+app.use('/api', connectionsApi); 
+
+// Define absolute paths for frontend directories
+const frontendPath = path.join(__dirname, 'frontend');
+const htmlPath = path.join(frontendPath, 'html');
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -38,16 +44,22 @@ const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const redirectUrl = process.env.NODE_ENV === 'production' 
   ? process.env.PRODUCTION_REDIRECT_URL
   : 'http://localhost:3000/auth/google/callback';
+
+// Debug: Log the paths to verify they're correct
+console.log('Frontend path:', frontendPath);
+console.log('HTML path:', htmlPath);
+console.log('Landing page path:', path.join(htmlPath, 'landing.html'));
+
 //path for the users api
 app.use('/api', usersApi);
 
 // Configure middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// Serve all static files from frontend directory
-app.use(express.static(path.join(__dirname, 'frontend')));
-// Specifically serve HTML files from the html subdirectory
-app.use(express.static(path.join(__dirname, 'frontend', 'html')));
+
+// Serve static files from both frontend and html directories
+app.use(express.static(frontendPath));
+app.use(express.static(htmlPath));
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -208,7 +220,7 @@ app.get('/signupGoogle', (req, res) => {
     try {
       const googleProfile = jwt.verify(req.query.token, process.env.SESSION_SECRET);
       req.session.googleProfile = googleProfile;
-      return res.sendFile(path.join(__dirname, 'frontend', 'html', 'signup.html'));
+      return res.sendFile(path.join(htmlPath, 'signup.html'));
     } catch (err) {
       return res.redirect('/login?error=invalid_token');
     }
@@ -218,7 +230,7 @@ app.get('/signupGoogle', (req, res) => {
     return res.redirect('/login?error=missing_google_profile');
   }
   
-  res.sendFile(path.join(__dirname, 'frontend', 'html', 'signup.html'));
+  res.sendFile(path.join(htmlPath, 'signup.html'));
 });
 
 app.post('/api/signup-google', async (req, res) => {
@@ -543,17 +555,17 @@ app.get('/api/auth/status', (req, res) => {
   return res.status(200).json({ authenticated: false });
 });
 
-// Serve HTML files
+// Serve HTML files using absolute paths
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'html', 'landing.html'));
+  res.sendFile(path.join(htmlPath, 'landing.html'));
 });
 
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'html', 'login.html'));
+  res.sendFile(path.join(htmlPath, 'login.html'));
 });
 
 app.get('/signup', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'html', 'signup.html'));
+  res.sendFile(path.join(htmlPath, 'signup.html'));
 });
 
 // Start the server

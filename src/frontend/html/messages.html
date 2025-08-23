@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wits - Messaging</title>
+    <meta name="description" content="Communicate with your study groups and tutors on Wits.">
+    <meta name="author" content="Wits">
+
+    <meta property="og:title" content="Wits - Messaging">
+    <meta property="og:description" content="Communicate with your study groups and tutors on Wits.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+
+    <!-- Existing CSS -->
+    <link rel="stylesheet" href="../css/landing.css">
+    <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/form-status.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- New Messaging Specific CSS -->
+    <link rel="stylesheet" href="../css/messages.css">
+
+</head>
+<body>
+    <div class="messaging-container">
+        <div class="sidebar">
+            <div class="group-list">
+                <h2>Groups</h2>
+                <!-- Group list will be populated by JavaScript -->
+            </div>
+        </div>
+        <div class="chat-area">
+            <div class="message-list">
+                <!-- Messages will be populated by JavaScript -->
+            </div>
+            <div class="message-input">
+                <input type="text" placeholder="Type your message...">
+ <button id="send-message-button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Existing JavaScript -->
+    <script src="../js/main.js"></script>
+    <script src="../js/landing.js"></script>
+    <script src="../js/weather.js"></script>
+
+    <!-- New Messaging Specific JavaScript -->
+    <script src="../js/messages.js"></script>
+
+</body>
+</html>
