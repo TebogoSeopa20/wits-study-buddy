@@ -104,6 +104,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', '6th Year'];
     
     // DOM elements with correct IDs from your HTML
+    const connectionsSection = document.getElementById('connectionsSection');
+    const connectionStats = document.getElementById('connectionStats');
+    const pendingCount = document.getElementById('pendingCount');
+    const connectedCount = document.getElementById('connectedCount');
+    const sentCount = document.getElementById('sentCount');
+    const pendingConnections = document.getElementById('pendingConnections');
+    const connectedConnections = document.getElementById('connectedConnections');
+    const sentConnections = document.getElementById('sentConnections');
     const participantsGrid = document.getElementById('participantsGrid');
     const searchInput = document.getElementById('searchInput');
     const roleFilter = document.getElementById('roleFilter');

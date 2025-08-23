@@ -115,12 +115,67 @@
                 </div>
             </div>
         </section>
+
+        <!-- Connection Stats Section -->
+        <section class="connection-stats" id="connectionStats">
+            <div class="stat-card">
+                <div class="stat-value" id="connectedCount">0</div>
+                <div class="stat-label">Connected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-label">Pending Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="sentCount">0</div>
+                <div class="stat-label">Sent Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total Participants</div>
+            </div>
+        </section>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button class="view-toggle-btn active" data-view="grid">
+                <i class="fas fa-th"></i> Grid View
+            </button>
+            <button class="view-toggle-btn" data-view="list">
+                <i class="fas fa-list"></i> List View
+            </button>
+        </div>
+
+        <!-- Connection Management Tabs -->
+        <div class="connection-tabs">
+            <button class="tab-btn active" data-tab="all">All Participants</button>
+            <button class="tab-btn" data-tab="connections">My Connections</button>
+            <button class="tab-btn" data-tab="pending">Pending Requests</button>
+            <button class="tab-btn" data-tab="sent">Sent Requests</button>
+        </div>
+
+        <!-- Filter Chips -->
+        <div class="filter-chips" id="filterChips"></div>
         
+        <!-- Participants Grid/List -->
         <section class="participants-grid" id="participantsGrid">
             <!-- Participants cards will be loaded here via JavaScript -->
             <div class="loading-spinner">
                 <div class="spinner"></div>
                 <p>Loading participants...</p>
+            </div>
+        </section>
+
+        <!-- Connections Section (for pending requests) -->
+        <section class="connections-section" id="connectionsSection">
+            <h2><i class="fas fa-user-clock"></i> Connection Requests</h2>
+            <div class="connections-container">
+                <div class="connection-requests" id="pendingConnections">
+                    <!-- Pending requests will be loaded here -->
+                </div>
+                <div class="connection-requests" id="sentConnections">
+                    <!-- Sent requests will be loaded here -->
+                </div>
             </div>
         </section>
     </main>

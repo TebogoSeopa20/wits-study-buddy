@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <title>Wits - ChatRoom</title>
+    <meta name="description" content="Connect with fellow students through chat, voice, and video calls">
     <meta name="author" content="Wits">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta property="og:title" content="Wits - ChatRoom">
+    <meta property="og:description" content="Connect with fellow students through chat, voice, and video calls">
     <meta property="og:type" content="website">
     <link rel="icon" href="../images/icon.png" type="image/png">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/chatroom.css">
-    <link rel="stylesheet" href="../css/student-dash.css">
-    <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/form-status.css">
+    
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/chatroom.css">
+    <link rel="stylesheet" href="../css/student-dash.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -69,13 +69,13 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
-            <li><a href="student-articipants.html#">Participants</a></li>
+            <li><a href="Student-dash.html#">Dashboard</a></li>
+            <li><a href="student-participants.html#">Participants</a></li>
             <li><a href="progress.html#">Progress</a></li>
             <li><a href="groups.html#">Groups</a></li>
             <li><a href="calendar.html#">Calendar</a></li>
             <li><a href="chatroom.html#" class="active">ChatRoom</a></li>
-            <li><a href="student-weather.html#" class="active">Weather</a></li>
+            <li><a href="student-weather.html#">Weather</a></li>
             <li><a href="student-map.html#">Campus Map</a></li>
         </ul>
         
@@ -90,33 +90,218 @@
             </button>
         </div>
     </nav>
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our ChatRoom page. <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students and chat with everything here.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
-    
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
+
+    <!-- Main Chatroom Container -->
+    <main class="chatroom-container">
+        <!-- Sidebar for Chats and Groups -->
+        <aside class="chatroom-sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-comments"></i> Conversations</h2>
+                <button class="btn btn-primary new-chat-btn" id="newChatBtn">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <!-- Chat Tabs -->
+            <div class="chat-tabs">
+                <button class="tab-btn active" data-tab="direct">
+                    <i class="fas fa-user"></i> Direct
+                </button>
+                <button class="tab-btn" data-tab="groups">
+                    <i class="fas fa-users"></i> Groups
+                </button>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" placeholder="Search conversations..." class="search-input" id="searchInput">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <!-- Chat List -->
+            <div class="chat-list" id="chatList">
+                <!-- Chat items will be dynamically inserted here -->
+            </div>
+            
+            <!-- New Group Button -->
+            <button class="btn btn-outline new-group-btn" id="newGroupBtn">
+                <i class="fas fa-plus"></i>
+                <span>Create Group</span>
+            </button>
+        </aside>
+        
+        <!-- Main Chat Area -->
+        <section class="chat-main">
+            <!-- Chat Header -->
+            <header class="chat-header" id="chatHeader">
+                <div class="chat-user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-details">
+                        <h3 class="user-name">Select a conversation</h3>
+                        <span class="user-status">to start chatting</span>
+                    </div>
+                </div>
+                
+                <div class="chat-actions">
+                    <button class="action-btn" id="voiceCallBtn" title="Voice Call">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button class="action-btn" id="videoCallBtn" title="Video Call">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="action-btn" id="chatInfoBtn" title="Chat Info">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Messages Container -->
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Welcome to Wits ChatRoom</h3>
+                    <p>Connect with fellow students, share files, and collaborate on your studies.</p>
+                </div>
+            </div>
+            
+            <!-- Message Input -->
+            <div class="message-input-container" id="messageInputContainer">
+                <div class="message-input-wrapper">
+                    <button class="attachment-btn" id="attachmentBtn" title="Attach File">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt" style="display: none;">
+                    <textarea 
+                        class="message-input" 
+                        id="messageInput" 
+                        placeholder="Type your message..." 
+                        rows="1"
+                    ></textarea>
+                    <button class="emoji-btn" id="emojiBtn" title="Add Emoji">
+                        <i class="fas fa-smile"></i>
+                    </button>
+                    <button class="send-btn" id="sendBtn" title="Send Message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </section>
-
+        
+        <!-- Participants Panel (Hidden by default) -->
+        <aside class="participants-panel" id="participantsPanel">
+            <div class="panel-header">
+                <h3><i class="fas fa-users"></i> Participants</h3>
+                <button class="close-panel-btn" id="closePanelBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="participants-list" id="participantsList">
+                <!-- Participants will be dynamically inserted here -->
+            </div>
+            
+            <div class="panel-actions">
+                <button class="btn btn-outline" id="addParticipantBtn">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Add Participant</span>
+                </button>
+            </div>
+        </aside>
     </main>
     
-    <!-- Footer -->
+    <!-- Call Modal -->
+    <div class="call-modal" id="callModal">
+        <div class="call-content">
+            <div class="call-header">
+                <h3 id="callTitle">Voice Call</h3>
+                <span id="callDuration">00:00</span>
+            </div>
+            
+            <div class="call-user-info">
+                <div class="call-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h4 id="callUserName">John Doe</h4>
+                <span id="callStatus">Connecting...</span>
+            </div>
+            
+            <div class="call-controls">
+                <button class="call-control-btn mute-btn" id="muteBtn" title="Mute">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="call-control-btn video-btn" id="videoToggleBtn" title="Turn on Video">
+                    <i class="fas fa-video-slash"></i>
+                </button>
+                <button class="call-control-btn end-call-btn" id="endCallBtn" title="End Call">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Group Modal -->
+    <div class="modal" id="newGroupModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Group</h3>
+                <button class="close-modal-btn" id="closeGroupModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="groupName">Group Name</label>
+                    <input type="text" id="groupName" placeholder="Enter group name...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="groupDescription">Description (Optional)</label>
+                    <textarea id="groupDescription" placeholder="Enter group description..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Select Participants</label>
+                    <div class="participants-selector" id="participantsSelector">
+                        <!-- Available participants will be listed here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="cancelGroupBtn">Cancel</button>
+                <button class="btn btn-primary" id="createGroupBtn">Create Group</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Emoji Picker -->
+    <div class="emoji-picker" id="emojiPicker">
+        <div class="emoji-grid">
+            <span class="emoji" data-emoji="😀">😀</span>
+            <span class="emoji" data-emoji="😂">😂</span>
+            <span class="emoji" data-emoji="😊">😊</span>
+            <span class="emoji" data-emoji="😍">😍</span>
+            <span class="emoji" data-emoji="🤔">🤔</span>
+            <span class="emoji" data-emoji="👍">👍</span>
+            <span class="emoji" data-emoji="👏">👏</span>
+            <span class="emoji" data-emoji="❤️">❤️</span>
+            <span class="emoji" data-emoji="📚">📚</span>
+            <span class="emoji" data-emoji="🎓">🎓</span>
+            <span class="emoji" data-emoji="✨">✨</span>
+            <span class="emoji" data-emoji="🔥">🔥</span>
+        </div>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+        <!-- Footer -->
     <footer class="footer">
         <article class="container">
             <section class="footer-content">
@@ -160,13 +345,10 @@
             </footer>
         </article>
     </footer>
-
+    
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
     <script src="../js/chatroom.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
-    <script src="../js/student-dash.js"></script>
+    <script src="../js/main.js"></script>
 </body>
 </html>
