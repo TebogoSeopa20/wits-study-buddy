@@ -7,6 +7,7 @@ const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const usersApi = require('./backend/users-api');
+const connectionsApi = require('./backend/connections-api');
 
 // Create the Express application
 const app = express();
@@ -38,12 +39,15 @@ const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const redirectUrl = process.env.NODE_ENV === 'production' 
   ? process.env.PRODUCTION_REDIRECT_URL
   : 'http://localhost:3000/auth/google/callback';
-//path for the users api
-app.use('/api', usersApi);
 
-// Configure middleware
+  // Configure middleware FIRST
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Then mount your API routes AFTER the middleware
+app.use('/api', usersApi);
+app.use('/api', connectionsApi);
+
 // Serve all static files from frontend directory
 app.use(express.static(path.join(__dirname, 'frontend')));
 // Specifically serve HTML files from the html subdirectory
