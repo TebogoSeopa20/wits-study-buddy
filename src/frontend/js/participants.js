@@ -109,8 +109,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const pendingCount = document.getElementById('pendingCount');
     const connectedCount = document.getElementById('connectedCount');
     const sentCount = document.getElementById('sentCount');
+    const totalCount = document.getElementById('totalCount');
     const pendingConnections = document.getElementById('pendingConnections');
-    const connectedConnections = document.getElementById('connectedConnections');
     const sentConnections = document.getElementById('sentConnections');
     const participantsGrid = document.getElementById('participantsGrid');
     const searchInput = document.getElementById('searchInput');
@@ -121,6 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let filteredProfiles = [];
     let currentUser = null;
     let userConnections = {};
+    let currentTab = 'all';
+    let currentView = 'grid';
     
     // Check if essential elements exist before initializing
     if (!participantsGrid) {
@@ -142,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadUserConnections().then(() => {
             loadParticipants();
             setupEventListeners();
+            updateConnectionStats();
         });
     }
     
@@ -165,9 +168,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             userConnections = data;
+            updateConnectionStats();
+            displayConnectionRequests();
         } catch (error) {
             console.error('Error fetching user connections:', error);
             userConnections = { connected_users: [] };
+            updateConnectionStats();
+            displayConnectionRequests();
         }
     }
     
@@ -175,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!userConnections.connected_users) return 'none';
         
         const connection = userConnections.connected_users.find(
-            conn => conn.user_id === targetUserId
+            conn => conn.user_id === targetUserId || conn.requester_id === targetUserId
         );
         
         return connection ? connection.status : 'none';
@@ -195,6 +202,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 applyFilters();
             });
         }
+        
+        // Add tab event listeners
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all tabs
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Set current tab
+                currentTab = this.getAttribute('data-tab');
+                applyFilters();
+            });
+        });
+        
+        // Add view toggle event listeners
+        const viewButtons = document.querySelectorAll('.view-toggle-btn');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all view buttons
+                viewButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Set current view
+                currentView = this.getAttribute('data-view');
+                displayParticipants();
+            });
+        });
     }
     
     function debounce(func, wait) {
@@ -207,6 +244,33 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    }
+    
+    function updateConnectionStats() {
+        if (!connectionStats) return;
+        
+        // Count different connection types
+        let connected = 0;
+        let pending = 0;
+        let sent = 0;
+        
+        if (userConnections.connected_users) {
+            userConnections.connected_users.forEach(conn => {
+                if (conn.status === 'accepted') {
+                    connected++;
+                } else if (conn.status === 'pending' && conn.requester_id === currentUser.id) {
+                    sent++;
+                } else if (conn.status === 'pending' && conn.requester_id !== currentUser.id) {
+                    pending++;
+                }
+            });
+        }
+        
+        // Update the stats display
+        if (connectedCount) connectedCount.textContent = connected;
+        if (pendingCount) pendingCount.textContent = pending;
+        if (sentCount) sentCount.textContent = sent;
+        if (totalCount) totalCount.textContent = allProfiles.length;
     }
     
     async function loadParticipants() {
@@ -232,6 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             populateFilterOptions();
             displayParticipants();
+            updateConnectionStats();
         } catch (error) {
             console.error('Error fetching participants:', error);
             showErrorState('Failed to load participants. Please try again later.');
@@ -380,7 +445,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const connectionStatus = getConnectionStatus(profile.user_id || profile.id);
             const matchesConnection = !selectedConnection || connectionStatus === selectedConnection;
             
-            return matchesSearch && matchesRole && matchesFaculty && matchesCourse && matchesYear && matchesConnection;
+            // Tab filter
+            let matchesTab = true;
+            if (currentTab !== 'all') {
+                if (currentTab === 'connections') {
+                    matchesTab = connectionStatus === 'accepted';
+                } else if (currentTab === 'pending') {
+                    matchesTab = connectionStatus === 'pending_approval';
+                } else if (currentTab === 'sent') {
+                    matchesTab = connectionStatus === 'pending';
+                }
+            }
+            
+            return matchesSearch && matchesRole && matchesFaculty && matchesCourse && 
+                   matchesYear && matchesConnection && matchesTab;
         });
         
         displayParticipants();
@@ -394,10 +472,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        filteredProfiles.forEach(profile => {
-            const participantCard = createParticipantCard(profile);
-            participantsGrid.appendChild(participantCard);
-        });
+        if (currentView === 'grid') {
+            participantsGrid.className = 'participants-grid';
+            filteredProfiles.forEach(profile => {
+                const participantCard = createParticipantCard(profile);
+                participantsGrid.appendChild(participantCard);
+            });
+        } else {
+            participantsGrid.className = 'participants-list';
+            filteredProfiles.forEach(profile => {
+                const participantListItem = createParticipantListItem(profile);
+                participantsGrid.appendChild(participantListItem);
+            });
+        }
     }
     
     function createParticipantCard(profile) {
@@ -454,6 +541,34 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
     
+    function createParticipantListItem(profile) {
+        const listItem = document.createElement('div');
+        listItem.className = 'participant-list-item';
+        
+        // Get initials for avatar
+        const initials = getInitials(profile.name || '');
+        const profileId = profile.user_id || profile.id;
+        const connectionStatus = getConnectionStatus(profileId);
+        
+        listItem.innerHTML = `
+            <div class="list-avatar">${initials}</div>
+            <div class="list-details">
+                <h3 class="list-name">${profile.name || 'No Name'}</h3>
+                <div class="list-meta">
+                    <span><i class="fas fa-envelope"></i> ${profile.email || 'No email'}</span>
+                    <span><i class="fas fa-graduation-cap"></i> ${profile.faculty || 'Not specified'}</span>
+                    <span><i class="fas fa-book"></i> ${profile.course || 'Not specified'}</span>
+                    <span><i class="fas fa-calendar-alt"></i> ${profile.year_of_study || 'Not specified'}</span>
+                </div>
+            </div>
+            <div class="list-actions">
+                ${renderConnectionButton(connectionStatus, profileId)}
+            </div>
+        `;
+        
+        return listItem;
+    }
+    
     function renderConnectionButton(status, profileId) {
         switch(status) {
             case 'pending':
@@ -493,6 +608,89 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                 `;
         }
+    }
+    
+    function displayConnectionRequests() {
+        if (!pendingConnections || !sentConnections) return;
+        
+        // Clear existing content
+        pendingConnections.innerHTML = '<h3>Pending Requests</h3>';
+        sentConnections.innerHTML = '<h3>Sent Requests</h3>';
+        
+        // Check if we have connections data
+        if (!userConnections.connected_users || userConnections.connected_users.length === 0) {
+            pendingConnections.innerHTML += '<p class="no-requests">No pending connection requests</p>';
+            sentConnections.innerHTML += '<p class="no-requests">No sent connection requests</p>';
+            return;
+        }
+        
+        let hasPending = false;
+        let hasSent = false;
+        
+        // Process connections
+        userConnections.connected_users.forEach(conn => {
+            if (conn.status === 'pending') {
+                if (conn.requester_id === currentUser.id) {
+                    // This is a sent request
+                    hasSent = true;
+                    const profile = allProfiles.find(p => (p.user_id || p.id) === conn.user_id);
+                    if (profile) {
+                        const requestElement = createConnectionRequestElement(profile, conn, 'sent');
+                        sentConnections.appendChild(requestElement);
+                    }
+                } else {
+                    // This is a pending request (waiting for approval)
+                    hasPending = true;
+                    const profile = allProfiles.find(p => (p.user_id || p.id) === conn.requester_id);
+                    if (profile) {
+                        const requestElement = createConnectionRequestElement(profile, conn, 'pending');
+                        pendingConnections.appendChild(requestElement);
+                    }
+                }
+            }
+        });
+        
+        // Show messages if no requests found
+        if (!hasPending) {
+            pendingConnections.innerHTML += '<p class="no-requests">No pending connection requests</p>';
+        }
+        
+        if (!hasSent) {
+            sentConnections.innerHTML += '<p class="no-requests">No sent connection requests</p>';
+        }
+    }
+    
+    function createConnectionRequestElement(profile, connection, type) {
+        const element = document.createElement('div');
+        element.className = 'connection-item';
+        
+        const initials = getInitials(profile.name || '');
+        const profileId = profile.user_id || profile.id;
+        
+        element.innerHTML = `
+            <div class="connection-avatar">${initials}</div>
+            <div class="connection-info">
+                <div class="connection-name">${profile.name || 'No Name'}</div>
+                <div class="connection-email">${profile.email || 'No email'}</div>
+                <div class="connection-meta">${profile.course || 'Not specified'}</div>
+            </div>
+            <div class="connection-actions">
+                ${type === 'pending' ? `
+                    <button class="action-btn primary small" onclick="acceptRequest('${profileId}')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="action-btn outline small" onclick="rejectRequest('${profileId}')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                ` : `
+                    <button class="action-btn outline small" onclick="cancelRequest('${profileId}')">
+                        <i class="fas fa-clock"></i> Cancel Request
+                    </button>
+                `}
+            </div>
+        `;
+        
+        return element;
     }
     
     function getInitials(name) {

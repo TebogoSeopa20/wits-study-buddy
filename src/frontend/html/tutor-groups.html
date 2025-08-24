@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wits - Study Groups</title>
+    <meta name="description" content="Join or create study groups to collaborate with fellow students">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/groups.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <header class="logo">
+            <a href="tutor-dash.html" class="logo-link">
+              <i class="fas fa-graduation-cap book-logo"></i>
+              Wits
+            </a>
+        </header>
+        
+        <ul class="nav-links">
+            <li><a href="tutor-dash.html#">Dashboard</a></li>
+            <li><a href="participants.html#">Participants</a></li>
+            <li><a href="tutor-groups.html#" class="active">Groups</a></li>
+            <li><a href="calendar.html#">Calendar</a></li>
+            <li><a href="chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-weather.html#">Weather</a></li>
+            <li><a href="tutor-map.html#">Campus Map</a></li>
+        </ul>
+        
+        <div class="user-controls">
+            <a href="tutor-profile.html" class="profile-btn">
+                <i class="fas fa-user-circle"></i>
+                <span class="profile-text">Profile</span>
+            </a>
+            <button class="btn btn-outline logout-btn" id="logoutButton">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="logout-text">Log Out</span>
+            </button>
+        </div>
+        
+        <button id="mobile-menu-button" class="mobile-menu">
+            <i class="fas fa-bars"></i>
+        </button>
+    </nav>
+    
+    <!-- Mobile Navigation -->
+    <nav id="mobile-nav" class="mobile-nav">
+        <header class="mobile-nav-header">
+            <h1 class="logo">
+                <i class="fas fa-graduation-cap book-logo"></i>
+                Wits
+            </h1>
+            <button id="mobile-nav-close" class="mobile-nav-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </header>
+        
+        <ul class="mobile-nav-links">
+            <li><a href="tutor-dash.html#">Dashboard</a></li>
+            <li><a href="tutor-participants.html#">Participants</a></li>
+            <li><a href="tutor-groups.html#" class="active">Groups</a></li>
+            <li><a href="calendar.html#">Calendar</a></li>
+            <li><a href="chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-weather.html#">Weather</a></li>
+            <li><a href="tutor-map.html#">Campus Map</a></li>
+        </ul>
+        
+        <div class="mobile-user-controls">
+            <a href="tutor-profile.html" class="btn btn-outline mobile-profile-btn">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <button class="btn btn-outline mobile-logout-btn" id="mobileLogoutButton">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Log Out</span>
+            </button>
+        </div>
+    </nav>
+
+
+    <!-- Main Content -->
+    <main class="groups-container">
+        <!-- Header Section -->
+        <section class="groups-header">
+            <h1><i class="fas fa-users"></i> Study Groups</h1>
+            <p>Collaborate with fellow students, share resources, and achieve academic success together</p>
+            
+            <div class="header-actions">
+                <button class="btn btn-primary" id="createGroupBtn">
+                    <i class="fas fa-plus"></i> Create New Group
+                </button>
+                
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="groupSearch" placeholder="Search groups by name, subject, or faculty...">
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="group-stats" id="groupStats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalGroups">0</div>
+                    <div class="stat-label">Total Groups</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="myGroups">0</div>
+                    <div class="stat-label">My Groups</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="ownedGroups">0</div>
+                    <div class="stat-label">Groups I Own</div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="totalMembers">0</div>
+                    <div class="stat-label">Total Members</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabs Navigation -->
+        <div class="groups-tabs">
+            <button class="tab-btn active" data-tab="my-groups">My Groups</button>
+            <button class="tab-btn" data-tab="discover">Discover Groups</button>
+            <button class="tab-btn" data-tab="public">Public Groups</button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="filter-controls">
+                <select id="subjectFilter" class="filter-select">
+                    <option value="">All Subjects</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Business">Business</option>
+                    <option value="Economics">Economics</option>
+                    <option value="Psychology">Psychology</option>
+                    <option value="Literature">Literature</option>
+                </select>
+                
+                <select id="facultyFilter" class="filter-select">
+                    <option value="">All Faculties</option>
+                    <option value="Faculty of Science">Science</option>
+                    <option value="Faculty of Engineering">Engineering</option>
+                    <option value="Faculty of Health Sciences">Health Sciences</option>
+                    <option value="Faculty of Commerce">Commerce</option>
+                    <option value="Faculty of Humanities">Humanities</option>
+                </select>
+                
+                <select id="yearFilter" class="filter-select">
+                    <option value="">All Years</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                    <option value="5th Year">5th Year</option>
+                </select>
+            </div>
+            
+            <div class="view-toggle">
+                <button class="view-toggle-btn active" data-view="grid">
+                    <i class="fas fa-th"></i> Grid View
+                </button>
+                <button class="view-toggle-btn" data-view="list">
+                    <i class="fas fa-list"></i> List View
+                </button>
+            </div>
+        </div>
+
+        <!-- Groups Content -->
+        <section class="groups-content">
+            <div class="groups-grid" id="groupsGrid">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading groups...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Join by Code Modal -->
+        <div class="modal" id="joinByCodeModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Join Group with Code</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="inviteCode">Enter Invite Code</label>
+                        <input type="text" id="inviteCode" placeholder="e.g., ABC123XY">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="cancelJoinBtn">Cancel</button>
+                    <button class="btn btn-primary" id="confirmJoinBtn">Join Group</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Group Modal -->
+        <div class="modal" id="createGroupModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Create New Study Group</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="createGroupForm">
+                        <div class="form-group">
+                            <label for="groupName">Group Name *</label>
+                            <input type="text" id="groupName" required placeholder="e.g., Advanced Calculus Study Group">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="groupDescription">Description</label>
+                            <textarea id="groupDescription" placeholder="Describe the purpose of this group..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="groupSubject">Subject *</label>
+                            <input type="text" id="groupSubject" required placeholder="e.g., Mathematics">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="groupFaculty">Faculty</label>
+                                <select id="groupFaculty">
+                                    <option value="">Select Faculty</option>
+                                    <option value="Faculty of Science">Science</option>
+                                    <option value="Faculty of Engineering">Engineering</option>
+                                    <option value="Faculty of Health Sciences">Health Sciences</option>
+                                    <option value="Faculty of Commerce">Commerce</option>
+                                    <option value="Faculty of Humanities">Humanities</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="groupCourse">Course</label>
+                                <input type="text" id="groupCourse" placeholder="e.g., BSc Computer Science">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="groupYear">Year of Study</label>
+                                <select id="groupYear">
+                                    <option value="">Select Year</option>
+                                    <option value="1st Year">1st Year</option>
+                                    <option value="2nd Year">2nd Year</option>
+                                    <option value="3rd Year">3rd Year</option>
+                                    <option value="4th Year">4th Year</option>
+                                    <option value="5th Year">5th Year</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="groupMaxMembers">Max Members</label>
+                                <input type="number" id="groupMaxMembers" min="2" max="50" value="10">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="groupIsPrivate">
+                                <span class="checkmark"></span>
+                                Private Group (requires invite)
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="cancelCreateBtn">Cancel</button>
+                    <button class="btn btn-primary" id="confirmCreateBtn">Create Group</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Group Details Modal -->
+        <div class="modal" id="groupDetailsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalGroupName">Group Name</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="group-details">
+                        <div class="detail-item">
+                            <label>Description:</label>
+                            <p id="modalGroupDescription">No description provided.</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label>Subject:</label>
+                            <p id="modalGroupSubject">Not specified</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label>Faculty:</label>
+                            <p id="modalGroupFaculty">Not specified</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label>Course:</label>
+                            <p id="modalGroupCourse">Not specified</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label>Year of Study:</label>
+                            <p id="modalGroupYear">Not specified</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label>Members:</label>
+                            <p id="modalGroupMembers">0 / 10</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label>Privacy:</label>
+                            <p id="modalGroupPrivacy">Public</p>
+                        </div>
+                        
+                        <div class="detail-item" id="modalInviteCodeContainer">
+                            <label>Invite Code:</label>
+                            <p id="modalGroupInviteCode">Not available</p>
+                        </div>
+                    </div>
+                    
+                    <div class="members-section">
+                        <h3>Group Members</h3>
+                        <div class="members-list" id="modalMembersList">
+                            <!-- Members will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="closeDetailsBtn">Close</button>
+                    <div class="action-buttons" id="modalActionButtons">
+                        <!-- Dynamic action buttons will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <article class="container">
+            <section class="footer-content">
+                <article class="footer-column">
+                    <header class="footer-logo">
+                        <i class="fas fa-graduation-cap book-logo"></i>
+                        Wits
+                    </header>
+                    <p>Connecting students, enhancing learning, and building academic success through collaborative study partnerships.</p>
+                </article>
+                <article class="footer-column">
+                    <h3>For Students</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Find Study Partners</a></li>
+                        <li><a href="#">Join Study Groups</a></li>
+                        <li><a href="#">Track Progress</a></li>
+                        <li><a href="#">Plan Sessions</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Resources</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Study Tips</a></li>
+                        <li><a href="#">Academic Guides</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </article>
+                <article class="footer-column">
+                    <h3>Platform</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </article>
+            </section>
+            <footer class="footer-bottom">
+                <p>&copy; 2025 Wits Campus Study Buddy. All rights reserved.</p>
+            </footer>
+        </article>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="../js/auth.js"></script>
+    <script src="../js/groups.js"></script>
+</body>
+</html>

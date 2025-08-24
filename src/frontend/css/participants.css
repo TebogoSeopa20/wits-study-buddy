@@ -1,4 +1,4 @@
-/* Participants Page Styles - Enhanced */
+/* participants.css - Enhanced with Stats Widgets */
 :root {
     --study-blue: #1e40af;
     --study-blue-light: #3b82f6;
@@ -763,8 +763,8 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 @keyframes pulse {
@@ -894,3 +894,4 @@ body {
         justify-content: center;
     }
 }
+

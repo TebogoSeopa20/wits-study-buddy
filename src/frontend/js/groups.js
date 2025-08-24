@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Change tab
                 currentTab = tab;
                 updateFilteredGroups();
+                renderGroups();
             });
         });
         
@@ -266,6 +267,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function filterGroups() {
+        const searchTerm = groupSearch.value.toLowerCase();
+        const subjectValue = subjectFilter.value;
+        const facultyValue = facultyFilter.value;
+        const yearValue = yearFilter.value;
+        
+        let results = filteredGroups.filter(group => {
+            // Search term filter
+            const matchesSearch = !searchTerm || 
+                (group.group_name && group.group_name.toLowerCase().includes(searchTerm)) ||
+                (group.subject && group.subject.toLowerCase().includes(searchTerm)) ||
+                (group.faculty && group.faculty.toLowerCase().includes(searchTerm));
+            
+            // Subject filter
+            const matchesSubject = !subjectValue || group.subject === subjectValue;
+            
+            // Faculty filter
+            const matchesFaculty = !facultyValue || group.faculty === facultyValue;
+            
+            // Year filter
+            const matchesYear = !yearValue || group.year_of_study === yearValue;
+            
+            return matchesSearch && matchesSubject && matchesFaculty && matchesYear;
+        });
+        
+        // Sort by member count (descending)
+        results.sort((a, b) => b.member_count - a.member_count);
+        
+        // Update display
+        displayGroups(results);
+    }
+    
+    function renderGroups() {
         const searchTerm = groupSearch.value.toLowerCase();
         const subjectValue = subjectFilter.value;
         const facultyValue = facultyFilter.value;
