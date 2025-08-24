@@ -167,7 +167,7 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--study-blue), var(--study-blue-light));
+    background: linear-gradient(135deg, var(--study-gold), var(--study-gold-light));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -337,6 +337,7 @@ body {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
     font-weight: 700;
+    color: white;
     position: relative;
     z-index: 2;
 }
@@ -571,6 +572,7 @@ body {
 }
 
 .modal-header {
+    color: white;
     padding: 1.5rem;
     border-bottom: 1px solid var(--study-border);
     display: flex;
@@ -580,7 +582,7 @@ body {
 
 .modal-header h2 {
     font-size: 1.5rem;
-    color: var(--study-dark);
+    color: white;
     margin: 0;
 }
 
@@ -589,8 +591,12 @@ body {
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: var(--study-muted);
+    color: white;
     padding: 0.25rem;
+}
+
+.group-name {
+    color: white !important;
 }
 
 .modal-close:hover {

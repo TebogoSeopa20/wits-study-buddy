@@ -9,7 +9,9 @@ class ChatroomApp {
         this.messages = {};
         this.connectedParticipants = [];
         this.conversations = [];
+        this.groups = [];
         this.currentUser = null;
+        this.currentUserProfile = null;
         
         // API configuration
         this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -30,11 +32,69 @@ class ChatroomApp {
         
         this.currentUser = auth.getCurrentUser();
         
+        await this.loadCurrentUserProfile();
         await this.loadConnectedParticipants();
         await this.loadConversations();
+        await this.loadUserGroups();
         this.bindEvents();
         this.renderChatList();
         this.setupMessageInput();
+    }
+    
+    async loadCurrentUserProfile() {
+        try {
+            const response = await fetch(`${this.API_BASE_URL}/profiles`, {
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${auth.getAccessToken()}`
+                }
+            });
+            
+            if (response.ok) {
+                const profiles = await response.json();
+                this.currentUserProfile = profiles.find(p => p.email === this.currentUser.email);
+                
+                if (!this.currentUserProfile) {
+                    console.error('Current user profile not found');
+                }
+            } else if (response.status === 401) {
+                window.location.href = 'login.html';
+            } else {
+                console.error('Failed to fetch user profile');
+            }
+        } catch (error) {
+            console.error('Error loading user profile:', error);
+        }
+    }
+    
+    async loadUserGroups() {
+        if (!this.currentUserProfile) {
+            console.error('Cannot load groups: user profile not available');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${this.API_BASE_URL}/groups/user/${this.currentUserProfile.user_id}`, {
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${auth.getAccessToken()}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.groups = data.groups || [];
+                console.log('User groups loaded:', this.groups);
+            } else if (response.status === 401) {
+                window.location.href = 'login.html';
+            } else {
+                console.log('No groups found or error loading groups');
+                this.groups = [];
+            }
+        } catch (error) {
+            console.error('Error loading user groups:', error);
+            this.groups = [];
+        }
     }
     
     async loadConversations() {
@@ -63,27 +123,12 @@ class ChatroomApp {
     
     async loadConnectedParticipants() {
         try {
-            // First get the current user's profile to get their user_id
-            const profileResponse = await fetch(`${this.API_BASE_URL}/profiles`, {
-                credentials: 'include',
-                headers: {
-                    'Authorization': `Bearer ${auth.getAccessToken()}`
-                }
-            });
-            
-            if (!profileResponse.ok) {
-                throw new Error('Failed to fetch user profile');
-            }
-            
-            const profiles = await profileResponse.json();
-            const currentUserProfile = profiles.find(p => p.email === this.currentUser.email);
-            
-            if (!currentUserProfile) {
-                throw new Error('Current user profile not found');
+            if (!this.currentUserProfile) {
+                throw new Error('Current user profile not available');
             }
             
             // Now get connections for this user
-            const connectionsResponse = await fetch(`${this.API_BASE_URL}/connections/${currentUserProfile.user_id}/details`, {
+            const connectionsResponse = await fetch(`${this.API_BASE_URL}/connections/${this.currentUserProfile.user_id}/details`, {
                 credentials: 'include',
                 headers: {
                     'Authorization': `Bearer ${auth.getAccessToken()}`
@@ -129,9 +174,6 @@ class ChatroomApp {
             this.showNewChatDialog();
         });
         
-        document.getElementById('newGroupBtn').addEventListener('click', () => {
-            this.showNewGroupDialog();
-        });
         
         // Call buttons
         document.getElementById('voiceCallBtn').addEventListener('click', () => {
@@ -237,51 +279,71 @@ class ChatroomApp {
                 return;
             }
             
-        // First render existing conversations
-        this.conversations.forEach(conversation => {
-            const lastMessage = conversation.lastMessage || { content: 'Start a conversation', timestamp: conversation.createdAt };
-            const timestamp = this.formatTime(lastMessage.timestamp);
-            const unreadCount = conversation.unreadCount > 0 ? conversation.unreadCount : 0;
-            
-            const chatItem = this.createChatItem({
-                id: conversation._id,
-                name: conversation.participant.name,
-                avatar: null,
-                status: 'online',
-                lastMessage: lastMessage.content,
-                timestamp: lastMessage.timestamp,
-                unreadCount: unreadCount,
-                type: 'direct'
-            });
-            
-            chatList.appendChild(chatItem);
-        });
-        
-        // Then render connected participants who don't have conversations yet
-        this.connectedParticipants.forEach(participant => {
-            // Check if this participant already has a conversation
-            const existingConversation = this.conversations.find(c => 
-                c.participant && c.participant._id === participant.user_id
-            );
-            
-            if (!existingConversation) {
+            // First render existing conversations
+            this.conversations.forEach(conversation => {
+                const lastMessage = conversation.lastMessage || { content: 'Start a conversation', timestamp: conversation.createdAt };
+                const timestamp = this.formatTime(lastMessage.timestamp);
+                const unreadCount = conversation.unreadCount > 0 ? conversation.unreadCount : 0;
+                
                 const chatItem = this.createChatItem({
-                    id: `new_${participant.user_id}`,
-                    name: participant.name,
+                    id: conversation._id,
+                    name: conversation.participant.name,
                     avatar: null,
                     status: 'online',
-                    lastMessage: 'Start a conversation',
-                    timestamp: new Date(),
-                    unreadCount: 0,
+                    lastMessage: lastMessage.content,
+                    timestamp: lastMessage.timestamp,
+                    unreadCount: unreadCount,
                     type: 'direct'
                 });
                 
                 chatList.appendChild(chatItem);
-            }
-        });
+            });
+            
+            // Then render connected participants who don't have conversations yet
+            this.connectedParticipants.forEach(participant => {
+                // Check if this participant already has a conversation
+                const existingConversation = this.conversations.find(c => 
+                    c.participant && c.participant._id === participant.user_id
+                );
+                
+                if (!existingConversation) {
+                    const chatItem = this.createChatItem({
+                        id: `new_${participant.user_id}`,
+                        name: participant.name,
+                        avatar: null,
+                        status: 'online',
+                        lastMessage: 'Start a conversation',
+                        timestamp: new Date(),
+                        unreadCount: 0,
+                        type: 'direct'
+                    });
+                    
+                    chatList.appendChild(chatItem);
+                }
+            });
         } else {
-            // For groups, you would need to implement group functionality
-            chatList.innerHTML = '<p class="text-muted">Group functionality coming soon.</p>';
+            // Render groups the user is a member of
+            if (this.groups.length === 0) {
+                chatList.innerHTML = '<p class="text-muted">You are not a member of any groups yet.</p>';
+                return;
+            }
+            
+            this.groups.forEach(group => {
+                const chatItem = this.createChatItem({
+                    id: group.group_id,
+                    name: group.group_name,
+                    avatar: null,
+                    status: 'online',
+                    lastMessage: group.description || 'Group conversation',
+                    timestamp: group.created_at,
+                    unreadCount: 0,
+                    type: 'group',
+                    memberCount: group.member_count,
+                    maxMembers: group.max_members
+                });
+                
+                chatList.appendChild(chatItem);
+            });
         }
     }
     
@@ -291,15 +353,23 @@ class ChatroomApp {
         chatItem.dataset.chatId = data.id;
         chatItem.dataset.chatType = data.type;
         
+        // For groups, show member count
+        const groupInfo = data.type === 'group' ? 
+            `<div class="group-meta">${data.memberCount}/${data.maxMembers} members</div>` : '';
+        
         chatItem.innerHTML = `
             <div class="chat-avatar">
-                ${data.avatar ? `<img src="${data.avatar}" alt="${data.name}">` : 
-                  `<span style="color: ${this.stringToColor(data.name)}; font-weight: bold;">${this.getInitials(data.name)}</span>`}
+                ${data.type === 'group' ? 
+                    `<i class="fas fa-users" style="color: ${this.stringToColor(data.name)};"></i>` :
+                    data.avatar ? `<img src="${data.avatar}" alt="${data.name}">` : 
+                    `<span style="color: ${this.stringToColor(data.name)}; font-weight: bold;">${this.getInitials(data.name)}</span>`
+                }
                 ${data.type === 'direct' ? `<div class="status-indicator ${data.status}"></div>` : ''}
             </div>
             <div class="chat-info">
                 <div class="chat-name">${data.name}</div>
                 <div class="chat-last-message">${data.lastMessage}</div>
+                ${groupInfo}
             </div>
             <div class="chat-meta">
                 <div class="chat-time">${this.formatTime(data.timestamp)}</div>
@@ -312,7 +382,7 @@ class ChatroomApp {
                 // This is a new chat with a connected user
                 this.startNewChat(data.id.replace('new_', ''), data.name);
             } else {
-                // This is an existing conversation
+                // This is an existing conversation or group
                 this.selectChat(data.id, data.type);
             }
         });
@@ -322,23 +392,8 @@ class ChatroomApp {
     
     async startNewChat(userId, userName) {
         try {
-            // First get the current user's profile to get their user_id
-            const profileResponse = await fetch(`${this.API_BASE_URL}/profiles`, {
-                credentials: 'include',
-                headers: {
-                    'Authorization': `Bearer ${auth.getAccessToken()}`
-                }
-            });
-            
-            if (!profileResponse.ok) {
-                throw new Error('Failed to fetch user profile');
-            }
-            
-            const profiles = await profileResponse.json();
-            const currentUserProfile = profiles.find(p => p.email === this.currentUser.email);
-            
-            if (!currentUserProfile) {
-                throw new Error('Current user profile not found');
+            if (!this.currentUserProfile) {
+                throw new Error('Current user profile not available');
             }
             
             // Create a new conversation
@@ -377,28 +432,47 @@ class ChatroomApp {
     }
     
     async selectChat(chatId, chatType) {
-        // Find the conversation
-        const conversation = this.conversations.find(c => c._id === chatId);
-        if (!conversation) return;
-        
-        this.currentChat = { id: chatId, type: chatType, conversation: conversation };
-        
-        // Update active chat item
-        document.querySelectorAll('.chat-item').forEach(item => {
-            item.classList.toggle('active', item.dataset.chatId === chatId);
-        });
-        
-        // Update chat header
-        this.updateChatHeader();
-        
-        // Load messages
-        await this.loadMessages();
-        
-        // Update participants panel
-        this.updateParticipantsPanel();
-        
-        // Clear unread count (would need API endpoint for this)
-        // await this.clearUnreadCount(chatId);
+        if (chatType === 'direct') {
+            // Find the conversation
+            const conversation = this.conversations.find(c => c._id === chatId);
+            if (!conversation) return;
+            
+            this.currentChat = { id: chatId, type: chatType, conversation: conversation };
+            
+            // Update active chat item
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.chatId === chatId);
+            });
+            
+            // Update chat header
+            this.updateChatHeader();
+            
+            // Load messages
+            await this.loadMessages();
+            
+            // Update participants panel
+            this.updateParticipantsPanel();
+        } else if (chatType === 'group') {
+            // Find the group
+            const group = this.groups.find(g => g.group_id === chatId);
+            if (!group) return;
+            
+            this.currentChat = { id: chatId, type: chatType, group: group };
+            
+            // Update active chat item
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.chatId === chatId);
+            });
+            
+            // Update chat header
+            this.updateChatHeader();
+            
+            // Load group messages (you'll need to implement this)
+            await this.loadGroupMessages();
+            
+            // Update participants panel with group members
+            this.updateGroupParticipantsPanel();
+        }
     }
     
     updateChatHeader() {
@@ -418,25 +492,41 @@ class ChatroomApp {
             return;
         }
         
-        const { conversation } = this.currentChat;
-        const name = conversation.participant.name;
-        const status = 'Online'; // This would come from real-time status
-        
-        userInfo.innerHTML = `
-            <div class="user-avatar" style="background-color: ${this.stringToColor(name)};">
-                <span style="color: white; font-weight: bold;">${this.getInitials(name)}</span>
-            </div>
-            <div class="user-details">
-                <h3 class="user-name">${name}</h3>
-                <span class="user-status">${status}</span>
-            </div>
-        `;
+        if (this.currentChat.type === 'direct') {
+            const { conversation } = this.currentChat;
+            const name = conversation.participant.name;
+            const status = 'Online'; // This would come from real-time status
+            
+            userInfo.innerHTML = `
+                <div class="user-avatar" style="background-color: ${this.stringToColor(name)};">
+                    <span style="color: white; font-weight: bold;">${this.getInitials(name)}</span>
+                </div>
+                <div class="user-details">
+                    <h3 class="user-name">${name}</h3>
+                    <span class="user-status">${status}</span>
+                </div>
+            `;
+        } else if (this.currentChat.type === 'group') {
+            const { group } = this.currentChat;
+            const name = group.group_name;
+            const memberCount = `${group.member_count || 0} members`;
+            
+            userInfo.innerHTML = `
+                <div class="user-avatar" style="background-color: ${this.stringToColor(name)};">
+                    <i class="fas fa-users" style="color: white;"></i>
+                </div>
+                <div class="user-details">
+                    <h3 class="user-name">${name}</h3>
+                    <span class="user-status">${memberCount}</span>
+                </div>
+            `;
+        }
     }
     
     async loadMessages() {
         const messagesContainer = document.getElementById('messagesContainer');
         
-        if (!this.currentChat) {
+        if (!this.currentChat || this.currentChat.type !== 'direct') {
             messagesContainer.innerHTML = `
                 <div class="welcome-message">
                     <div class="welcome-icon">
@@ -469,6 +559,36 @@ class ChatroomApp {
             console.error('Error loading messages:', error);
             messagesContainer.innerHTML = '<p class="text-muted">Error loading messages.</p>';
         }
+    }
+    
+    async loadGroupMessages() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        
+        if (!this.currentChat || this.currentChat.type !== 'group') {
+            messagesContainer.innerHTML = `
+                <div class="welcome-message">
+                    <div class="welcome-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Welcome to Wits ChatRoom</h3>
+                    <p>Connect with fellow students, share files, and collaborate on your studies.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // For now, show a placeholder message since group messaging
+        // would need a different API endpoint
+        messagesContainer.innerHTML = `
+            <div class="welcome-message">
+                <div class="welcome-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>${this.currentChat.group.group_name}</h3>
+                <p>${this.currentChat.group.description || 'Group conversation'}</p>
+                <p>Group messaging functionality coming soon.</p>
+            </div>
+        `;
     }
     
     renderMessages(messagesData) {
@@ -573,6 +693,12 @@ class ChatroomApp {
         
         if (!content || !this.currentChat) return;
         
+        // For now, only support direct messages
+        if (this.currentChat.type !== 'direct') {
+            this.showNotification('Info', 'Group messaging coming soon.');
+            return;
+        }
+        
         try {
             const response = await fetch(`${this.API_BASE_URL}/chat/message`, {
                 method: 'POST',
@@ -613,6 +739,12 @@ class ChatroomApp {
     
     async handleFileUpload(files) {
         if (!files.length || !this.currentChat) return;
+        
+        // For now, only support direct messages
+        if (this.currentChat.type !== 'direct') {
+            this.showNotification('Info', 'Group file sharing coming soon.');
+            return;
+        }
         
         try {
             const formData = new FormData();
@@ -673,8 +805,13 @@ class ChatroomApp {
     }
     
     startCall(type) {
-        if (!this.currentChat || this.currentChat.type === 'group') {
-            this.showNotification('Info', 'Please select a direct chat to start a call.');
+        if (!this.currentChat) {
+            this.showNotification('Info', 'Please select a conversation to start a call.');
+            return;
+        }
+        
+        if (this.currentChat.type === 'group') {
+            this.showNotification('Info', 'Group calls coming soon.');
             return;
         }
         
@@ -687,7 +824,13 @@ class ChatroomApp {
         const callStatus = document.getElementById('callStatus');
         
         callTitle.textContent = type === 'voice' ? 'Voice Call' : 'Video Call';
-        callUserName.textContent = this.currentChat.conversation.participant.name;
+        
+        if (this.currentChat.type === 'direct') {
+            callUserName.textContent = this.currentChat.conversation.participant.name;
+        } else {
+            callUserName.textContent = this.currentChat.group.group_name;
+        }
+        
         callStatus.textContent = 'Connecting...';
         
         callModal.classList.add('active');
@@ -776,37 +919,85 @@ class ChatroomApp {
         panel.classList.toggle('active');
         
         if (panel.classList.contains('active')) {
-            this.updateParticipantsPanel();
+            if (this.currentChat?.type === 'direct') {
+                this.updateParticipantsPanel();
+            } else if (this.currentChat?.type === 'group') {
+                this.updateGroupParticipantsPanel();
+            }
         }
     }
     
     updateParticipantsPanel() {
-        if (!this.currentChat) return;
+        if (!this.currentChat || this.currentChat.type !== 'direct') return;
         
         const participantsList = document.getElementById('participantsList');
         participantsList.innerHTML = '';
         
         // For direct chats, show the other participant
-        if (this.currentChat.type === 'direct') {
-            const participant = this.currentChat.conversation.participant;
+        const participant = this.currentChat.conversation.participant;
+        
+        const participantItem = document.createElement('div');
+        participantItem.className = 'participant-item';
+        
+        participantItem.innerHTML = `
+            <div class="participant-avatar" style="background-color: ${this.stringToColor(participant.name)};">
+                <span style="color: white; font-weight: bold;">${this.getInitials(participant.name)}</span>
+            </div>
+            <div class="participant-info">
+                <h4>${participant.name}</h4>
+                <span class="participant-role">${participant.course || 'Student'}</span>
+            </div>
+        `;
+        
+        participantsList.appendChild(participantItem);
+    }
+    
+    async updateGroupParticipantsPanel() {
+        if (!this.currentChat || this.currentChat.type !== 'group') return;
+        
+        const participantsList = document.getElementById('participantsList');
+        participantsList.innerHTML = '';
+        
+        try {
+            // Fetch group members
+            const response = await fetch(`${this.API_BASE_URL}/groups/${this.currentChat.id}/members`, {
+                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${auth.getAccessToken()}`
+                }
+            });
             
-            const participantItem = document.createElement('div');
-            participantItem.className = 'participant-item';
-            
-            participantItem.innerHTML = `
-                <div class="participant-avatar" style="background-color: ${this.stringToColor(participant.name)};">
-                    <span style="color: white; font-weight: bold;">${this.getInitials(participant.name)}</span>
-                </div>
-                <div class="participant-info">
-                    <h4>${participant.name}</h4>
-                    <span class="participant-role">${participant.course || 'Student'}</span>
-                </div>
-            `;
-            
-            participantsList.appendChild(participantItem);
-        } else {
-            // For groups, you would list all members
-            participantsList.innerHTML = '<p class="text-muted">Group participants will be shown here.</p>';
+            if (response.ok) {
+                const data = await response.json();
+                const members = data.members || [];
+                
+                if (members.length === 0) {
+                    participantsList.innerHTML = '<p class="text-muted">No members found.</p>';
+                    return;
+                }
+                
+                members.forEach(member => {
+                    const participantItem = document.createElement('div');
+                    participantItem.className = 'participant-item';
+                    
+                    participantItem.innerHTML = `
+                        <div class="participant-avatar" style="background-color: ${this.stringToColor(member.name)};">
+                            <span style="color: white; font-weight: bold;">${this.getInitials(member.name)}</span>
+                        </div>
+                        <div class="participant-info">
+                            <h4>${member.name}</h4>
+                            <span class="participant-role">${member.role} • ${member.member_status}</span>
+                        </div>
+                    `;
+                    
+                    participantsList.appendChild(participantItem);
+                });
+            } else {
+                participantsList.innerHTML = '<p class="text-muted">Error loading group members.</p>';
+            }
+        } catch (error) {
+            console.error('Error loading group members:', error);
+            participantsList.innerHTML = '<p class="text-muted">Error loading group members.</p>';
         }
     }
     
@@ -885,10 +1076,54 @@ class ChatroomApp {
     }
     
     async createGroup() {
-        // This would create a group conversation
-        // Implementation would depend on your backend API
-        this.showNotification('Info', 'Group functionality coming soon.');
-        this.closeModal('newGroupModal');
+        if (!this.currentUserProfile) {
+            this.showNotification('Error', 'User profile not available. Please try again.');
+            return;
+        }
+        
+        const groupName = document.getElementById('groupName').value.trim();
+        const groupDescription = document.getElementById('groupDescription').value.trim();
+        
+        if (!groupName) {
+            this.showNotification('Error', 'Please enter a group name.');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${this.API_BASE_URL}/groups/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${auth.getAccessToken()}`
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    name: groupName,
+                    description: groupDescription,
+                    subject: 'General', // Default subject
+                    creator_id: this.currentUserProfile.user_id,
+                    max_members: 10, // Default max members
+                    is_private: false // Default to public
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.showNotification('Success', `Group "${data.group.name}" created successfully!`);
+                
+                // Reload groups
+                await this.loadUserGroups();
+                this.renderChatList();
+                
+                this.closeModal('newGroupModal');
+            } else {
+                const errorData = await response.json();
+                this.showNotification('Error', errorData.error || 'Failed to create group.');
+            }
+        } catch (error) {
+            console.error('Error creating group:', error);
+            this.showNotification('Error', 'Failed to create group.');
+        }
     }
     
     closeModal(modalId) {
@@ -1013,6 +1248,11 @@ document.addEventListener('DOMContentLoaded', () => {
             chatroomApp.loadConversations().then(() => {
                 chatroomApp.renderChatList();
             });
+            
+            // Also update groups list periodically
+            chatroomApp.loadUserGroups().then(() => {
+                chatroomApp.renderChatList();
+            });
         }
-    }, 10000); // Check every 10 seconds
+    }, 30000); // Check every 30 seconds
 });
