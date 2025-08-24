@@ -1,4 +1,4 @@
-// participants.js
+// participants.js - Enhanced with Connection Management and Chat Redirection
 document.addEventListener('DOMContentLoaded', function() {
     // API configuration
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
         ? 'http://localhost:3000/api' 
         : 'https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/api';
     
-    const API_URL = `${API_BASE_URL}/profiles`;
+    const PROFILES_URL = `${API_BASE_URL}/profiles`;
+    const CONNECTIONS_URL = `${API_BASE_URL}/connections`;
     
     // Faculty and courses data
     const facultyCourses = {
@@ -111,10 +112,21 @@ document.addEventListener('DOMContentLoaded', function() {
     let allProfiles = [];
     let filteredProfiles = [];
     let currentUser = null;
+    let userConnections = {};
     
     // Check if essential elements exist before initializing
     if (!participantsGrid) {
         console.error('Participants grid element not found');
+        return;
+    }
+    
+    // Check if there's a chat parameter in the URL for redirection
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatParticipant = urlParams.get('chat');
+    
+    if (chatParticipant) {
+        // Redirect to chatroom with the participant ID
+        window.location.href = `chatroom.html?participant=${chatParticipant}`;
         return;
     }
     
@@ -124,8 +136,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function init() {
         // Get current user from session storage
         currentUser = getCurrentUser();
-        loadParticipants();
-        setupEventListeners();
+        if (!currentUser || !currentUser.id) {
+            showErrorState('Please log in to view participants');
+            return;
+        }
+        
+        loadUserConnections().then(() => {
+            loadParticipants();
+            setupEventListeners();
+        });
     }
     
     function getCurrentUser() {
@@ -136,6 +155,32 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error parsing user data from session storage:', error);
             return null;
         }
+    }
+    
+    async function loadUserConnections() {
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            userConnections = data;
+        } catch (error) {
+            console.error('Error fetching user connections:', error);
+            userConnections = { connected_users: [] };
+        }
+    }
+    
+    function getConnectionStatus(targetUserId) {
+        if (!userConnections.connected_users) return 'none';
+        
+        const connection = userConnections.connected_users.find(
+            conn => conn.user_id === targetUserId
+        );
+        
+        return connection ? connection.status : 'none';
     }
     
     function setupEventListeners() {
@@ -170,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showLoadingState();
         
         try {
-            const response = await fetch(API_URL);
+            const response = await fetch(PROFILES_URL);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -180,12 +225,10 @@ document.addEventListener('DOMContentLoaded', function() {
             allProfiles = data;
             
             // Filter out the current user from the list
-            if (currentUser && currentUser.id) {
-                allProfiles = allProfiles.filter(profile => {
-                    // Compare by user_id (from profiles table) or id (from auth)
-                    return profile.user_id !== currentUser.id && profile.id !== currentUser.id;
-                });
-            }
+            allProfiles = allProfiles.filter(profile => {
+                // Compare by user_id (from profiles table) or id (from auth)
+                return profile.user_id !== currentUser.id && profile.id !== currentUser.id;
+            });
             
             filteredProfiles = [...allProfiles];
             
@@ -203,6 +246,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add course filter if it doesn't exist
         addCourseFilter();
+        
+        // Add connection status filter
+        addConnectionStatusFilter();
     }
     
     function addYearFilter() {
@@ -245,6 +291,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function addConnectionStatusFilter() {
+        const filterControls = document.querySelector('.filter-controls');
+        if (!filterControls) return;
+        
+        // Add connection status filter if it doesn't exist
+        if (!document.getElementById('connectionFilter')) {
+            const connectionFilter = document.createElement('select');
+            connectionFilter.id = 'connectionFilter';
+            connectionFilter.className = 'filter-select';
+            connectionFilter.innerHTML = `
+                <option value="">All Connections</option>
+                <option value="none">Not Connected</option>
+                <option value="pending">Pending Requests</option>
+                <option value="accepted">Connected</option>
+                <option value="blocked">Blocked</option>
+            `;
+            
+            filterControls.appendChild(connectionFilter);
+            connectionFilter.addEventListener('change', applyFilters);
+        }
+    }
+    
     function updateCourseFilter() {
         const courseFilter = document.getElementById('courseFilter');
         if (!courseFilter) return;
@@ -284,8 +352,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get dynamic filters if they exist
         const courseFilter = document.getElementById('courseFilter');
         const yearFilter = document.getElementById('yearFilter');
+        const connectionFilter = document.getElementById('connectionFilter');
         const selectedCourse = courseFilter ? courseFilter.value : '';
         const selectedYear = yearFilter ? yearFilter.value : '';
+        const selectedConnection = connectionFilter ? connectionFilter.value : '';
         
         filteredProfiles = allProfiles.filter(profile => {
             // Search filter
@@ -308,7 +378,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Year filter
             const matchesYear = !selectedYear || profile.year_of_study === selectedYear;
             
-            return matchesSearch && matchesRole && matchesFaculty && matchesCourse && matchesYear;
+            // Connection status filter
+            const connectionStatus = getConnectionStatus(profile.user_id || profile.id);
+            const matchesConnection = !selectedConnection || connectionStatus === selectedConnection;
+            
+            return matchesSearch && matchesRole && matchesFaculty && matchesCourse && matchesYear && matchesConnection;
         });
         
         displayParticipants();
@@ -334,12 +408,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Get initials for avatar
         const initials = getInitials(profile.name || '');
+        const profileId = profile.user_id || profile.id;
+        const connectionStatus = getConnectionStatus(profileId);
         
         card.innerHTML = `
             <div class="participant-header">
                 <div class="participant-avatar">${initials}</div>
                 <h3 class="participant-name">${profile.name || 'No Name'}</h3>
                 <span class="participant-role ${profile.role || 'student'}">${profile.role || 'student'}</span>
+                ${connectionStatus === 'accepted' ? '<div class="online-status" title="Connected"></div>' : ''}
             </div>
             <div class="participant-details">
                 <div class="detail-item">
@@ -371,14 +448,53 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="participant-actions">
-                    <button class="action-btn primary" onclick="connectWith('${profile.id}')">
-                        <i class="fas fa-user-plus"></i> Connect
-                    </button>
+                    ${renderConnectionButton(connectionStatus, profileId)}
                 </div>
             </div>
         `;
         
         return card;
+    }
+    
+    function renderConnectionButton(status, profileId) {
+        switch(status) {
+            case 'pending':
+                return `
+                    <button class="action-btn outline" onclick="cancelRequest('${profileId}')">
+                        <i class="fas fa-clock"></i> Request Sent
+                    </button>
+                `;
+            case 'pending_approval':
+                return `
+                    <button class="action-btn primary" onclick="acceptRequest('${profileId}')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="action-btn outline" onclick="rejectRequest('${profileId}')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                `;
+            case 'accepted':
+                return `
+                    <button class="action-btn primary" onclick="messageUser('${profileId}')">
+                        <i class="fas fa-comment"></i> Message
+                    </button>
+                    <button class="action-btn outline" onclick="disconnect('${profileId}')">
+                        <i class="fas fa-user-times"></i> Disconnect
+                    </button>
+                `;
+            case 'blocked':
+                return `
+                    <button class="action-btn outline" onclick="unblockUser('${profileId}')">
+                        <i class="fas fa-ban"></i> Unblock
+                    </button>
+                `;
+            default:
+                return `
+                    <button class="action-btn primary" onclick="connectWith('${profileId}')">
+                        <i class="fas fa-user-plus"></i> Connect
+                    </button>
+                `;
+        }
     }
     
     function getInitials(name) {
@@ -422,26 +538,306 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    // Global functions for button actions
-    window.viewProfile = function(profileId) {
-        // Redirect to profile page or show modal
-        alert(`View profile with ID: ${profileId}`);
-        // In a real implementation, you might redirect to:
-        // window.location.href = `profile.html?id=${profileId}`;
+    // Global functions for connection actions
+    window.connectWith = async function(profileId) {
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/send-request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    target_user_id: profileId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            showNotification(`Connection request sent to ${getProfileName(profileId)}`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error sending connection request:', error);
+            showNotification('Failed to send connection request', 'error');
+        }
     };
     
-    window.connectWith = function(profileId) {
-        // Check if user is logged in
-        if (!currentUser) {
-            alert('Please log in to connect with other participants.');
-            window.location.href = '../html/login.html';
-            return;
+    window.cancelRequest = async function(profileId) {
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    connection_id: profileId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            showNotification(`Connection request cancelled`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error cancelling connection request:', error);
+            showNotification('Failed to cancel connection request', 'error');
         }
-        
-        // Implement connection logic
-        alert(`Request connection with profile ID: ${profileId}`);
-        // In a real implementation, you might:
-        // 1. Send a connection request via API
-        // 2. Show confirmation message
     };
+    
+    window.acceptRequest = async function(profileId) {
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/accept`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    requester_id: profileId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            showNotification(`Connection request accepted`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error accepting connection request:', error);
+            showNotification('Failed to accept connection request', 'error');
+        }
+    };
+    
+    window.rejectRequest = async function(profileId) {
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    requester_id: profileId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            showNotification(`Connection request rejected`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error rejecting connection request:', error);
+            showNotification('Failed to reject connection request', 'error');
+        }
+    };
+    
+    window.disconnect = async function(profileId) {
+        if (!confirm('Are you sure you want to disconnect from this user?')) return;
+        
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    connection_id: profileId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            showNotification(`Disconnected successfully`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error disconnecting:', error);
+            showNotification('Failed to disconnect', 'error');
+        }
+    };
+    
+    window.messageUser = function(profileId) {
+        // Redirect to chat with this user
+        window.location.href = `chatroom.html?participant=${profileId}`;
+    };
+    
+    window.blockUser = async function(profileId) {
+        if (!confirm('Are you sure you want to block this user?')) return;
+        
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/block`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    blocked_user_id: profileId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            showNotification(`User blocked successfully`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error blocking user:', error);
+            showNotification('Failed to block user', 'error');
+        }
+    };
+    
+    window.unblockUser = async function(profileId) {
+        try {
+            // For unblocking, we need to remove the blocked connection
+            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    connection_id: profileId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            showNotification(`User unblocked successfully`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error unblocking user:', error);
+            showNotification('Failed to unblock user', 'error');
+        }
+    };
+    
+    function getProfileName(profileId) {
+        const profile = allProfiles.find(p => (p.user_id || p.id) === profileId);
+        return profile ? profile.name : 'this user';
+    }
+    
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
+    }
 });
+
+// Add notification styles to the page
+const notificationStyles = `
+.notification {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    padding: 16px 20px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    max-width: 400px;
+    z-index: 10000;
+    animation: slideInRight 0.3s ease-out;
+    border-left: 4px solid #3b82f6;
+}
+
+.notification.success {
+    border-left-color: #10b981;
+}
+
+.notification.error {
+    border-left-color: #ef4444;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-content i {
+    font-size: 18px;
+}
+
+.notification.success .notification-content i {
+    color: #10b981;
+}
+
+.notification.error .notification-content i {
+    color: #ef4444;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    margin-left: 10px;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+`;
+
+// Add styles to the document
+const styleSheet = document.createElement('style');
+styleSheet.textContent = notificationStyles;
+document.head.appendChild(styleSheet);

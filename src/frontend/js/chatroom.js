@@ -1,25 +1,10 @@
-// chatroom.js - Complete implementation with real API integration
+// chatroom.js - Fixed connection status and API error issues
 document.addEventListener('DOMContentLoaded', function() {
-    // API configuration
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const API_BASE_URL = isLocal 
-        ? 'http://localhost:3000/api' 
-        : 'https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/api';
-    
-    const PROFILES_API_URL = `${API_BASE_URL}/profiles`;
-    const CONNECTIONS_API_URL = `${API_BASE_URL}/connections`;
-    
     // Initialize chatroom
     initChatroom();
-    
-    // Event listeners
-    setupEventListeners();
-    
-    // Load conversations
-    loadConversations();
 });
 
-// API configuration
+// Get API base URL
 function getApiBaseUrl() {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     return isLocal 
@@ -48,36 +33,7 @@ function getCurrentUser() {
         return null;
     }
 }
-// Update chatroom stats
-async function updateChatroomStats() {
-    try {
-        const connections = await getConnectionsData();
-        const conversations = await getConversationsData();
-        const currentUserId = window.currentUser.id;
-        
-        // Count connected users (status: connected)
-        const connectedCount = connections.filter(conn => 
-            (conn.userId === currentUserId || conn.participantId === currentUserId) && 
-            conn.status === 'connected'
-        ).length;
-        
-        // Count conversations
-        const userConversations = conversations.filter(conv => 
-            conv.participants.includes(currentUserId)
-        );
-        
-        // Update DOM
-        document.getElementById('connectionsCount').textContent = connectedCount;
-        document.getElementById('conversationsCount').textContent = userConversations.length;
-        
-        // Online count would typically come from a real-time API
-        // For now, we'll simulate it
-        document.getElementById('onlineCount').textContent = Math.floor(connectedCount * 0.7);
-        
-    } catch (error) {
-        console.error('Error updating chatroom stats:', error);
-    }
-}
+
 // Initialize chatroom
 async function initChatroom() {
     // Get current user data
@@ -90,55 +46,184 @@ async function initChatroom() {
     
     // Set user data for later use
     window.currentUser = userData;
-    updateChatroomStats();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Load conversations
+    await loadConversations();
+    
+    // Update chatroom stats (with error handling)
+    try {
+        await updateChatroomStats();
+    } catch (error) {
+        console.error('Error updating chatroom stats:', error);
+    }
     
     // Check if we have a participant ID in the URL
     const urlParams = new URLSearchParams(window.location.search);
     const participantId = urlParams.get('participant');
     
     if (participantId) {
-        // Verify connection and open chat if valid
-        verifyConnectionAndOpenChat(participantId);
+        // First check if we have this participant in our conversations
+        const conversationItem = document.querySelector(`.conversation-item[data-participant-id="${participantId}"]`);
+        
+        if (conversationItem) {
+            // We have this participant in our list, they are connected - open chat directly
+            const participantName = conversationItem.getAttribute('data-participant-name');
+            const participantData = {
+                id: participantId,
+                user_id: participantId,
+                name: participantName
+            };
+            
+            // Since they're in our conversation list, they are connected - open chat
+            openChat(participantData);
+        } else {
+            // Not in conversation list, verify connection
+            verifyConnectionAndOpenChat(participantId);
+        }
+    } else {
+        // Show default screen only if no participant specified
+        showNoChatSelected();
+    }
+    
+    // Add ESC key listener to return to no chat selected
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && window.currentChat) {
+            // Update URL to remove participant parameter
+            const url = new URL(window.location);
+            url.searchParams.delete('participant');
+            window.history.replaceState({}, '', url);
+            
+            showNoChatSelected();
+        }
+    });
+}
+
+// Show no chat selected UI
+function showNoChatSelected() {
+    // Hide chat UI elements
+    const chatHeader = document.getElementById('chatHeader');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInputContainer = document.getElementById('messageInputContainer');
+    const noChatSelected = document.getElementById('noChatSelected');
+    
+    if (chatHeader) chatHeader.style.display = 'none';
+    if (messagesContainer) messagesContainer.style.display = 'none';
+    if (messageInputContainer) messageInputContainer.style.display = 'none';
+    if (noChatSelected) noChatSelected.style.display = 'flex';
+    
+    // Clear current chat
+    window.currentChat = null;
+    
+    // Remove active class from all conversation items
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.remove('active');
+    });
+}
+
+// Update chatroom stats with real data
+async function updateChatroomStats() {
+    try {
+        const API_BASE_URL = getApiBaseUrl();
+        const CONNECTIONS_API_URL = `${API_BASE_URL}/connections`;
+        
+        const currentUserId = window.currentUser.id;
+        
+        // Fetch connections data
+        const connectionsResponse = await fetch(`${CONNECTIONS_API_URL}/${currentUserId}/stats`);
+        if (!connectionsResponse.ok) throw new Error('Failed to fetch connection stats');
+        const connectionsData = await connectionsResponse.json();
+        
+        // Fetch conversations count
+        const conversationsResponse = await fetch(`${CONNECTIONS_API_URL}/${currentUserId}/friends`);
+        if (!conversationsResponse.ok) throw new Error('Failed to fetch conversations');
+        const conversationsData = await conversationsResponse.json();
+        
+        // Update DOM with real data (with null checks)
+        const connectionsCountEl = document.getElementById('connectionsCount');
+        const conversationsCountEl = document.getElementById('conversationsCount');
+        const onlineCountEl = document.getElementById('onlineCount');
+        
+        if (connectionsCountEl) {
+            connectionsCountEl.textContent = connectionsData.stats?.accepted || 0;
+        }
+        
+        if (conversationsCountEl) {
+            conversationsCountEl.textContent = conversationsData.count || 0;
+        }
+        
+        if (onlineCountEl) {
+            // Online count would typically come from a real-time API
+            // For now, we'll simulate it based on connected users
+            onlineCountEl.textContent = Math.floor((connectionsData.stats?.accepted || 0) * 0.7);
+        }
+        
+    } catch (error) {
+        console.error('Error updating chatroom stats:', error);
+        // Don't throw the error further to prevent breaking the app
     }
 }
 
 // Setup event listeners
 function setupEventListeners() {
     // New chat button
-    document.getElementById('newChatBtn').addEventListener('click', openNewChatModal);
-    document.getElementById('startNewChat').addEventListener('click', openNewChatModal);
+    const newChatBtn = document.getElementById('newChatBtn');
+    const startNewChat = document.getElementById('startNewChat');
+    
+    if (newChatBtn) newChatBtn.addEventListener('click', openNewChatModal);
+    if (startNewChat) startNewChat.addEventListener('click', openNewChatModal);
     
     // Modal close buttons
-    document.getElementById('closeModal').addEventListener('click', closeConnectionModal);
-    document.getElementById('closeNewChatModal').addEventListener('click', closeNewChatModal);
+    const closeModal = document.getElementById('closeModal');
+    const closeNewChatModal = document.getElementById('closeNewChatModal');
+    
+    if (closeModal) closeModal.addEventListener('click', closeConnectionModal);
+    if (closeNewChatModal) closeNewChatModal.addEventListener('click', closeNewChatModal);
     
     // Connection modal buttons
-    document.getElementById('cancelChatBtn').addEventListener('click', closeConnectionModal);
-    document.getElementById('sendConnectionRequestBtn').addEventListener('click', sendConnectionRequest);
+    const cancelChatBtn = document.getElementById('cancelChatBtn');
+    const sendConnectionRequestBtn = document.getElementById('sendConnectionRequestBtn');
+    
+    if (cancelChatBtn) cancelChatBtn.addEventListener('click', closeConnectionModal);
+    if (sendConnectionRequestBtn) sendConnectionRequestBtn.addEventListener('click', sendConnectionRequest);
     
     // Message sending
-    document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
-    document.getElementById('messageInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+    const messageInput = document.getElementById('messageInput');
+    
+    if (sendMessageBtn) sendMessageBtn.addEventListener('click', sendMessage);
+    if (messageInput) {
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
     
     // File attachment
-    document.getElementById('attachBtn').addEventListener('click', function() {
-        document.getElementById('fileInput').click();
+    const attachBtn = document.getElementById('attachBtn');
+    const fileInput = document.getElementById('fileInput');
+    
+    if (attachBtn) attachBtn.addEventListener('click', function() {
+        if (fileInput) fileInput.click();
     });
-    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+    if (fileInput) fileInput.addEventListener('change', handleFileUpload);
     
     // Voice message
     setupVoiceMessageRecording();
     
     // Search functionality
-    document.getElementById('conversationSearch').addEventListener('input', filterConversations);
-    document.getElementById('participantSearch').addEventListener('input', filterModalParticipants);
+    const conversationSearch = document.getElementById('conversationSearch');
+    const participantSearch = document.getElementById('participantSearch');
+    
+    if (conversationSearch) conversationSearch.addEventListener('input', filterConversations);
+    if (participantSearch) participantSearch.addEventListener('input', filterModalParticipants);
     
     // View profile button
-    document.getElementById('viewProfileBtn').addEventListener('click', viewProfile);
+    const viewProfileBtn = document.getElementById('viewProfileBtn');
+    if (viewProfileBtn) viewProfileBtn.addEventListener('click', viewProfile);
     
     // Close notification when clicking close button
     document.addEventListener('click', function(e) {
@@ -148,8 +233,8 @@ function setupEventListeners() {
     });
 }
 
-// API call to get participants
-async function fetchParticipants() {
+// Get participants data from API
+async function getParticipantsData() {
     try {
         const API_BASE_URL = getApiBaseUrl();
         const response = await fetch(`${API_BASE_URL}/profiles`);
@@ -158,71 +243,7 @@ async function fetchParticipants() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching participants:', error);
-        showNotification('Error', 'Failed to load participants. Please try again later.', 'error');
-        return [];
-    }
-}
-
-// API call to get connections
-async function fetchConnections() {
-    try {
-        const currentUser = getCurrentUser();
-        if (!currentUser || !currentUser.id) return [];
-        
-        const API_BASE_URL = getApiBaseUrl();
-        const response = await fetch(`${API_BASE_URL}/connections?userId=${currentUser.id}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching connections:', error);
-        return [];
-    }
-}
-
-// API call to create a connection request
-async function createConnectionRequest(participantId) {
-    try {
-        const currentUser = getCurrentUser();
-        if (!currentUser || !currentUser.id) return false;
-        
-        const API_BASE_URL = getApiBaseUrl();
-        const response = await fetch(`${API_BASE_URL}/connections`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: currentUser.id,
-                participantId: participantId,
-                status: 'pending'
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Error creating connection request:', error);
-        return false;
-    }
-}
-
-// Get participants data
-async function getParticipantsData() {
-    try {
-        // Try to get from API first
-        const participants = await fetchParticipants();
+        const participants = await response.json();
         
         // Store in sessionStorage for later use
         sessionStorage.setItem('participantsData', JSON.stringify(participants));
@@ -241,15 +262,26 @@ async function getParticipantsData() {
     }
 }
 
-// Get connections data
+// Get connections data from API
 async function getConnectionsData() {
     try {
-        // Try to get from API first
-        const connections = await fetchConnections();
+        const currentUser = getCurrentUser();
+        if (!currentUser || !currentUser.id) return [];
+        
+        const API_BASE_URL = getApiBaseUrl();
+        const CONNECTIONS_API_URL = `${API_BASE_URL}/connections`;
+        
+        const response = await fetch(`${CONNECTIONS_API_URL}/${currentUser.id}/details`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
         
         // Store in sessionStorage for later use
-        sessionStorage.setItem('userConnections', JSON.stringify(connections));
-        return connections;
+        sessionStorage.setItem('userConnections', JSON.stringify(data.connections || []));
+        return data.connections || [];
     } catch (error) {
         console.error('Error getting connections:', error);
         
@@ -264,37 +296,375 @@ async function getConnectionsData() {
     }
 }
 
-// Get conversations data
-async function getConversationsData() {
+// Check if user is connected to participant
+async function checkIfConnected(participantId) {
     try {
-        // In a real app, this would be an API call
-        // For now, use local storage
-        const conversations = JSON.parse(localStorage.getItem('chatConversations') || 
-                                       sessionStorage.getItem('chatConversations') || '[]');
-        return conversations;
+        const currentUserId = window.currentUser.id;
+        const API_BASE_URL = getApiBaseUrl();
+        const CONNECTIONS_API_URL = `${API_BASE_URL}/connections`;
+        
+        // Use the connection status API endpoint
+        const response = await fetch(`${CONNECTIONS_API_URL}/${currentUserId}/status/${participantId}`);
+        
+        if (!response.ok) {
+            // If API returns error, check if participant is in our conversation list
+            const conversationItem = document.querySelector(`.conversation-item[data-participant-id="${participantId}"]`);
+            if (conversationItem) {
+                console.log("API failed but participant is in conversation list - assuming connected");
+                return true;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Return true if status is 'accepted' (connected)
+        return data.status === 'accepted';
     } catch (error) {
-        console.error('Error getting conversations:', error);
+        console.error('Error checking connection:', error);
+        
+        // If API fails, check if participant is in our conversation list
+        const conversationItem = document.querySelector(`.conversation-item[data-participant-id="${participantId}"]`);
+        if (conversationItem) {
+            console.log("API failed but participant is in conversation list - assuming connected");
+            return true;
+        }
+        
+        return false;
+    }
+}
+
+// Get connected participants
+async function getConnectedParticipants() {
+    try {
+        const currentUserId = window.currentUser.id;
+        const API_BASE_URL = getApiBaseUrl();
+        const CONNECTIONS_API_URL = `${API_BASE_URL}/connections`;
+        
+        // Fetch accepted connections
+        const response = await fetch(`${CONNECTIONS_API_URL}/${currentUserId}/friends`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data.friends || [];
+    } catch (error) {
+        console.error('Error getting connected participants:', error);
         return [];
     }
 }
 
-// Save conversations data
-async function saveConversationsData(conversations) {
+// Send connection request
+async function sendConnectionRequest() {
+    const participant = window.pendingParticipant;
+    if (!participant) return;
+    
     try {
-        // In a real app, this would be an API call
-        // For now, use local storage
-        localStorage.setItem('chatConversations', JSON.stringify(conversations));
-        sessionStorage.setItem('chatConversations', JSON.stringify(conversations));
-        return true;
+        const participantId = participant.id || participant.user_id;
+        const currentUserId = window.currentUser.id;
+        const API_BASE_URL = getApiBaseUrl();
+        const CONNECTIONS_API_URL = `${API_BASE_URL}/connections`;
+        
+        const response = await fetch(`${CONNECTIONS_API_URL}/${currentUserId}/send-request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                target_user_id: participantId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        showNotification('Connection Request', `Connection request sent to ${participant.name}`, 'success');
+        
+        // Update local connections data
+        const connections = await getConnectionsData();
+        connections.push({
+            user_id: currentUserId,
+            participant_id: participantId,
+            status: 'pending'
+        });
+        sessionStorage.setItem('userConnections', JSON.stringify(connections));
     } catch (error) {
-        console.error('Error saving conversations:', error);
-        return false;
+        console.error('Error sending connection request:', error);
+        showNotification('Error', 'Failed to send connection request. Please try again.', 'error');
     }
+    
+    // Close the modal
+    closeConnectionModal();
+}
+
+// Load connected participants for new chat modal
+async function loadConnectedParticipants() {
+    const participantsList = document.getElementById('modalParticipantsList');
+    if (!participantsList) return;
+    
+    // Show loading state
+    participantsList.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading participants...</p>
+        </div>
+    `;
+    
+    try {
+        const connectedParticipants = await getConnectedParticipants();
+        
+        if (connectedParticipants.length === 0) {
+            participantsList.innerHTML = `
+                <div class="no-participants">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No connected participants yet</p>
+                    <button class="btn btn-primary" onclick="window.location.href='participants.html'">
+                        Find Participants
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        renderModalParticipantsList(connectedParticipants);
+    } catch (error) {
+        console.error('Error loading participants:', error);
+        participantsList.innerHTML = `
+            <div class="no-participants">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error loading participants</p>
+            </div>
+        `;
+    }
+}
+
+// Render participants list in modal with real data
+function renderModalParticipantsList(participants) {
+    const participantsList = document.getElementById('modalParticipantsList');
+    if (!participantsList) return;
+    
+    let html = '';
+    
+    participants.forEach(participant => {
+        const participantId = participant.id || participant.user_id;
+        const avatarColor = stringToColor(participant.name);
+        const initials = getInitials(participant.name);
+        
+        html += `
+            <div class="modal-participant-item" data-participant-id="${participantId}">
+                <div class="modal-participant-avatar" style="background-color: ${avatarColor}">
+                    ${initials}
+                </div>
+                <div class="modal-participant-info">
+                    <div class="modal-participant-name">${participant.name}</div>
+                    <div class="modal-participant-role">${participant.role || 'Student'}</div>
+                    ${participant.faculty ? `<div class="modal-participant-faculty">${participant.faculty}</div>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    participantsList.innerHTML = html;
+    
+    // Add click event to participant items - FIXED: Always redirect to DM
+    document.querySelectorAll('.modal-participant-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const participantId = this.getAttribute('data-participant-id');
+            closeNewChatModal();
+            
+            // Always redirect to the DM with this participant
+            window.location.href = `chatroom.html?participant=${participantId}`;
+        });
+    });
+}
+
+// Open new chat modal
+function openNewChatModal() {
+    const modal = document.getElementById('newChatModal');
+    if (modal) {
+        modal.classList.add('show');
+        loadConnectedParticipants();
+    }
+}
+
+// Close new chat modal
+function closeNewChatModal() {
+    const modal = document.getElementById('newChatModal');
+    if (modal) modal.classList.remove('show');
+}
+
+// Verify connection and open chat if valid
+async function verifyConnectionAndOpenChat(participantId) {
+    try {
+        console.log("Looking for participant with ID:", participantId);
+        
+        // First check if we have the participant data in session storage from the participants page
+        const lastClickedParticipant = sessionStorage.getItem('lastClickedParticipant');
+        if (lastClickedParticipant) {
+            const participant = JSON.parse(lastClickedParticipant);
+            console.log("Found participant in session storage:", participant);
+            
+            if ((participant.id === participantId) || (participant.user_id === participantId)) {
+                const isConnected = await checkIfConnected(participantId);
+                
+                if (isConnected) {
+                    // Open the chat
+                    openChat(participant);
+                    sessionStorage.removeItem('lastClickedParticipant');
+                    return;
+                } else {
+                    // Show connection required modal
+                    showConnectionModal(participant);
+                    sessionStorage.removeItem('lastClickedParticipant');
+                    return;
+                }
+            }
+        }
+        
+        // If not found in session storage, try to get from API
+        const participants = await getParticipantsData();
+        const participant = participants.find(p => 
+            (p.id === participantId || p.user_id === participantId)
+        );
+        
+        if (!participant) {
+            console.error("Participant not found for ID:", participantId);
+            showNotification('Error', 'Participant not found', 'error');
+            
+            // Try to get basic info from the conversation list
+            const conversationItem = document.querySelector(`.conversation-item[data-participant-id="${participantId}"]`);
+            if (conversationItem) {
+                const participantName = conversationItem.getAttribute('data-participant-name');
+                const fallbackParticipant = {
+                    id: participantId,
+                    user_id: participantId,
+                    name: participantName || 'Unknown User'
+                };
+                
+                const isConnected = await checkIfConnected(participantId);
+                if (isConnected) {
+                    openChat(fallbackParticipant);
+                    return;
+                } else {
+                    showConnectionModal(fallbackParticipant);
+                    return;
+                }
+            }
+            
+            return;
+        }
+        
+        const isConnected = await checkIfConnected(participantId);
+        
+        if (isConnected) {
+            // Open the chat
+            openChat(participant);
+        } else {
+            // Show connection required modal
+            showConnectionModal(participant);
+        }
+    } catch (error) {
+        console.error('Error in verifyConnectionAndOpenChat:', error);
+        showNotification('Error', 'Failed to load participant information', 'error');
+    }
+}
+
+// Open chat with participant
+function openChat(participant, conversationId = null) {
+    if (!participant) {
+        console.error("No participant provided to openChat");
+        showNotification('Error', 'Cannot open chat: participant information missing', 'error');
+        return;
+    }
+    
+    console.log("Opening chat with:", participant.name, participant);
+    
+    // Hide "no chat selected" UI
+    const noChatSelected = document.getElementById('noChatSelected');
+    if (noChatSelected) noChatSelected.style.display = 'none';
+    
+    // Show chat UI elements
+    const chatHeader = document.getElementById('chatHeader');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInputContainer = document.getElementById('messageInputContainer');
+    
+    if (chatHeader) chatHeader.style.display = 'flex';
+    if (messagesContainer) messagesContainer.style.display = 'block';
+    if (messageInputContainer) messageInputContainer.style.display = 'flex';
+    
+    // Set participant info in chat header
+    const chatUserName = document.getElementById('chatUserName');
+    const chatUserStatus = document.getElementById('chatUserStatus');
+    
+    if (chatUserName) chatUserName.textContent = participant.name;
+    if (chatUserStatus) chatUserStatus.textContent = 'Online';
+    
+    // Set participant avatar
+    const avatarEl = document.getElementById('chatUserAvatar');
+    if (avatarEl) {
+        avatarEl.style.backgroundColor = stringToColor(participant.name);
+        avatarEl.textContent = getInitials(participant.name);
+    }
+    
+    // Store current chat participant and conversation
+    window.currentChat = {
+        participant: participant,
+        conversationId: conversationId
+    };
+    
+    // Load messages for this conversation
+    loadMessages(conversationId, participant.id || participant.user_id);
+    
+    // Mark messages as read
+    markMessagesAsRead(conversationId, participant.id || participant.user_id);
+    
+    // Update active conversation in sidebar
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-participant-id') === (participant.id || participant.user_id)) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Update call buttons with actual phone number if available
+    const voiceCallBtn = document.getElementById('voiceCallBtn');
+    const videoCallBtn = document.getElementById('videoCallBtn');
+    
+    if (voiceCallBtn && videoCallBtn) {
+        if (participant.phone) {
+            voiceCallBtn.onclick = () => initiateCall(participant.phone, 'voice');
+            videoCallBtn.onclick = () => initiateCall(participant.phone, 'video');
+        } else {
+            voiceCallBtn.onclick = () => showNotification('Call', 'No phone number available for this user', 'error');
+            videoCallBtn.onclick = () => showNotification('Call', 'No phone number available for this user', 'error');
+        }
+    }
+    
+    // Focus on message input for better UX
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) messageInput.focus();
+}
+
+// Initiate call function
+function initiateCall(phoneNumber, callType) {
+    // In a real app, this would integrate with a calling API
+    showNotification(
+        `${callType === 'voice' ? 'Voice' : 'Video'} Call`, 
+        `Calling ${phoneNumber}...`, 
+        'info'
+    );
+    
+    // Simulate call initiation
+    console.log(`Initiating ${callType} call to: ${phoneNumber}`);
 }
 
 // Load conversations for the current user
 async function loadConversations() {
     const conversationsList = document.getElementById('conversationsList');
+    if (!conversationsList) return;
     
     // Show loading state
     conversationsList.innerHTML = `
@@ -305,9 +675,10 @@ async function loadConversations() {
     `;
     
     try {
-        const conversations = await getConversationsFromStorage();
+        // Get connected participants (these are your conversations)
+        const connectedParticipants = await getConnectedParticipants();
         
-        if (conversations.length === 0) {
+        if (connectedParticipants.length === 0) {
             conversationsList.innerHTML = `
                 <div class="no-conversations">
                     <i class="fas fa-comment-slash"></i>
@@ -316,67 +687,63 @@ async function loadConversations() {
                 </div>
             `;
             
-            document.getElementById('startFirstChat').addEventListener('click', openNewChatModal);
+            const startFirstChat = document.getElementById('startFirstChat');
+            if (startFirstChat) startFirstChat.addEventListener('click', openNewChatModal);
             return;
         }
         
-        renderConversationsList(conversations);
+        renderConversationsList(connectedParticipants);
     } catch (error) {
         console.error('Error loading conversations:', error);
         conversationsList.innerHTML = `
-            <div class="no-conversations">
-                <i class="fas fa-exclamation-triangle"></i>
+            <div class='no-conversations'>
+                <i class='fas fa-exclamation-triangle'></i>
                 <p>Error loading conversations</p>
-                <button class="btn btn-primary" id="retryLoading">Retry</button>
+                <button class='btn btn-primary' id='retryLoading'>Retry</button>
             </div>
         `;
         
-        document.getElementById('retryLoading').addEventListener('click', loadConversations);
+        const retryLoading = document.getElementById('retryLoading');
+        if (retryLoading) retryLoading.addEventListener('click', loadConversations);
     }
 }
 
-// Get conversations from storage
-async function getConversationsFromStorage() {
-    try {
-        const conversations = await getConversationsData();
-        return conversations.filter(conv => conv.participants.includes(window.currentUser.id));
-    } catch (error) {
-        console.error('Error loading conversations:', error);
-        return [];
-    }
-}
+// Store participants data globally for easy access
+let globalParticipantsData = [];
 
-// Render conversations list
-async function renderConversationsList(conversations) {
+// Render conversations list with real data
+async function renderConversationsList(participants) {
     const conversationsList = document.getElementById('conversationsList');
+    if (!conversationsList) return;
+    
     const currentUserId = window.currentUser.id;
     
-    if (conversations.length === 0) {
+    // Store participants globally for later use
+    globalParticipantsData = participants;
+    
+    if (participants.length === 0) {
         conversationsList.innerHTML = `
-            <div class="no-conversations">
-                <i class="fas fa-comment-slash"></i>
+            <div class='no-conversations'>
+                <i class='fas fa-comment-slash'></i>
                 <p>No conversations yet</p>
-                <button class="btn btn-primary" id="startFirstChat">Start a conversation</button>
+                <button class='btn btn-primary' id='startFirstChat'>Start a conversation</button>
             </div>
         `;
         
-        document.getElementById('startFirstChat').addEventListener('click', openNewChatModal);
+        const startFirstChat = document.getElementById('startFirstChat');
+        if (startFirstChat) startFirstChat.addEventListener('click', openNewChatModal);
         return;
     }
     
     let html = '';
     
-    for (const conversation of conversations) {
-        // Get the other participant (not the current user)
-        const otherParticipantId = conversation.participants.find(id => id !== currentUserId);
-        const participant = await getParticipantById(otherParticipantId);
+    for (const participant of participants) {
+        const participantId = participant.id || participant.user_id;
         
-        if (!participant) continue;
-        
-        // Get last message
-        const lastMessage = conversation.messages.length > 0 
-            ? conversation.messages[conversation.messages.length - 1] 
-            : null;
+        // Get last message from localStorage (in a real app, this would come from your database)
+        const conversationKey = `conversation_${currentUserId}_${participantId}`;
+        const messages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
+        const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
             
         // Format last message preview
         let messagePreview = 'No messages yet';
@@ -408,23 +775,26 @@ async function renderConversationsList(conversations) {
         // Format time
         const time = lastMessage ? formatMessageTime(lastMessage.timestamp) : '';
         
-        // Unread count
-        const unreadCount = conversation.messages.filter(
+        // Unread count (in a real app, this would come from your database)
+        const unreadCount = messages.filter(
             msg => msg.senderId !== currentUserId && !msg.read
         ).length;
         
+        const avatarColor = stringToColor(participant.name);
+        const initials = getInitials(participant.name);
+        
         html += `
-            <div class="conversation-item" data-conversation-id="${conversation.id}" data-participant-id="${participant.id || participant.user_id}">
-                <div class="conversation-avatar" style="background-color: ${stringToColor(participant.name)}">
-                    ${getInitials(participant.name)}
+            <div class='conversation-item' data-participant-id='${participantId}' data-participant-name='${participant.name}'>
+                <div class='conversation-avatar' style='background-color: ${avatarColor}'>
+                    ${initials}
                 </div>
-                <div class="conversation-info">
-                    <div class="conversation-name">${participant.name}</div>
-                    <div class="conversation-preview">${messagePreview}</div>
+                <div class='conversation-info'>
+                    <div class='conversation-name'>${participant.name}</div>
+                    <div class='conversation-preview'>${messagePreview}</div>
                 </div>
-                <div class="conversation-meta">
-                    <div class="conversation-time">${time}</div>
-                    ${unreadCount > 0 ? `<div class="conversation-badge">${unreadCount}</div>` : ''}
+                <div class='conversation-meta'>
+                    <div class='conversation-time'>${time}</div>
+                    ${unreadCount > 0 ? `<div class='conversation-badge'>${unreadCount}</div>` : ''}
                 </div>
             </div>
         `;
@@ -432,169 +802,53 @@ async function renderConversationsList(conversations) {
     
     conversationsList.innerHTML = html;
     
-    // Add click event to conversation items
+    // Add click event to conversation items - FIXED: Always redirect to DM
     document.querySelectorAll('.conversation-item').forEach(item => {
         item.addEventListener('click', function() {
             const participantId = this.getAttribute('data-participant-id');
-            const conversationId = this.getAttribute('data-conversation-id');
+            const participantName = this.getAttribute('data-participant-name');
             
-            // Verify connection before opening chat
-            verifyConnectionAndOpenChat(participantId, conversationId);
+            // Store participant data in session storage for the verify function to access
+            const participantData = {
+                id: participantId,
+                user_id: participantId,
+                name: participantName,
+                // Add other necessary fields if available
+            };
+            
+            sessionStorage.setItem('lastClickedParticipant', JSON.stringify(participantData));
+            
+            // Always redirect to the DM with this participant
+            window.location.href = `chatroom.html?participant=${participantId}`;
         });
     });
-}
-
-// Get participant by ID
-async function getParticipantById(participantId) {
-    try {
-        const participants = await getParticipantsData();
-        return participants.find(p => p.id === participantId || p.user_id === participantId);
-    } catch (error) {
-        console.error('Error getting participant:', error);
-        return null;
-    }
-}
-
-// Check if user is connected to participant
-async function checkIfConnected(participantId) {
-    try {
-        // Get connections
-        const connections = await getConnectionsData();
-        
-        // Check if current user is connected to this participant
-        const currentUserId = window.currentUser.id;
-        
-        return connections.some(conn => 
-            (conn.userId === currentUserId && conn.participantId === participantId && conn.status === 'connected') ||
-            (conn.userId === participantId && conn.participantId === currentUserId && conn.status === 'connected')
-        );
-    } catch (error) {
-        console.error('Error checking connection:', error);
-        return false;
-    }
-}
-
-// Verify connection and open chat if valid
-async function verifyConnectionAndOpenChat(participantId, conversationId = null) {
-    // Check if participant exists and is connected
-    const participant = await getParticipantById(participantId);
-    const isConnected = await checkIfConnected(participantId);
-    
-    if (participant && isConnected) {
-        // Open the chat
-        openChat(participant, conversationId);
-    } else {
-        // Show connection required modal
-        showConnectionModal(participant);
-    }
-}
-
-// Open chat with participant
-function openChat(participant, conversationId = null) {
-    // Hide "no chat selected" UI
-    document.getElementById('noChatSelected').style.display = 'none';
-    
-    // Show chat UI elements
-    document.getElementById('chatHeader').style.display = 'flex';
-    document.getElementById('messagesContainer').style.display = 'block';
-    document.getElementById('messageInputContainer').style.display = 'flex';
-    
-    // Set participant info in chat header
-    document.getElementById('chatUserName').textContent = participant.name;
-    document.getElementById('chatUserStatus').textContent = 'Online'; // This would come from real data
-    
-    // Set participant avatar
-    const avatarEl = document.getElementById('chatUserAvatar');
-    avatarEl.style.backgroundColor = stringToColor(participant.name);
-    avatarEl.textContent = getInitials(participant.name);
-    
-    // Store current chat participant and conversation
-    window.currentChat = {
-        participant: participant,
-        conversationId: conversationId
-    };
-    
-    // Load messages for this conversation
-    loadMessages(conversationId, participant.id || participant.user_id);
-    
-    // Mark messages as read
-    markMessagesAsRead(conversationId, participant.id || participant.user_id);
-    
-    // Update active conversation in sidebar
-    document.querySelectorAll('.conversation-item').forEach(item => {
-        item.classList.remove('active');
-        if (item.getAttribute('data-participant-id') === (participant.id || participant.user_id)) {
-            item.classList.add('active');
-        }
-    });
-    
-    // Update call buttons with actual phone number if available
-    const voiceCallBtn = document.getElementById('voiceCallBtn');
-    const videoCallBtn = document.getElementById('videoCallBtn');
-    
-    if (participant.phone) {
-        voiceCallBtn.onclick = () => initiateCall(participant.phone, 'voice');
-        videoCallBtn.onclick = () => initiateCall(participant.phone, 'video');
-    } else {
-        voiceCallBtn.onclick = () => showNotification('Call', 'No phone number available for this user', 'error');
-        videoCallBtn.onclick = () => showNotification('Call', 'No phone number available for this user', 'error');
-    }
-}
-
-// Initiate call function
-function initiateCall(phoneNumber, callType) {
-    // In a real app, this would integrate with a calling API
-    showNotification(
-        `${callType === 'voice' ? 'Voice' : 'Video'} Call`, 
-        `Calling ${phoneNumber}...`, 
-        'info'
-    );
-    
-    // Simulate call initiation
-    console.log(`Initiating ${callType} call to: ${phoneNumber}`);
 }
 
 // Load messages for conversation
 async function loadMessages(conversationId, participantId) {
     const messagesContainer = document.getElementById('messages');
+    if (!messagesContainer) return;
+    
     const currentUserId = window.currentUser.id;
     
     // Show loading state
     messagesContainer.innerHTML = `
-        <div class="loading-spinner">
-            <div class="spinner"></div>
+        <div class='loading-spinner'>
+            <div class='spinner'></div>
             <p>Loading messages...</p>
         </div>
     `;
     
     try {
-        let messages = [];
-        const conversations = await getConversationsData();
-        
-        if (conversationId) {
-            // Get messages from existing conversation
-            const conversation = conversations.find(conv => conv.id === conversationId);
-            
-            if (conversation) {
-                messages = conversation.messages;
-            }
-        } else {
-            // Check if there's an existing conversation with this participant
-            const existingConversation = conversations.find(conv => 
-                conv.participants.includes(currentUserId) && conv.participants.includes(participantId)
-            );
-            
-            if (existingConversation) {
-                messages = existingConversation.messages;
-                window.currentChat.conversationId = existingConversation.id;
-            }
-        }
+        // Use a unique key for this conversation
+        const conversationKey = `conversation_${currentUserId}_${participantId}`;
+        const messages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
         
         renderMessages(messages);
     } catch (error) {
         console.error('Error loading messages:', error);
         messagesContainer.innerHTML = `
-            <div class="no-messages">
+            <div class='no-messages'>
                 <p>Error loading messages</p>
             </div>
         `;
@@ -604,11 +858,13 @@ async function loadMessages(conversationId, participantId) {
 // Render messages in the chat
 function renderMessages(messages) {
     const messagesContainer = document.getElementById('messages');
+    if (!messagesContainer) return;
+    
     const currentUserId = window.currentUser.id;
     
     if (messages.length === 0) {
         messagesContainer.innerHTML = `
-            <div class="no-messages">
+            <div class='no-messages'>
                 <p>No messages yet. Start the conversation!</p>
             </div>
         `;
@@ -621,31 +877,31 @@ function renderMessages(messages) {
         const isSent = message.senderId === currentUserId;
         
         html += `
-            <div class="message ${isSent ? 'sent' : 'received'}">
-                <div class="message-content">
+            <div class='message ${isSent ? 'sent' : 'received'}'>
+                <div class='message-content'>
         `;
         
         // Different content based on message type
         if (message.type === 'text') {
             html += `
-                <p class="message-text">${message.content}</p>
+                <p class='message-text'>${message.content}</p>
             `;
         } else if (message.type === 'image') {
             html += `
-                <img src="${message.content}" alt="Shared image" class="message-image">
+                <img src='${message.content}' alt='Shared image' class='message-image'>
             `;
         } else if (message.type === 'file') {
             html += `
-                <div class="message-file">
-                    <i class="fas fa-file"></i>
+                <div class='message-file'>
+                    <i class='fas fa-file'></i>
                     <span>${message.fileName || 'Document'}</span>
                 </div>
             `;
         } else if (message.type === 'audio') {
             html += `
-                <div class="message-audio">
-                    <audio controls class="audio-player">
-                        <source src="${message.content}" type="audio/webm">
+                <div class='message-audio'>
+                    <audio controls class='audio-player'>
+                        <source src='${message.content}' type='audio/webm'>
                         Your browser does not support the audio element.
                     </audio>
                 </div>
@@ -654,10 +910,10 @@ function renderMessages(messages) {
         
         // Message time and status
         html += `
-                    <div class="message-time">${formatMessageTime(message.timestamp)}</div>
+                    <div class='message-time'>${formatMessageTime(message.timestamp)}</div>
                     ${isSent ? `
-                        <div class="message-status ${message.read ? 'read' : message.delivered ? 'delivered' : 'sent'}">
-                            <i class="fas fa-check${message.read ? '-double' : ''}"></i>
+                        <div class='message-status ${message.read ? 'read' : message.delivered ? 'delivered' : 'sent'}'>
+                            <i class='fas fa-check${message.read ? '-double' : ''}'></i>
                         </div>
                     ` : ''}
                 </div>
@@ -674,9 +930,10 @@ function renderMessages(messages) {
 // Send a message
 function sendMessage() {
     const messageInput = document.getElementById('messageInput');
-    const messageText = messageInput.value.trim();
+    if (!messageInput || !window.currentChat) return;
     
-    if (!messageText || !window.currentChat) return;
+    const messageText = messageInput.value.trim();
+    if (!messageText) return;
     
     // Create message object
     const message = {
@@ -705,29 +962,31 @@ function sendMessage() {
 // Add message to UI
 function addMessageToUI(message) {
     const messagesContainer = document.getElementById('messages');
+    if (!messagesContainer) return;
+    
     const isSent = message.senderId === window.currentUser.id;
     
     let messageHtml = `
-        <div class="message ${isSent ? 'sent' : 'received'}">
-            <div class="message-content">
+        <div class='message ${isSent ? 'sent' : 'received'}'>
+            <div class='message-content'>
     `;
     
     if (message.type === 'text') {
-        messageHtml += `<p class="message-text">${message.content}</p>`;
+        messageHtml += `<p class='message-text'>${message.content}</p>`;
     } else if (message.type === 'image') {
-        messageHtml += `<img src="${message.content}" alt="Shared image" class="message-image">`;
+        messageHtml += `<img src='${message.content}' alt='Shared image' class='message-image'>`;
     } else if (message.type === 'file') {
         messageHtml += `
-            <div class="message-file">
-                <i class="fas fa-file"></i>
+            <div class='message-file'>
+                <i class='fas fa-file'></i>
                 <span>${message.fileName || 'Document'}</span>
             </div>
         `;
     } else if (message.type === 'audio') {
         messageHtml += `
-            <div class="message-audio">
-                <audio controls class="audio-player">
-                    <source src="${message.content}" type="audio/webm">
+            <div class='message-audio'>
+                <audio controls class='audio-player'>
+                    <source src='${message.content}' type='audio/webm'>
                     Your browser does not support the audio element.
                 </audio>
             </div>
@@ -735,10 +994,10 @@ function addMessageToUI(message) {
     }
     
     messageHtml += `
-                <div class="message-time">${formatMessageTime(message.timestamp)}</div>
+                <div class='message-time'>${formatMessageTime(message.timestamp)}</div>
                 ${isSent ? `
-                    <div class="message-status sent">
-                        <i class="fas fa-check"></i>
+                    <div class='message-status sent'>
+                        <i class='fas fa-check'></i>
                     </div>
                 ` : ''}
             </div>
@@ -759,29 +1018,20 @@ function addMessageToUI(message) {
 // Save message to storage
 async function saveMessageToStorage(message) {
     try {
-        const conversations = await getConversationsData();
         const currentUserId = window.currentUser.id;
         const participantId = window.currentChat.participant.id || window.currentChat.participant.user_id;
         
-        // Find existing conversation or create new one
-        let conversation = conversations.find(conv => 
-            conv.participants.includes(currentUserId) && conv.participants.includes(participantId)
-        );
+        // Use a unique key for this conversation
+        const conversationKey = `conversation_${currentUserId}_${participantId}`;
         
-        if (!conversation) {
-            conversation = {
-                id: generateId(),
-                participants: [currentUserId, participantId],
-                messages: []
-            };
-            conversations.push(conversation);
-        }
+        // Get existing messages
+        const existingMessages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
         
-        // Add message to conversation
-        conversation.messages.push(message);
+        // Add new message
+        existingMessages.push(message);
         
-        // Update conversation in storage
-        await saveConversationsData(conversations);
+        // Save back to localStorage
+        localStorage.setItem(conversationKey, JSON.stringify(existingMessages));
         
         // Update conversation in sidebar
         loadConversations();
@@ -813,11 +1063,11 @@ async function updateMessageStatus(messageId, status, value) {
         const statusElement = el.querySelector('.message-status');
         if (statusElement) {
             if (status === 'delivered' && value) {
-                statusElement.innerHTML = '<i class="fas fa-check-double"></i>';
+                statusElement.innerHTML = '<i class=\'fas fa-check-double\'></i>';
                 statusElement.classList.remove('sent');
                 statusElement.classList.add('delivered');
             } else if (status === 'read' && value) {
-                statusElement.innerHTML = '<i class="fas fa-check-double" style="color: var(--study-success)"></i>';
+                statusElement.innerHTML = '<i class=\'fas fa-check-double\' style=\'color: var(--study-success)\'></i>';
                 statusElement.classList.remove('delivered');
                 statusElement.classList.add('read');
             }
@@ -826,17 +1076,19 @@ async function updateMessageStatus(messageId, status, value) {
     
     // Update in storage
     try {
-        const conversations = await getConversationsData();
+        const currentUserId = window.currentUser.id;
+        const participantId = window.currentChat.participant.id || window.currentChat.participant.user_id;
+        const conversationKey = `conversation_${currentUserId}_${participantId}`;
+        const messages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
         
-        for (const conversation of conversations) {
-            const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
-            if (messageIndex !== -1) {
-                conversation.messages[messageIndex][status] = value;
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i].id === messageId) {
+                messages[i][status] = value;
                 break;
             }
         }
         
-        await saveConversationsData(conversations);
+        localStorage.setItem(conversationKey, JSON.stringify(messages));
     } catch (error) {
         console.error('Error updating message status:', error);
     }
@@ -895,19 +1147,20 @@ function getFileType(mimeType) {
 // Show upload progress
 function showUploadProgress(message, file) {
     const messagesContainer = document.getElementById('messages');
+    if (!messagesContainer) return;
     
     const progressHtml = `
-        <div class="message sent" id="upload-${message.id}">
-            <div class="message-content">
-                <div class="message-file">
-                    <i class="fas fa-file"></i>
+        <div class='message sent' id='upload-${message.id}'>
+            <div class='message-content'>
+                <div class='message-file'>
+                    <i class='fas fa-file'></i>
                     <span>${file.name}</span>
                 </div>
-                <div class="upload-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: 0%"></div>
+                <div class='upload-progress'>
+                    <div class='progress-bar'>
+                        <div class='progress-fill' style='width: 0%'></div>
                     </div>
-                    <div class="progress-text">0%</div>
+                    <div class='progress-text'>0%</div>
                 </div>
             </div>
         </div>
@@ -942,6 +1195,8 @@ function showUploadProgress(message, file) {
 // Setup voice message recording
 function setupVoiceMessageRecording() {
     const voiceBtn = document.getElementById('voiceMessageBtn');
+    if (!voiceBtn) return;
+    
     let mediaRecorder;
     let audioChunks = [];
     
@@ -1025,16 +1280,16 @@ function showRecordingUI() {
     const recordingUI = document.createElement('div');
     recordingUI.className = 'voice-recorder';
     recordingUI.innerHTML = `
-        <div class="recording-indicator">
-            <div class="recording-dot"></div>
-            <span class="recording-time">00:00</span>
+        <div class='recording-indicator'>
+            <div class='recording-dot'></div>
+            <span class='recording-time'>00:00</span>
         </div>
-        <div class="recording-actions">
-            <button class="recording-cancel">
-                <i class="fas fa-times"></i>
+        <div class='recording-actions'>
+            <button class='recording-cancel'>
+                <i class='fas fa-times'></i>
             </button>
-            <button class="recording-send">
-                <i class="fas fa-paper-plane"></i>
+            <button class='recording-send'>
+                <i class='fas fa-paper-plane'></i>
             </button>
         </div>
     `;
@@ -1057,156 +1312,49 @@ function showRecordingUI() {
     recordingUI.dataset.timerInterval = timerInterval;
     
     // Add event listeners to buttons
-    recordingUI.querySelector('.recording-cancel').addEventListener('click', () => {
-        clearInterval(timerInterval);
-        recordingUI.remove();
-    });
+    const cancelBtn = recordingUI.querySelector('.recording-cancel');
+    const sendBtn = recordingUI.querySelector('.recording-send');
     
-    recordingUI.querySelector('.recording-send').addEventListener('click', () => {
-        clearInterval(timerInterval);
-        recordingUI.remove();
-        
-        // Stop recording if still active
-        if (window.mediaRecorder && window.mediaRecorder.state === 'recording') {
-            window.mediaRecorder.stop();
-        }
-    });
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            recordingUI.remove();
+        });
+    }
+    
+    if (sendBtn) {
+        sendBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            recordingUI.remove();
+            
+            // Stop recording if still active
+            if (window.mediaRecorder && window.mediaRecorder.state === 'recording') {
+                window.mediaRecorder.stop();
+            }
+        });
+    }
 }
 
 // Hide recording UI
 function hideRecordingUI() {
     const recordingUI = document.querySelector('.voice-recorder');
     if (recordingUI) {
-        clearInterval(parseInt(recordingUI.dataset.timerInterval));
+        const timerInterval = recordingUI.dataset.timerInterval;
+        if (timerInterval) clearInterval(parseInt(timerInterval));
         recordingUI.remove();
     }
 }
 
-// Open new chat modal
-function openNewChatModal() {
-    const modal = document.getElementById('newChatModal');
-    modal.classList.add('show');
-    
-    loadConnectedParticipants();
-}
-
-// Close new chat modal
-function closeNewChatModal() {
-    document.getElementById('newChatModal').classList.remove('show');
-}
-
-// Load connected participants for new chat
-async function loadConnectedParticipants() {
-    const participantsList = document.getElementById('modalParticipantsList');
-    
-    // Show loading state
-    participantsList.innerHTML = `
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Loading participants...</p>
-        </div>
-    `;
-    
-    try {
-        const connectedParticipants = await getConnectedParticipants();
-        
-        if (connectedParticipants.length === 0) {
-            participantsList.innerHTML = `
-                <div class="no-participants">
-                    <i class="fas fa-users-slash"></i>
-                    <p>No connected participants yet</p>
-                    <button class="btn btn-primary" onclick="window.location.href='participants.html'">
-                        Find Participants
-                    </button>
-                </div>
-            `;
-            return;
-        }
-        
-        renderModalParticipantsList(connectedParticipants);
-    } catch (error) {
-        console.error('Error loading participants:', error);
-        participantsList.innerHTML = `
-            <div class="no-participants">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>Error loading participants</p>
-            </div>
-        `;
-    }
-}
-
-// Get connected participants
-async function getConnectedParticipants() {
-    try {
-        const currentUserId = window.currentUser.id;
-        const connections = await getConnectionsData();
-        const participants = await getParticipantsData();
-        
-        // Get IDs of connected participants
-        const connectedParticipantIds = connections
-            .filter(conn => 
-                (conn.userId === currentUserId || conn.participantId === currentUserId) && 
-                conn.status === 'connected'
-            )
-            .map(conn => 
-                conn.userId === currentUserId ? conn.participantId : conn.userId
-            );
-        
-        // Get participant objects
-        return participants.filter(p => 
-            (p.id !== currentUserId && p.user_id !== currentUserId) && 
-            (connectedParticipantIds.includes(p.id) || connectedParticipantIds.includes(p.user_id))
-        );
-    } catch (error) {
-        console.error('Error getting connected participants:', error);
-        return [];
-    }
-}
-
-// Render participants list in modal
-function renderModalParticipantsList(participants) {
-    const participantsList = document.getElementById('modalParticipantsList');
-    
-    let html = '';
-    
-    participants.forEach(participant => {
-        const participantId = participant.id || participant.user_id;
-        
-        html += `
-            <div class="modal-participant-item" data-participant-id="${participantId}">
-                <div class="modal-participant-avatar" style="background-color: ${stringToColor(participant.name)}">
-                    ${getInitials(participant.name)}
-                </div>
-                <div class="modal-participant-info">
-                    <div class="modal-participant-name">${participant.name}</div>
-                    <div class="modal-participant-role">${participant.role || 'Student'}</div>
-                </div>
-            </div>
-        `;
-    });
-    
-    participantsList.innerHTML = html;
-    
-    // Add click event to participant items
-    document.querySelectorAll('.modal-participant-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const participantId = this.getAttribute('data-participant-id');
-            closeNewChatModal();
-            
-            // Open chat with this participant
-            verifyConnectionAndOpenChat(participantId);
-        });
-    });
-}
-
 // Filter conversations in sidebar
 function filterConversations() {
-    const searchTerm = document.getElementById('conversationSearch').value.toLowerCase();
+    const searchTerm = document.getElementById('conversationSearch')?.value.toLowerCase();
+    if (!searchTerm) return;
+    
     const conversationItems = document.querySelectorAll('.conversation-item');
     
     conversationItems.forEach(item => {
-        const conversationName = item.querySelector('.conversation-name').textContent.toLowerCase();
-        if (conversationName.includes(searchTerm)) {
+        const conversationName = item.querySelector('.conversation-name')?.textContent.toLowerCase();
+        if (conversationName && conversationName.includes(searchTerm)) {
             item.style.display = 'flex';
         } else {
             item.style.display = 'none';
@@ -1216,12 +1364,14 @@ function filterConversations() {
 
 // Filter participants in modal
 function filterModalParticipants() {
-    const searchTerm = document.getElementById('participantSearch').value.toLowerCase();
+    const searchTerm = document.getElementById('participantSearch')?.value.toLowerCase();
+    if (!searchTerm) return;
+    
     const participantItems = document.querySelectorAll('.modal-participant-item');
     
     participantItems.forEach(item => {
-        const participantName = item.querySelector('.modal-participant-name').textContent.toLowerCase();
-        if (participantName.includes(searchTerm)) {
+        const participantName = item.querySelector('.modal-participant-name')?.textContent.toLowerCase();
+        if (participantName && participantName.includes(searchTerm)) {
             item.style.display = 'flex';
         } else {
             item.style.display = 'none';
@@ -1232,15 +1382,19 @@ function filterModalParticipants() {
 // Show connection modal
 function showConnectionModal(participant) {
     const modal = document.getElementById('connectionModal');
+    if (!modal) return;
+    
     modal.classList.add('show');
     
     // Update modal content with participant info
     const modalBody = modal.querySelector('.modal-body');
-    modalBody.innerHTML = `
-        <i class="fas fa-users-slash"></i>
-        <p>You need to be connected with <strong>${participant.name}</strong> to start chatting.</p>
-        <p>Would you like to send a connection request?</p>
-    `;
+    if (modalBody) {
+        modalBody.innerHTML = `
+            <i class='fas fa-users-slash'></i>
+            <p>You need to be connected with <strong>${participant.name}</strong> to start chatting.</p>
+            <p>Would you like to send a connection request?</p>
+        `;
+    }
     
     // Store participant for later use
     window.pendingParticipant = participant;
@@ -1248,40 +1402,9 @@ function showConnectionModal(participant) {
 
 // Close connection modal
 function closeConnectionModal() {
-    document.getElementById('connectionModal').classList.remove('show');
+    const modal = document.getElementById('connectionModal');
+    if (modal) modal.classList.remove('show');
     window.pendingParticipant = null;
-}
-
-// Send connection request
-async function sendConnectionRequest() {
-    const participant = window.pendingParticipant;
-    if (!participant) return;
-    
-    try {
-        const participantId = participant.id || participant.user_id;
-        const success = await createConnectionRequest(participantId);
-        
-        if (success) {
-            showNotification('Connection Request', `Connection request sent to ${participant.name}`, 'success');
-            
-            // Update local connections data
-            const connections = await getConnectionsData();
-            connections.push({
-                userId: window.currentUser.id,
-                participantId: participantId,
-                status: 'pending'
-            });
-            sessionStorage.setItem('userConnections', JSON.stringify(connections));
-        } else {
-            showNotification('Error', 'Failed to send connection request. Please try again.', 'error');
-        }
-    } catch (error) {
-        console.error('Error sending connection request:', error);
-        showNotification('Error', 'Failed to send connection request. Please try again.', 'error');
-    }
-    
-    // Close the modal
-    closeConnectionModal();
 }
 
 // View profile of current chat participant
@@ -1296,25 +1419,17 @@ function viewProfile() {
 // Mark messages as read
 async function markMessagesAsRead(conversationId, participantId) {
     try {
-        const conversations = await getConversationsData();
         const currentUserId = window.currentUser.id;
+        const conversationKey = `conversation_${currentUserId}_${participantId}`;
+        const messages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
         
-        for (const conversation of conversations) {
-            if (conversation.id === conversationId || 
-                (conversation.participants.includes(currentUserId) && 
-                 conversation.participants.includes(participantId))) {
-                
-                conversation.messages.forEach(message => {
-                    if (message.senderId !== currentUserId) {
-                        message.read = true;
-                    }
-                });
-                
-                break;
+        for (let i = 0; i < messages.length; i++) {
+            if (messages[i].senderId !== currentUserId) {
+                messages[i].read = true;
             }
         }
         
-        await saveConversationsData(conversations);
+        localStorage.setItem(conversationKey, JSON.stringify(messages));
         
         // Update conversations list to remove unread badges
         loadConversations();
@@ -1329,13 +1444,13 @@ function showNotification(title, message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <div class="notification-content">
-            <div class="notification-title">${title}</div>
-            <div class="notification-message">${message}</div>
+        <i class='fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}'></i>
+        <div class='notification-content'>
+            <div class='notification-title'>${title}</div>
+            <div class='notification-message'>${message}</div>
         </div>
-        <button class="notification-close">
-            <i class="fas fa-times"></i>
+        <button class='notification-close'>
+            <i class='fas fa-times'></i>
         </button>
     `;
     
@@ -1372,11 +1487,13 @@ function formatMessageTime(timestamp) {
 
 // Get initials from name
 function getInitials(name) {
+    if (!name) return 'NN';
     return name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2);
 }
 
 // Generate color from string
 function stringToColor(str) {
+    if (!str) return '#3b82f6';
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);

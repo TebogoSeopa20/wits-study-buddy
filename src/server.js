@@ -6,8 +6,8 @@ const session = require('express-session');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
-const connectionsApi = require('./backend/connections-api');
 const usersApi = require('./backend/users-api');
+const connectionsApi = require('./backend/connections-api');
 
 // Create the Express application
 const app = express();
@@ -45,21 +45,18 @@ const redirectUrl = process.env.NODE_ENV === 'production'
   ? process.env.PRODUCTION_REDIRECT_URL
   : 'http://localhost:3000/auth/google/callback';
 
-// Debug: Log the paths to verify they're correct
-console.log('Frontend path:', frontendPath);
-console.log('HTML path:', htmlPath);
-console.log('Landing page path:', path.join(htmlPath, 'landing.html'));
-
-//path for the users api
-app.use('/api', usersApi);
-
-// Configure middleware
+  // Configure middleware FIRST
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files from both frontend and html directories
-app.use(express.static(frontendPath));
-app.use(express.static(htmlPath));
+// Then mount your API routes AFTER the middleware
+app.use('/api', usersApi);
+app.use('/api', connectionsApi);
+
+// Serve all static files from frontend directory
+app.use(express.static(path.join(__dirname, 'frontend')));
+// Specifically serve HTML files from the html subdirectory
+app.use(express.static(path.join(__dirname, 'frontend', 'html')));
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
