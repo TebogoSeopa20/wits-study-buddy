@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <title>Wits - Notifications</title>
+    <meta name="description" content="Stay updated with all your activities and connections">
     <meta name="author" content="Wits">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta property="og:title" content="Wits - Notifications">
+    <meta property="og:description" content="Stay updated with all your activities and connections">
     <meta property="og:type" content="website">
     <link rel="icon" href="../images/icon.png" type="image/png">
     <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/progress.css">
     <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/notifications.css">
     <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/form-status.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -40,11 +39,10 @@
             <li><a href="student-map.html#">Campus Map</a></li>
         </ul>
         
-        <!-- Update the user-controls section -->
         <div class="user-controls">
             <a href="student-notifications.html" class="nav-btn notification-btn active">
                 <i class="fas fa-bell"></i>
-                <span class="btn-badge">3</span>
+                <span class="btn-badge" id="notificationBadge">0</span>
                 <span class="btn-text">Notifications</span>
             </a>
             <a href="student-profile.html" class="nav-btn profile-btn">
@@ -93,30 +91,111 @@
         </div>
     </nav>
 
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our Notifications page. <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students and track your progress here.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
-    
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
+    <main class="notifications-container">
+        <!-- Header Section -->
+        <section class="notifications-header">
+            <h1><i class="fas fa-bell"></i> Notifications</h1>
+            <p>Stay updated with all your activities and connections</p>
+            
+            <div class="notification-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="totalNotifications">0</div>
+                        <div class="stat-label">Total Notifications</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="unreadNotifications">0</div>
+                        <div class="stat-label">Unread</div>
+                    </div>
+                </div>
             </div>
         </section>
 
+        <!-- Filter and Controls -->
+        <section class="notification-controls">
+            <div class="search-filter-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchNotifications" placeholder="Search notifications...">
+                </div>
+                
+                <div class="filter-controls">
+                    <select id="typeFilter" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="connection_request">Connection Requests</option>
+                        <option value="connection_accepted">Connection Accepted</option>
+                        <option value="connection_rejected">Connection Rejected</option>
+                        <option value="group_invitation">Group Invitations</option>
+                        <option value="group_join_request">Group Join Requests</option>
+                        <option value="new_message">New Messages</option>
+                        <option value="system_announcement">System Announcements</option>
+                    </select>
+                    
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="social">Social</option>
+                        <option value="academic">Academic</option>
+                        <option value="system">System</option>
+                        <option value="message">Messages</option>
+                    </select>
+                    
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="unread">Unread Only</option>
+                        <option value="read">Read Only</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="notification-actions">
+                <button class="action-btn primary" id="markAllRead">
+                    <i class="fas fa-check-double"></i> Mark All as Read
+                </button>
+                <button class="action-btn outline" id="refreshNotifications">
+                    <i class="fas fa-sync"></i> Refresh
+                </button>
+            </div>
+        </section>
+
+        <!-- Notifications List -->
+        <section class="notifications-list-section">
+            <div class="section-header">
+                <h2>Your Notifications</h2>
+                <div class="view-toggle">
+                    <button class="view-toggle-btn active" data-view="list">
+                        <i class="fas fa-list"></i> List
+                    </button>
+                    <button class="view-toggle-btn" data-view="compact">
+                        <i class="fas fa-grip-lines"></i> Compact
+                    </button>
+                </div>
+            </div>
+            
+            <div class="notifications-list" id="notificationsList">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading notifications...</p>
+                </div>
+            </div>
+            
+            <div class="pagination-controls" id="paginationControls">
+                <button class="pagination-btn" id="prevPage" disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="pagination-info" id="paginationInfo">Page 1 of 1</span>
+                <button class="pagination-btn" id="nextPage" disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
     </main>
     
     <!-- Footer -->
@@ -167,9 +246,7 @@
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
-    <script src="../js/progress.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
-    <script src="../js/student-dash.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script src="../js/participants.js"></script>
 </body>
 </html>
