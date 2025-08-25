@@ -12,10 +12,10 @@
     <meta property="og:type" content="website">
     <link rel="icon" href="../images/icon.png" type="image/png">
     <link rel="stylesheet" href="../css/landing.css">
+    <link rel="stylesheet" href="../css/progress.css">
     <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="../css/form-status.css">
-    <link rel="stylesheet" href="../css/profile.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -23,31 +23,30 @@
     <!-- Navigation Bar -->
     <nav class="navbar">
         <header class="logo">
-            <a href="student-dash.html" class="logo-link">
+            <a href="tutor-dash.html" class="logo-link">
                 <i class="fas fa-graduation-cap book-logo"></i>
                 Wits
             </a>
         </header>
         
         <ul class="nav-links">
-            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
-            <li><a href="student-participants.html#">Participants</a></li>
-            <li><a href="student-groups.html#">Groups</a></li>
-            <li><a href="student-chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-progress.html#">Progress</a></li>
-            <li><a href="student-calendar.html#">Calendar</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="tutor-dash.html#">Dashboard</a></li>
+            <li><a href="tutor-participants.html#">Participants</a></li>
+            <li><a href="tutor-groups.html#">Groups</a></li>
+            <li><a href="tutor-chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-calendar.html#">Calendar</a></li>
+            <li><a href="tutor-weather.html#">Weather</a></li>
+            <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
         <!-- Update the user-controls section -->
         <div class="user-controls">
-            <a href="student-notifications.html" class="nav-btn notification-btn">
+            <a href="tutor-notifications.html" class="nav-btn notification-btn active">
                 <i class="fas fa-bell"></i>
                 <span class="btn-badge">3</span>
                 <span class="btn-text">Notifications</span>
             </a>
-            <a href="student-profile.html" class="nav-btn profile-btn">
+            <a href="tutor-profile.html" class="nav-btn profile-btn">
                 <i class="fas fa-user-circle"></i>
                 <span class="btn-text">Profile</span>
             </a>
@@ -71,22 +70,21 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
-            <li><a href="student-participants.html#">Participants</a></li>
-            <li><a href="student-groups.html#">Groups</a></li>
-            <li><a href="student-chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-progress.html#">Progress</a></li>
-            <li><a href="student-calendar.html#">Calendar</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="tutor-dash.html#">Dashboard</a></li>
+            <li><a href="tutor-participants.html#">Participants</a></li>
+            <li><a href="tutor-groups.html#">Groups</a></li>
+            <li><a href="tutor-chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-calendar.html#">Calendar</a></li>
+            <li><a href="tutor-weather.html#">Weather</a></li>
+            <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
-            <a href="student-notifications.html" class="btn btn-outline mobile-profile-btn">
+            <a href="tutor-notifications.html" class="btn btn-outline mobile-profile-btn">
                 <i class="fas fa-bell"></i>
                 <span>Notifications</span>
             </a>
-            <a href="student-profile.html" class="btn btn-outline mobile-profile-btn active">
+            <a href="tutor-profile.html" class="btn btn-outline mobile-profile-btn active">
                 <i class="fas fa-user-circle"></i>
                 <span>Profile</span>
             </a>
@@ -98,8 +96,8 @@
         <section class="hero" id="about">
             <article class="hero-container">
                 <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Welcome To Student Dashboard <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students, join study groups, and master your modules together. Wits makes collaborative learning as easy as creating a study session.</p>
+                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our Notifications page. <span id="welcomeName"> Student</span>!</mark></h1>
+                    <p class="animate-on-scroll">Connect with fellow students and track your progress here.</p>
                     <aside class="auth-buttons animate-on-scroll">
                         <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
     
@@ -167,6 +165,7 @@
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
+    <script src="../js/progress.js"></script>
     <script src="../js/landing.js"></script>
     <script src="../js/weather.js"></script>
     <script src="../js/student-dash.js"></script>

@@ -12,14 +12,15 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/weather.css">
+    <link rel="stylesheet" href="../css/profile.css">
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav class="navbar">
         <header class="logo">
             <a href="tutor-dash.html" class="logo-link">
-              <i class="fas fa-graduation-cap book-logo"></i>
-              Wits
+                <i class="fas fa-graduation-cap book-logo"></i>
+                Wits
             </a>
         </header>
         
@@ -27,28 +28,30 @@
             <li><a href="tutor-dash.html#">Dashboard</a></li>
             <li><a href="tutor-participants.html#">Participants</a></li>
             <li><a href="tutor-groups.html#">Groups</a></li>
-            <li><a href="calendar.html#">Calendar</a></li>
-            <li><a href="chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-calendar.html#">Calendar</a></li>
             <li><a href="tutor-weather.html#" class="active">Weather</a></li>
             <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
+        <!-- Update the user-controls section -->
         <div class="user-controls">
-            <a href="tutor-profile.html" class="profile-btn">
-                <i class="fas fa-user-circle"></i>
-                <span class="profile-text">Profile</span>
+            <a href="tutor-notifications.html" class="nav-btn notification-btn">
+                <i class="fas fa-bell"></i>
+                <span class="btn-badge">3</span>
+                <span class="btn-text">Notifications</span>
             </a>
-            <button class="btn btn-outline logout-btn" id="logoutButton">
-                <i class="fas fa-sign-out-alt"></i>
-                <span class="logout-text">Log Out</span>
-            </button>
+            <a href="tutor-profile.html" class="nav-btn profile-btn">
+                <i class="fas fa-user-circle"></i>
+                <span class="btn-text">Profile</span>
+            </a>
         </div>
         
         <button id="mobile-menu-button" class="mobile-menu">
             <i class="fas fa-bars"></i>
         </button>
     </nav>
-    
+
     <!-- Mobile Navigation -->
     <nav id="mobile-nav" class="mobile-nav">
         <header class="mobile-nav-header">
@@ -65,21 +68,21 @@
             <li><a href="tutor-dash.html#">Dashboard</a></li>
             <li><a href="tutor-participants.html#">Participants</a></li>
             <li><a href="tutor-groups.html#">Groups</a></li>
-            <li><a href="calendar.html#">Calendar</a></li>
-            <li><a href="chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-chatroom.html#">ChatRoom</a></li>
+            <li><a href="tutor-calendar.html#">Calendar</a></li>
             <li><a href="tutor-weather.html#" class="active">Weather</a></li>
             <li><a href="tutor-map.html#">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
-            <a href="tutor-profile.html" class="btn btn-outline mobile-profile-btn">
+            <a href="tutor-notifications.html" class="btn btn-outline mobile-profile-btn">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+            </a>
+            <a href="tutor-profile.html" class="btn btn-outline mobile-profile-btn active">
                 <i class="fas fa-user-circle"></i>
                 <span>Profile</span>
             </a>
-            <button class="btn btn-outline mobile-logout-btn" id="mobileLogoutButton">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Log Out</span>
-            </button>
         </div>
     </nav>
 
