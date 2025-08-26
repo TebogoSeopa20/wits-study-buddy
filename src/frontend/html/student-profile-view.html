@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Participants</title>
-    <meta name="description" content="Connect with other students and tutors">
+    <title>Wits - View Profile</title>
+    <meta name="description" content="View participant profile">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,7 +12,7 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/participants.css">
-    <link rel="stylesheet" href="../css/groups.css">
+    <link rel="stylesheet" href="../css/profile-view.css">
     <link rel="stylesheet" href="../css/profile.css">
 </head>
 <body>
@@ -27,7 +27,7 @@
         
         <ul class="nav-links">
             <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="student-participants.html#" class="active">Participants</a></li>
+            <li><a href="student-participants.html#">Participants</a></li>
             <li><a href="student-groups.html#">Groups</a></li>
             <li><a href="student-chatroom.html#">ChatRoom</a></li>
             <li><a href="student-progress.html#">Progress</a></li>
@@ -68,7 +68,7 @@
         
         <ul class="mobile-nav-links">
             <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="student-participants.html#" class="active">Participants</a></li>
+            <li><a href="student-participants.html#">Participants</a></li>
             <li><a href="student-groups.html#">Groups</a></li>
             <li><a href="student-chatroom.html#">ChatRoom</a></li>
             <li><a href="student-progress.html#">Progress</a></li>
@@ -90,89 +90,23 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="participants-container">
-        <section class="participants-header">
-            <h1><i class="fa-solid fa-people-arrows"></i> Connect with Participants</h1>
-            <p>Connect with students and tutors from across Wits University</p>
+    <main class="profile-view-container">
+        <div class="back-button-container">
+            <button class="back-button" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> Back to Participants
+            </button>
+        </div>
 
-            <div class="search-filter-container">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search by name, course, or faculty...">
-                </div>
-                
-                <div class="filter-controls">
-                    <select id="roleFilter" class="filter-select">
-                        <option value="">All Roles</option>
-                        <option value="student">Students</option>
-                        <option value="tutor">Tutors</option>
-                    </select>
-                    
-                    <select id="facultyFilter" class="filter-select">
-                        <option value="">All Faculties</option>
-                        <option value="Faculty of Science">Science</option>
-                        <option value="Faculty of Engineering">Engineering</option>
-                        <option value="Faculty of Health Sciences">Health Sciences</option>
-                        <option value="Faculty of Commerce">Commerce</option>
-                        <option value="Faculty of Humanities">Humanities</option>
-                    </select>
-                </div>
-            </div>
+        <section class="profile-view-header">
+            <h1><i class="fa-solid fa-user"></i> <span id="profileUserName">Participant Profile</span></h1>
         </section>
 
-        <!-- Connection Stats Section -->
-<!-- Connection Stats Section -->
-<section class="connection-stats" id="connectionStats">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-user-friends"></i>
-        </div>
-        <div class="stat-value" id="connectedCount">0</div>
-        <div class="stat-label">Connected</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-value" id="pendingCount">0</div>
-        <div class="stat-label">Pending Requests</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-users"></i>
-        </div>
-        <div class="stat-value" id="totalCount">0</div>
-        <div class="stat-label">Total Participants</div>
-    </div>
-</section>
-        <!-- View Toggle -->
-        <div class="view-toggle">
-            <button class="view-toggle-btn active" data-view="grid">
-                <i class="fas fa-th"></i> Grid View
-            </button>
-            <button class="view-toggle-btn" data-view="list">
-                <i class="fas fa-list"></i> List View
-            </button>
-        </div>
-
-        <!-- Connection Management Tabs -->
-        <div class="connection-tabs">
-            <button class="tab-btn active" data-tab="all">All Participants</button>
-            <button class="tab-btn" data-tab="connections">My Connections</button>
-            <button class="tab-btn" data-tab="pending">Pending Requests</button>
-            <button class="tab-btn" data-tab="sent">Sent Requests</button>
-        </div>
-
-        <!-- Filter Chips -->
-        <div class="filter-chips" id="filterChips"></div>
-        
-        <!-- Participants Grid/List -->
-        <section class="participants-grid" id="participantsGrid">
+        <div class="profile-view-content" id="profileViewContent">
             <div class="loading-spinner">
                 <div class="spinner"></div>
-                <p>Loading participants...</p>
+                <p>Loading profile...</p>
             </div>
-        </section>
+        </div>
     </main>
 
     <!-- Footer -->
@@ -222,7 +156,6 @@
 
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/participants.js"></script>
-    <script src="../js/notifications.js"></script>
+    <script src="../js/profile-view.js"></script>
 </body>
 </html>

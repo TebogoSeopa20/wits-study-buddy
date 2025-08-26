@@ -569,83 +569,46 @@ document.addEventListener('DOMContentLoaded', function() {
         return listItem;
     }
     
-// Add this function to create the View Profile button
-function renderViewProfileButton(profileId) {
-    return `
-        <button class="action-btn outline" onclick="viewProfile('${profileId}')">
-            <i class="fas fa-eye"></i> View Profile
-        </button>
-    `;
-}
-
-// Update the renderConnectionButton function to include the View Profile button
-function renderConnectionButton(status, profileId) {
-    let buttons = '';
-    
-    switch(status) {
-        case 'pending':
-            buttons = `
-                <button class="action-btn outline" onclick="cancelRequest('${profileId}')">
-                    <i class="fas fa-ban"></i> Cancel Request
-                </button>
-            `;
-            break;
-        case 'pending_approval':
-            buttons = `
-                <button class="action-btn primary" onclick="acceptRequest('${profileId}')">
-                    <i class="fas fa-check"></i> Accept
-                </button>
-                <button class="action-btn outline" onclick="rejectRequest('${profileId}')">
-                    <i class="fas fa-times"></i> Reject
-                </button>
-            `;
-            break;
-        case 'accepted':
-            buttons = `
-                <button class="action-btn primary" onclick="messageUser('${profileId}')">
-                    <i class="fas fa-comment"></i> Message
-                </button>
-                <button class="action-btn outline" onclick="disconnect('${profileId}')">
-                    <i class="fas fa-user-times"></i> Disconnect
-                </button>
-            `;
-            break;
-        case 'blocked':
-            buttons = `
-                <button class="action-btn outline" onclick="unblockUser('${profileId}')">
-                    <i class="fas fa-ban"></i> Unblock
-                </button>
-            `;
-            break;
-        default:
-            buttons = `
-                <button class="action-btn primary" onclick="connectWith('${profileId}')">
-                    <i class="fas fa-user-plus"></i> Connect
-                </button>
-            `;
+    function renderConnectionButton(status, profileId) {
+        switch(status) {
+            case 'pending':
+                return `
+                    <button class="action-btn outline" onclick="cancelRequest('${profileId}')">
+                        <i class="fas fa-clock"></i> Request Sent
+                    </button>
+                `;
+            case 'pending_approval':
+                return `
+                    <button class="action-btn primary" onclick="acceptRequest('${profileId}')">
+                        <i class="fas fa-check"></i> Accept
+                    </button>
+                    <button class="action-btn outline" onclick="rejectRequest('${profileId}')">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                `;
+            case 'accepted':
+                return `
+                    <button class="action-btn primary" onclick="messageUser('${profileId}')">
+                        <i class="fas fa-comment"></i> Message
+                    </button>
+                    <button class="action-btn outline" onclick="disconnect('${profileId}')">
+                        <i class="fas fa-user-times"></i> Disconnect
+                    </button>
+                `;
+            case 'blocked':
+                return `
+                    <button class="action-btn outline" onclick="unblockUser('${profileId}')">
+                        <i class="fas fa-ban"></i> Unblock
+                    </button>
+                `;
+            default:
+                return `
+                    <button class="action-btn primary" onclick="connectWith('${profileId}')">
+                        <i class="fas fa-user-plus"></i> Connect
+                    </button>
+                `;
+        }
     }
-    
-    // Added View Profile button to all states
-    return buttons + renderViewProfileButton(profileId);
-}
-
-// Update the viewProfile function in participants.js
-window.viewProfile = function(profileId) {
-    // Store the profile ID to view in session storage
-    // Make sure we're using the correct ID field (user_id or id)
-    const profile = allProfiles.find(p => (p.user_id || p.id) === profileId);
-    if (profile) {
-        // Use the profile's id field (not user_id) for the API call
-        const idToStore = profile.id;
-        console.log('Viewing profile with ID:', idToStore);
-        sessionStorage.setItem('viewProfileId', idToStore);
-        // Redirect to profile view page
-        window.location.href = 'student-profile-view.html';
-    } else {
-        console.error('Profile not found for ID:', profileId);
-        showNotification('Could not view profile. Please try again.', 'error');
-    }
-};
     
     function displayConnectionRequests() {
         if (!pendingConnections || !sentConnections) return;
@@ -912,7 +875,7 @@ window.viewProfile = function(profileId) {
     
     window.messageUser = function(profileId) {
         // Redirect to chat with this user
-        window.location.href = `student-chatroom.html?user=${profileId}`;
+        window.location.href = `tutor-chatroom.html?user=${profileId}`;
     };
     
     window.blockUser = async function(profileId) {

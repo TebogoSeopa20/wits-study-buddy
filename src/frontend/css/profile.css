@@ -98,6 +98,7 @@ body {
     z-index: 2;
 }
 
+
 /* Profile Card */
 .profile-card {
     background: white;
@@ -153,8 +154,10 @@ body {
     border-bottom: 2px solid var(--study-blue-lighter);
     display: flex;
     align-items: center;
+    justify-content: center; /* ✅ Centers the text */
     gap: 0.5rem;
 }
+
 
 .info-group h3 i {
     color: var(--study-blue);

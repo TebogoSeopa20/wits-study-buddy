@@ -6,6 +6,97 @@ document.addEventListener('DOMContentLoaded', function() {
         ? 'http://localhost:3000/api' 
         : 'https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/api';
     
+    // Faculty and courses data
+    const facultyCourses = {
+        'Faculty of Commerce, Law & Management': [
+            'Bachelor of Commerce (BCom) - Accounting',
+            'Bachelor of Commerce (BCom) - Economics',
+            'Bachelor of Commerce (BCom) - Information Systems',
+            'Bachelor of Commerce (BCom) - PPE (Politics, Philosophy & Economics)',
+            'Bachelor of Commerce (BCom) - Finance & Management',
+            'Bachelor of Commerce (BCom) - Insurance & Risk Management',
+            'Bachelor of Commerce (BCom) - Human Resource Management & Management',
+            'Bachelor of Commerce (BCom) - Marketing & Management',
+            'Bachelor of Accounting Science (BAccSc)',
+            'Bachelor of Economic Science (BEconSc)',
+            'Bachelor of Laws (LLB)'
+        ],
+        'Faculty of Engineering & the Built Environment': [
+            'Bachelor of Science in Engineering (BSc Eng) - Civil Engineering',
+            'Bachelor of Science in Engineering (BSc Eng) - Electrical Engineering',
+            'Bachelor of Science in Engineering (BSc Eng) - Mechanical Engineering',
+            'Bachelor of Science in Engineering (BSc Eng) - Industrial Engineering',
+            'Bachelor of Science in Engineering (BSc Eng) - Aeronautical Engineering',
+            'Bachelor of Science in Engineering (BSc Eng) - Chemical Engineering',
+            'Bachelor of Science in Engineering (BSc Eng) - Metallurgical Engineering',
+            'Bachelor of Science in Engineering (BSc Eng) - Mining Engineering',
+            'Bachelor of Engineering Science in Digital Arts (BEngSc)',
+            'Bachelor of Engineering Science in Biomedical Engineering (BEngSc (BME))',
+            'Bachelor of Architectural Studies (BAS)',
+            'Bachelor of Science in Construction Studies (BSc (CS))',
+            'Bachelor of Science in Property Studies (BSc (PS))',
+            'Bachelor of Science in Urban & Regional Planning (BSc (URP))'
+        ],
+        'Faculty of Health Sciences': [
+            'Bachelor of Health Sciences (BHSc) - Biomedical Sciences',
+            'Bachelor of Health Sciences (BHSc) - Biokinetics',
+            'Bachelor of Health Sciences (BHSc) - Health Systems Sciences',
+            'Bachelor of Clinical Medical Practice (BCMP)',
+            'Bachelor of Dental Science (BDS)',
+            'Bachelor of Oral Health Sciences (BOHSc)',
+            'Bachelor of Medicine & Surgery (MBBCh)',
+            'Bachelor of Nursing (BNurs)',
+            'Bachelor of Science in Occupational Therapy (BSc (OT))',
+            'Bachelor of Pharmacy (BPharm)',
+            'Bachelor of Science in Physiotherapy (BSc (Physiotherapy))'
+        ],
+        'Faculty of Humanities': [
+            'Bachelor of Arts (BA) - African Literature',
+            'Bachelor of Arts (BA) - Anthropology',
+            'Bachelor of Arts (BA) - Archaeology',
+            'Bachelor of Arts (BA) - History',
+            'Bachelor of Arts (BA) - English',
+            'Bachelor of Arts (BA) - Geography',
+            'Bachelor of Arts (BA) - International Relations',
+            'Bachelor of Arts (BA) - Media Studies',
+            'Bachelor of Arts (BA) - Modern Languages (French)',
+            'Bachelor of Arts (BA) - Modern Languages (German)',
+            'Bachelor of Arts (BA) - Modern Languages (Spanish)',
+            'Bachelor of Arts (BA) - Philosophy',
+            'Bachelor of Arts (BA) - Political Studies',
+            'Bachelor of Arts (BA) - Psychology',
+            'Bachelor of Arts (BA) - Sociology',
+            'BA in Digital Arts (4-year specialized degree)',
+            'BA Film & Television (BAFT)',
+            'Bachelor of Social Work (B Social Work)',
+            'Bachelor of Education: Intermediate Phase',
+            'Bachelor of Education: Senior Phase & FET Teaching',
+            'Bachelor of Speech-Language Pathology',
+            'Bachelor of Audiology'
+        ],
+        'Faculty of Science': [
+            'Bachelor of Science (BSc) - Actuarial Science',
+            'Bachelor of Science (BSc) - Applied & Computational Mathematics',
+            'Bachelor of Science (BSc) - Astronomy & Astrophysics',
+            'Bachelor of Science (BSc) - Biochemistry & Cell Biology',
+            'Bachelor of Science (BSc) - Biological/Biodiversity & Conservation Biology',
+            'Bachelor of Science (BSc) - Chemistry',
+            'Bachelor of Science (BSc) - Computer Science',
+            'Bachelor of Science (BSc) - Ecology & Conservation',
+            'Bachelor of Science (BSc) - Genetics',
+            'Bachelor of Science (BSc) - Geology',
+            'Bachelor of Science (BSc) - Geography & Archaeological Sciences',
+            'Bachelor of Science (BSc) - Geospatial Science',
+            'Bachelor of Science (BSc) - Mathematical Sciences & Mathematics of Finance',
+            'Bachelor of Science (BSc) - Microbiology',
+            'Bachelor of Science (BSc) - Molecular and Cell Biology',
+            'Bachelor of Science (BSc) - Physics',
+            'Bachelor of Science (BSc) - Physiology',
+            'Bachelor of Science (BSc) - Statistics',
+            'Bachelor of Science (BSc) - Zoology'
+        ]
+    };
+    
     // State management
     let currentUser = null;
     let allGroups = [];
@@ -36,6 +127,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const createGroupForm = document.getElementById('createGroupForm');
     const inviteCodeInput = document.getElementById('inviteCode');
     
+    // Group creation form elements
+    const facultySelect = document.getElementById('groupFaculty');
+    const courseSelect = document.getElementById('groupCourse');
+    
     // Stats elements
     const totalGroupsEl = document.getElementById('totalGroups');
     const myGroupsEl = document.getElementById('myGroups');
@@ -64,12 +159,60 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set up event listeners
         setupEventListeners();
         
+        // Initialize faculty and course dropdowns
+        initFacultyCourseDropdowns();
+        
         // Load initial data
         await loadAllData();
         
         // Render initial view
         renderGroups();
         updateStats();
+    }
+    
+    function initFacultyCourseDropdowns() {
+        // Get references to the faculty and course dropdowns in the create group form
+        const facultySelect = document.getElementById('groupFaculty');
+        const courseSelect = document.getElementById('groupCourse');
+        
+        if (facultySelect && courseSelect) {
+            // Clear existing options
+            facultySelect.innerHTML = '<option value="">Select Faculty</option>';
+            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+            courseSelect.disabled = true;
+            
+            // Add faculty options
+            Object.keys(facultyCourses).forEach(faculty => {
+                const option = document.createElement('option');
+                option.value = faculty;
+                option.textContent = faculty;
+                facultySelect.appendChild(option);
+            });
+            
+            // Add event listener for faculty change
+            facultySelect.addEventListener('change', function() {
+                const selectedFaculty = this.value;
+                
+                // Clear course selection
+                courseSelect.innerHTML = '<option value="">Select a Course</option>';
+                
+                if (selectedFaculty && facultyCourses[selectedFaculty]) {
+                    courseSelect.disabled = false;
+                    
+                    facultyCourses[selectedFaculty].forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course;
+                        option.textContent = course;
+                        courseSelect.appendChild(option);
+                    });
+                } else {
+                    courseSelect.disabled = true;
+                    courseSelect.innerHTML = '<option value="">Select a Faculty first</option>';
+                }
+                
+                courseSelect.value = '';
+            });
+        }
     }
     
     function setupEventListeners() {
@@ -144,9 +287,20 @@ document.addEventListener('DOMContentLoaded', function() {
             inviteCodeInput.value = '';
         });
         
+        // Updated the cancelCreateBtn event listener to properly reset the course dropdown
         cancelCreateBtn.addEventListener('click', () => {
             closeModal(createGroupModal);
             createGroupForm.reset();
+            
+            // Reset faculty and course dropdowns
+            const facultySelect = document.getElementById('groupFaculty');
+            const courseSelect = document.getElementById('groupCourse');
+            
+            if (facultySelect && courseSelect) {
+                facultySelect.value = '';
+                courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+                courseSelect.disabled = true;
+            }
         });
         
         closeDetailsBtn.addEventListener('click', () => {
@@ -647,13 +801,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Updated the createGroup function to handle the course dropdown value
     async function createGroup() {
         const formData = new FormData(createGroupForm);
         const name = document.getElementById('groupName').value.trim();
         const subject = document.getElementById('groupSubject').value.trim();
+        const faculty = document.getElementById('groupFaculty').value;
+        const course = document.getElementById('groupCourse').value; // This is now a select value
         
         if (!name || !subject) {
             showError('Group name and subject are required.');
+            return;
+        }
+        
+        if (faculty && !course) {
+            showError('Please select a course for the selected faculty.');
             return;
         }
         
@@ -665,11 +827,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 creator_id: currentUser.id,
                 max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
                 is_private: document.getElementById('groupIsPrivate').checked,
-                faculty: document.getElementById('groupFaculty').value,
-                course: document.getElementById('groupCourse').value.trim(),
+                faculty: faculty,
+                course: course, // This will now be the selected course value
                 year_of_study: document.getElementById('groupYear').value
             };
             
+            // Rest of the function remains the same...
             const response = await fetch(`${API_BASE_URL}/groups/create`, {
                 method: 'POST',
                 headers: {
@@ -689,6 +852,11 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModal(createGroupModal);
             createGroupForm.reset();
             
+            // Reset faculty and course dropdowns
+            facultySelect.value = '';
+            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+            courseSelect.disabled = true;
+            
             // Reload data
             await loadAllData();
             
@@ -697,6 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showError('Failed to create group. Please try again.');
         }
     }
+
     
     async function editGroup(groupId) {
         // Implementation for editing a group
@@ -881,7 +1050,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         window.requestAnimationFrame(step);
     }
-    
     // Utility function for debouncing
     function debounce(func, wait) {
         let timeout;

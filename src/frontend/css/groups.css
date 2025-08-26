@@ -967,3 +967,115 @@ body {
         min-width: auto;
     }
 }
+
+
+/* Add these styles to your groups.css file */
+
+/* Group Card Container - Ensure consistent sizing */
+.group-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 380px; /* Set minimum height for consistency */
+}
+
+/* Group Header - Fixed height for all cards */
+.group-header {
+    min-height: 100px; /* Fixed height to accommodate 2 lines of group name */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Group Name - Limit to 2 lines */
+.group-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+    min-height: 2.6em; /* 2 lines with line-height */
+    margin-bottom: 0.5rem;
+}
+
+/* Group Description - Limit to 2 lines with ellipsis */
+.group-description {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+    min-height: 3em; /* 2 lines with line-height */
+    margin-bottom: 1rem;
+}
+
+/* Group Details - Flexible content area */
+.group-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Group Meta Information */
+.group-meta {
+    margin-bottom: auto; /* Push content to top */
+}
+
+/* Members Info - Consistent positioning */
+.members-info {
+    margin-top: auto; /* Push to bottom of content area */
+    margin-bottom: 1rem;
+}
+
+/* Group Actions - Fixed height footer */
+.group-actions {
+    min-height: 60px; /* Fixed height for buttons */
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem 1.5rem;
+}
+
+/* Action buttons - Equal size */
+.action-btn {
+    flex: 1;
+    min-height: 44px; /* Consistent button height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+/* List view adjustments */
+.group-list-item {
+    min-height: 120px; /* Minimum height for list items */
+}
+
+.list-details {
+    flex: 1;
+    min-width: 0; /* Allow text truncation */
+}
+
+.list-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Ensure grid items have equal height */
+.groups-grid {
+    align-items: stretch; /* Make all cards equal height */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .group-header {
+        min-height: 90px;
+    }
+    
+    .group-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        width: 100%;
+    }
+}
