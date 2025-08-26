@@ -40,13 +40,14 @@ body {
     top: 0;
     left: 0;
     right: 0;
+    width: 100%;
     z-index: 2000; /* Ensure it stays above other elements */
     background: white;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     /* Add any other navbar styles you need */
 }
 .weather-container {
-    max-width: 1400px; /* Increased from 1200px */
+    width: 100%;
     margin: 2rem auto;
     padding: 0 clamp(2rem, 5vw, 4rem); /* Dynamic side padding */
     width: 100%;

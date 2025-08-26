@@ -48,7 +48,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -59,6 +59,7 @@ h1, h2, h3, h4, h5 {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
+  width: 100%;
   background-color: var(--background);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
@@ -214,7 +215,7 @@ h1, h2, h3, h4, h5 {
 }
 
 .hero-container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
