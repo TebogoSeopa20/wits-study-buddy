@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <title>Wits - Calendar</title>
+    <meta name="description" content="Manage your study schedule and tasks with the Wits Calendar.">
     <meta name="author" content="Wits">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta property="og:title" content="Wits - Calendar">
+    <meta property="og:description" content="Plan your study sessions and manage academic tasks effectively.">
     <meta property="og:type" content="website">
     <link rel="icon" href="../images/icon.png" type="image/png">
     <link rel="stylesheet" href="../css/landing.css">
@@ -69,13 +69,13 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
-            <li><a href="student-articipants.html#">Participants</a></li>
+            <li><a href="Student-dash.html#">Dashboard</a></li>
+            <li><a href="student-participants.html#">Participants</a></li>
             <li><a href="progress.html#">Progress</a></li>
             <li><a href="groups.html#">Groups</a></li>
             <li><a href="calendar.html#" class="active">Calendar</a></li>
             <li><a href="chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-weather.html#" class="active">Weather</a></li>
+            <li><a href="student-weather.html#">Weather</a></li>
             <li><a href="student-map.html#">Campus Map</a></li>
         </ul>
         
@@ -90,32 +90,182 @@
             </button>
         </div>
     </nav>
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our Calendar page. <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students and organise your calendar and schedules here.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
-    
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
-            </div>
-        </section>
 
+    <main>
+        <!-- Calendar Container -->
+        <div class="calendar-container">
+            <!-- Header Section -->
+            <header class="calendar-header">
+                <h1><i class="fas fa-calendar-alt"></i> Academic Calendar</h1>
+                <p>Organize your study schedule, track assignments, and manage your academic tasks effectively.</p>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="action-btn primary" id="addTaskBtn">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                    <button class="action-btn outline" id="todayBtn">
+                        <i class="fas fa-calendar-day"></i> Today
+                    </button>
+                    <div class="view-toggle">
+                        <button class="view-btn active" data-view="month">
+                            <i class="fas fa-calendar"></i> Month
+                        </button>
+                        <button class="view-btn" data-view="week">
+                            <i class="fas fa-calendar-week"></i> Week
+                        </button>
+                        <button class="view-btn" data-view="day">
+                            <i class="fas fa-calendar-day"></i> Day
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Calendar Navigation -->
+            <div class="calendar-nav">
+                <button class="nav-btn" id="prevBtn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2 class="current-period" id="currentPeriod">January 2025</h2>
+                <button class="nav-btn" id="nextBtn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="calendar-wrapper">
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+
+            <!-- Tasks Sidebar -->
+            <aside class="tasks-sidebar">
+                <header class="sidebar-header">
+                    <h3><i class="fas fa-tasks"></i> Tasks</h3>
+                    <div class="task-filters">
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                        <select class="filter-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="assignment">Assignment</option>
+                            <option value="exam">Exam</option>
+                            <option value="study">Study Session</option>
+                            <option value="project">Project</option>
+                            <option value="meeting">Meeting</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </header>
+                <div class="tasks-list" id="tasksList">
+                    <!-- Tasks will be loaded here -->
+                </div>
+            </aside>
+        </div>
     </main>
-    
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal-content task-modal">
+            <header class="modal-header">
+                <h3 id="modalTitle">Add New Task</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+            <form class="task-form" id="taskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" name="title" required 
+                           placeholder="Enter task title">
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" name="description" 
+                              placeholder="Enter task description (optional)"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskDate">Date</label>
+                        <input type="date" id="taskDate" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskTime">Time</label>
+                        <input type="time" id="taskTime" name="time">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskCategory">Category</label>
+                        <select id="taskCategory" name="category" required>
+                            <option value="">Select category</option>
+                            <option value="assignment">Assignment</option>
+                            <option value="exam">Exam</option>
+                            <option value="study">Study Session</option>
+                            <option value="project">Project</option>
+                            <option value="meeting">Meeting</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskPriority">Priority</label>
+                        <select id="taskPriority" name="priority" required>
+                            <option value="">Select priority</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskStatus">Status</label>
+                    <select id="taskStatus" name="status" required>
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="action-btn outline" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="action-btn primary" id="saveBtn">Save Task</button>
+                    <button type="button" class="action-btn danger hidden" id="deleteBtn">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal-overlay" id="taskDetailModal">
+        <div class="modal-content task-detail-modal">
+            <header class="modal-header">
+                <h3 id="detailTitle">Task Details</h3>
+                <button class="modal-close" id="closeDetailModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+            <div class="task-detail-content" id="taskDetailContent">
+                <!-- Task details will be loaded here -->
+            </div>
+            <div class="modal-actions">
+                <button class="action-btn outline" id="editTaskBtn">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="action-btn danger" id="deleteTaskBtn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <article class="container">
@@ -164,9 +314,9 @@
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
+    <script src="../js/tasks-api.js"></script>
     <script src="../js/calendar.js"></script>
     <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
     <script src="../js/student-dash.js"></script>
 </body>
 </html>
