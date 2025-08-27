@@ -59,6 +59,44 @@ const auth = {
         }
     },
 
+    handleGoogleLogin: function(userData) {
+        try {
+            // Extract user metadata from Google login response
+            const userMetadata = userData.user_metadata || {};
+            const appMetadata = userData.app_metadata || {};
+            
+            // Create user object with all profile fields
+            const user = {
+                id: userData.id,
+                email: userData.email,
+                role: userMetadata.role || 'student', // Default to student if no role specified
+                name: userMetadata.name || userData.user_metadata?.full_name || 'User', // Use full_name from Google if available
+                phone: userMetadata.phone || '',
+                faculty: userMetadata.faculty || 'Not provided',
+                course: userMetadata.course || 'Not provided',
+                year_of_study: userMetadata.year_of_study || 'Not provided',
+                studentNumber: userMetadata.studentNumber || (userData.email ? userData.email.split('@')[0] : ''),
+                authProvider: userMetadata.authProvider || 'google', // Default to google for Google logins
+                created_at: userData.created_at || new Date().toISOString(),
+                picture: userMetadata.picture || userData.user_metadata?.avatar_url || '' // Google profile picture
+            };
+
+            // Store user data in sessionStorage
+            sessionStorage.setItem('user', JSON.stringify(user));
+
+            // Store tokens if available
+            if (userData.session) {
+                sessionStorage.setItem('access_token', userData.session.access_token);
+                sessionStorage.setItem('refresh_token', userData.session.refresh_token);
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Google login handling error:', error);
+            return false;
+        }
+    },
+
     handleLogout: function() {
         try {
             // Clear all auth-related data from sessionStorage
