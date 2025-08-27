@@ -165,37 +165,34 @@
             </div>
         </section>
 
-        <!-- Notifications List -->
-        <section class="notifications-list-section">
-            <div class="section-header">
-                <h2>Your Notifications</h2>
-                <div class="view-toggle">
-                    <button class="view-toggle-btn active" data-view="list">
-                        <i class="fas fa-list"></i> List
-                    </button>
-                    <button class="view-toggle-btn" data-view="compact">
-                        <i class="fas fa-grip-lines"></i> Compact
-                    </button>
-                </div>
-            </div>
-            
-            <div class="notifications-list" id="notificationsList">
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    <p>Loading notifications...</p>
-                </div>
-            </div>
-            
-            <div class="pagination-controls" id="paginationControls">
-                <button class="pagination-btn" id="prevPage" disabled>
-                    <i class="fas fa-chevron-left"></i> Previous
-                </button>
-                <span class="pagination-info" id="paginationInfo">Page 1 of 1</span>
-                <button class="pagination-btn" id="nextPage" disabled>
-                    Next <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </section>
+<!-- Notifications List -->
+<section class="notifications-list-section">
+    <div class="section-header">
+        <h2>Your Notifications</h2>
+        <div class="view-toggle">
+            <button class="view-toggle-btn active" data-view="list">
+                <i class="fas fa-list"></i> List
+            </button>
+            <button class="view-toggle-btn" data-view="compact">
+                <i class="fas fa-grip-lines"></i> Compact
+            </button>
+        </div>
+    </div>
+    
+    <div class="notifications-list" id="notificationsList">
+        <!-- Notifications will be dynamically inserted here -->
+    </div>
+    
+    <div class="pagination-controls" id="paginationControls">
+        <button class="pagination-btn" id="prevPage" disabled>
+            <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <span class="pagination-info" id="paginationInfo">Page 1 of 1</span>
+        <button class="pagination-btn" id="nextPage" disabled>
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+</section>
     </main>
     
     <!-- Footer -->

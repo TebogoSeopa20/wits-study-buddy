@@ -698,33 +698,215 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    async function joinGroup(groupId) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
+// Add this function to groups.js
+async function createNotification(notificationData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notificationData)
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error creating notification:', error);
+        return false;
+    }
+}
+
+// Update the joinGroup function to create a notification for group admins
+async function joinGroup(groupId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: currentUser.id
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Get group details to notify admins
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (groupResponse.ok) {
+            const groupData = await groupResponse.json();
+            const group = groupData.group;
+            
+            // Get group admins
+            const membersResponse = await fetch(`${API_BASE_URL}/groups/${groupId}/members`);
+            if (membersResponse.ok) {
+                const membersData = await membersResponse.json();
+                const admins = membersData.members.filter(m => m.role === 'admin' || m.role === 'creator');
+                const adminIds = admins.map(a => a.user_id).filter(id => id !== currentUser.id);
+                
+                // Notify admins about new member
+                if (adminIds.length > 0) {
+                    await fetch(`${API_BASE_URL}/notifications/group-member-joined`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sender_id: currentUser.id,
+                            group_id: groupId,
+                            group_name: group.name,
+                            admin_user_ids: adminIds
+                        })
+                    });
+                }
+            }
+        }
+        
+        showSuccess(`Successfully joined the group!`);
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error joining group:', error);
+        showError('Failed to join group. Please try again.');
+    }
+}
+
+// Update the createGroup function to notify invited members
+async function createGroup() {
+    const formData = new FormData(createGroupForm);
+    const name = document.getElementById('groupName').value.trim();
+    const subject = document.getElementById('groupSubject').value.trim();
+    const faculty = document.getElementById('groupFaculty').value;
+    const course = document.getElementById('groupCourse').value;
+    
+    if (!name || !subject) {
+        showError('Group name and subject are required.');
+        return;
+    }
+    
+    if (faculty && !course) {
+        showError('Please select a course for the selected faculty.');
+        return;
+    }
+    
+    try {
+        const groupData = {
+            name: name,
+            description: document.getElementById('groupDescription').value.trim(),
+            subject: subject,
+            creator_id: currentUser.id,
+            max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
+            is_private: document.getElementById('groupIsPrivate').checked,
+            faculty: faculty,
+            course: course,
+            year_of_study: document.getElementById('groupYear').value
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/groups/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(groupData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // If there are invited members, send them notifications
+        const invitedMembersInput = document.getElementById('invitedMembers');
+        if (invitedMembersInput && invitedMembersInput.value) {
+            try {
+                const invitedEmails = invitedMembersInput.value.split(',').map(email => email.trim());
+                
+                // For each invited email, find the user and send notification
+                for (const email of invitedEmails) {
+                    const userResponse = await fetch(`${API_BASE_URL}/profiles/email/${encodeURIComponent(email)}`);
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        
+                        await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                sender_id: currentUser.id,
+                                target_user_id: userData.user_id,
+                                group_id: result.group.id,
+                                group_name: result.group.name,
+                                invite_code: result.group.invite_code
+                            })
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending invitations:', error);
+                // Continue even if invitations fail
+            }
+        }
+        
+        showSuccess(`Group "${result.group.name}" created successfully!`);
+        
+        // Close modal and reset form
+        closeModal(createGroupModal);
+        createGroupForm.reset();
+        
+        // Reset faculty and course dropdowns
+        facultySelect.value = '';
+        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+        courseSelect.disabled = true;
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error creating group:', error);
+        showError('Failed to create group. Please try again.');
+    }
+}
+
+// Add this function to handle group invitations
+async function inviteToGroup(groupId, userIds) {
+    try {
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (!groupResponse.ok) {
+            throw new Error(`HTTP error! status: ${groupResponse.status}`);
+        }
+        
+        const groupData = await groupResponse.json();
+        const group = groupData.group;
+        
+        for (const userId of userIds) {
+            await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    user_id: currentUser.id
+                    sender_id: currentUser.id,
+                    target_user_id: userId,
+                    group_id: groupId,
+                    group_name: group.name,
+                    invite_code: group.invite_code
                 })
             });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            showSuccess(`Successfully joined the group!`);
-            
-            // Reload data
-            await loadAllData();
-            
-        } catch (error) {
-            console.error('Error joining group:', error);
-            showError('Failed to join group. Please try again.');
         }
+        
+        return true;
+    } catch (error) {
+        console.error('Error sending group invitations:', error);
+        return false;
     }
+}
     
     async function joinGroupByCode() {
         const inviteCode = inviteCodeInput.value.trim();
@@ -801,70 +983,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Updated the createGroup function to handle the course dropdown value
-    async function createGroup() {
-        const formData = new FormData(createGroupForm);
-        const name = document.getElementById('groupName').value.trim();
-        const subject = document.getElementById('groupSubject').value.trim();
-        const faculty = document.getElementById('groupFaculty').value;
-        const course = document.getElementById('groupCourse').value; // This is now a select value
-        
-        if (!name || !subject) {
-            showError('Group name and subject are required.');
-            return;
-        }
-        
-        if (faculty && !course) {
-            showError('Please select a course for the selected faculty.');
-            return;
-        }
-        
-        try {
-            const groupData = {
-                name: name,
-                description: document.getElementById('groupDescription').value.trim(),
-                subject: subject,
-                creator_id: currentUser.id,
-                max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
-                is_private: document.getElementById('groupIsPrivate').checked,
-                faculty: faculty,
-                course: course, // This will now be the selected course value
-                year_of_study: document.getElementById('groupYear').value
-            };
-            
-            // Rest of the function remains the same...
-            const response = await fetch(`${API_BASE_URL}/groups/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(groupData)
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            showSuccess(`Group "${result.group.name}" created successfully!`);
-            
-            // Close modal and reset form
-            closeModal(createGroupModal);
-            createGroupForm.reset();
-            
-            // Reset faculty and course dropdowns
-            facultySelect.value = '';
-            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-            courseSelect.disabled = true;
-            
-            // Reload data
-            await loadAllData();
-            
-        } catch (error) {
-            console.error('Error creating group:', error);
-            showError('Failed to create group. Please try again.');
-        }
-    }
+
 
     
     async function editGroup(groupId) {

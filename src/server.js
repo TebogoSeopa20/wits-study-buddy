@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const usersApi = require('./backend/users-api');
 const connectionsApi = require('./backend/connections-api');
 const studyGroupsApi = require('./backend/study-groups-api');
+const notificationsApi = require('./backend/notifications-api');
 
 // Create the Express application
 const app = express();
@@ -49,6 +50,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api', usersApi);
 app.use('/api', connectionsApi);
 app.use('/api', studyGroupsApi);
+app.use('/api', notificationsApi);
 
 // Serve all static files from frontend directory
 app.use(express.static(path.join(__dirname, 'frontend')));

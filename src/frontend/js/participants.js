@@ -187,6 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return connection ? connection.status : 'none';
     }
+
+    
     
     function setupEventListeners() {
         // Search functionality
@@ -578,19 +580,19 @@ function renderViewProfileButton(profileId) {
     `;
 }
 
-// Update the renderConnectionButton function to include the View Profile button
+// Update the renderConnectionButton function to handle all connection states
 function renderConnectionButton(status, profileId) {
     let buttons = '';
     
     switch(status) {
-        case 'pending':
+        case 'pending': // Current user sent request, waiting for response
             buttons = `
                 <button class="action-btn outline" onclick="cancelRequest('${profileId}')">
                     <i class="fas fa-ban"></i> Cancel Request
                 </button>
             `;
             break;
-        case 'pending_approval':
+        case 'pending_approval': // Someone sent request to current user
             buttons = `
                 <button class="action-btn primary" onclick="acceptRequest('${profileId}')">
                     <i class="fas fa-check"></i> Accept
@@ -600,7 +602,7 @@ function renderConnectionButton(status, profileId) {
                 </button>
             `;
             break;
-        case 'accepted':
+        case 'accepted': // Connected
             buttons = `
                 <button class="action-btn primary" onclick="messageUser('${profileId}')">
                     <i class="fas fa-comment"></i> Message
@@ -610,14 +612,19 @@ function renderConnectionButton(status, profileId) {
                 </button>
             `;
             break;
-        case 'blocked':
+        case 'blocked_by_me': // Current user blocked this person
             buttons = `
                 <button class="action-btn outline" onclick="unblockUser('${profileId}')">
                     <i class="fas fa-ban"></i> Unblock
                 </button>
             `;
             break;
-        default:
+        case 'blocked_by_them': // This person blocked current user
+            buttons = `
+                <span class="blocked-text">You are blocked</span>
+            `;
+            break;
+        default: // No connection
             buttons = `
                 <button class="action-btn primary" onclick="connectWith('${profileId}')">
                     <i class="fas fa-user-plus"></i> Connect
@@ -625,8 +632,12 @@ function renderConnectionButton(status, profileId) {
             `;
     }
     
-    // Added View Profile button to all states
-    return buttons + renderViewProfileButton(profileId);
+    // Added View Profile button to all states except when blocked by them
+    if (status !== 'blocked_by_them') {
+        buttons += renderViewProfileButton(profileId);
+    }
+    
+    return buttons;
 }
 
 // Update the viewProfile function in participants.js
@@ -772,34 +783,97 @@ window.viewProfile = function(profileId) {
     }
     
     // Global functions for connection actions
-    window.connectWith = async function(profileId) {
-        try {
-            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/send-request`, {
+
+    
+// Update the connectWith function to create a notification
+window.connectWith = async function(profileId) {
+    try {
+        const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/send-request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                target_user_id: profileId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        const targetProfile = allProfiles.find(p => (p.user_id || p.id) === profileId);
+        
+        // Create notification for the target user
+        if (targetProfile) {
+            await fetch(`${API_BASE_URL}/notifications/connection-request`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    target_user_id: profileId
+                    sender_id: currentUser.id,
+                    target_user_id: profileId,
+                    connection_id: result.connection_id
                 })
             });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            showNotification(`Connection request sent to ${getProfileName(profileId)}`, 'success');
-            
-            // Reload connections and refresh UI
-            await loadUserConnections();
-            applyFilters();
-        } catch (error) {
-            console.error('Error sending connection request:', error);
-            showNotification('Failed to send connection request', 'error');
         }
-    };
-    
+        
+        showNotification(`Connection request sent to ${getProfileName(profileId)}`, 'success');
+        
+        // Reload connections and refresh UI
+        await loadUserConnections();
+        applyFilters();
+    } catch (error) {
+        console.error('Error sending connection request:', error);
+        showNotification('Failed to send connection request', 'error');
+    }
+};
+
+// Update the acceptRequest function to create a notification
+window.acceptRequest = async function(profileId) {
+    try {
+        const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/accept`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                requester_id: profileId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Create notification for the requester
+        await fetch(`${API_BASE_URL}/notifications/connection-accepted`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender_id: currentUser.id,
+                target_user_id: profileId,
+                connection_id: result.connection_id
+            })
+        });
+        
+        showNotification(`Connection request accepted`, 'success');
+        
+        // Reload connections and refresh UI
+        await loadUserConnections();
+        applyFilters();
+    } catch (error) {
+        console.error('Error accepting connection request:', error);
+        showNotification('Failed to accept connection request', 'error');
+    }
+};
+
     window.cancelRequest = async function(profileId) {
         try {
             const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/remove`, {
@@ -827,32 +901,7 @@ window.viewProfile = function(profileId) {
         }
     };
     
-    window.acceptRequest = async function(profileId) {
-        try {
-            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/accept`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    requester_id: profileId
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            showNotification(`Connection request accepted`, 'success');
-            
-            // Reload connections and refresh UI
-            await loadUserConnections();
-            applyFilters();
-        } catch (error) {
-            console.error('Error accepting connection request:', error);
-            showNotification('Failed to accept connection request', 'error');
-        }
-    };
+
     
     window.rejectRequest = async function(profileId) {
         try {
@@ -1074,3 +1123,19 @@ const notificationStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = notificationStyles;
 document.head.appendChild(styleSheet);
+
+async function createNotification(notificationData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notificationData)
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error creating notification:', error);
+        return false;
+    }
+}
