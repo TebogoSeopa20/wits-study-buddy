@@ -139,10 +139,10 @@
                 </div>
             </div>
 
-            <!-- Tasks Sidebar -->
-            <aside class="tasks-sidebar">
-                <header class="sidebar-header">
-                    <h3><i class="fas fa-tasks"></i> Tasks</h3>
+            <!-- Tasks Section Below Calendar -->
+            <section class="tasks-section">
+                <header class="tasks-header">
+                    <h3><i class="fas fa-tasks"></i> <span id="tasksTitle">All Tasks</span></h3>
                     <div class="task-filters">
                         <select class="filter-select" id="statusFilter">
                             <option value="">All Status</option>
@@ -159,12 +159,18 @@
                             <option value="meeting">Meeting</option>
                             <option value="other">Other</option>
                         </select>
+                        <select class="filter-select" id="priorityFilter">
+                            <option value="">All Priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
                     </div>
                 </header>
                 <div class="tasks-list" id="tasksList">
                     <!-- Tasks will be loaded here -->
                 </div>
-            </aside>
+            </section>
         </div>
     </main>
 
@@ -262,6 +268,26 @@
                 <button class="action-btn danger" id="deleteTaskBtn">
                     <i class="fas fa-trash"></i> Delete
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Add Task Popup -->
+    <div class="quick-add-popup hidden" id="quickAddPopup">
+        <div class="quick-add-content">
+            <h4>Quick Add Task</h4>
+            <input type="text" id="quickTaskTitle" placeholder="Task title..." maxlength="50">
+            <select id="quickTaskCategory">
+                <option value="assignment">Assignment</option>
+                <option value="exam">Exam</option>
+                <option value="study">Study Session</option>
+                <option value="project">Project</option>
+                <option value="meeting">Meeting</option>
+                <option value="other">Other</option>
+            </select>
+            <div class="quick-add-actions">
+                <button class="action-btn outline" id="quickAddCancel">Cancel</button>
+                <button class="action-btn primary" id="quickAddSave">Add Task</button>
             </div>
         </div>
     </div>

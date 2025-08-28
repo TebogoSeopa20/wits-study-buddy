@@ -1,4 +1,4 @@
-// calendar.js - Calendar functionality for Wits student dashboard
+// calendar.js - Enhanced Calendar functionality for Wits student dashboard
 document.addEventListener('DOMContentLoaded', function() {
     // API configuration
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -12,9 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDate = new Date();
     let currentView = 'month';
     let allTasks = [];
+    let filteredTasks = [];
     let selectedDate = null;
     let editingTask = null;
     let currentUser = null;
+    let quickAddDate = null;
     
     // DOM elements
     const calendarGrid = document.getElementById('calendarGrid');
@@ -24,8 +26,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const todayBtn = document.getElementById('todayBtn');
     const addTaskBtn = document.getElementById('addTaskBtn');
     const tasksList = document.getElementById('tasksList');
+    const tasksTitle = document.getElementById('tasksTitle');
     const statusFilter = document.getElementById('statusFilter');
     const categoryFilter = document.getElementById('categoryFilter');
+    const priorityFilter = document.getElementById('priorityFilter');
     
     // Modal elements
     const taskModal = document.getElementById('taskModal');
@@ -47,6 +51,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const taskPriority = document.getElementById('taskPriority');
     const taskStatus = document.getElementById('taskStatus');
     
+    // Quick add elements
+    const quickAddPopup = document.getElementById('quickAddPopup');
+    const quickTaskTitle = document.getElementById('quickTaskTitle');
+    const quickTaskCategory = document.getElementById('quickTaskCategory');
+    const quickAddSave = document.getElementById('quickAddSave');
+    const quickAddCancel = document.getElementById('quickAddCancel');
+    
     // Calendar data
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -54,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
     
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNamesShort = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     
     // Check if essential elements exist before initializing
     if (!calendarGrid) {
@@ -72,8 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        loadTasks();
         setupEventListeners();
+        loadTasks();
         renderCalendar();
         updatePeriodDisplay();
     }
@@ -101,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const viewBtns = document.querySelectorAll('.view-btn');
         viewBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const view = e.target.dataset.view;
+                const view = e.target.dataset.view || e.target.closest('.view-btn').dataset.view;
                 if (view) changeView(view);
             });
         });
@@ -109,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Filter controls
         if (statusFilter) statusFilter.addEventListener('change', applyFilters);
         if (categoryFilter) categoryFilter.addEventListener('change', applyFilters);
+        if (priorityFilter) priorityFilter.addEventListener('change', applyFilters);
         
         // Modal controls
         if (closeModal) closeModal.addEventListener('click', closeTaskModal);
@@ -120,6 +133,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Delete button
         if (deleteBtn) deleteBtn.addEventListener('click', handleDeleteTask);
+        
+        // Quick add controls
+        if (quickAddSave) quickAddSave.addEventListener('click', handleQuickAdd);
+        if (quickAddCancel) quickAddCancel.addEventListener('click', closeQuickAdd);
+        if (quickTaskTitle) {
+            quickTaskTitle.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleQuickAdd();
+                if (e.key === 'Escape') closeQuickAdd();
+            });
+        }
         
         // Modal overlay clicks
         if (taskModal) {
@@ -133,13 +156,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (e.target === taskDetailModal) closeTaskDetailModal();
             });
         }
+        
+        // Global click to close quick add
+        document.addEventListener('click', (e) => {
+            if (quickAddPopup && !quickAddPopup.classList.contains('hidden')) {
+                if (!quickAddPopup.contains(e.target) && !e.target.classList.contains('quick-add-btn')) {
+                    closeQuickAdd();
+                }
+            }
+        });
     }
     
     async function loadTasks() {
         try {
             showLoadingState();
             
-            const response = await fetch(`${TASKS_URL}/${currentUser.id}`);
+            const response = await fetch(`${TASKS_URL}/user/${currentUser.id}`);
             
             if (!response.ok) {
                 if (response.status === 404) {
@@ -149,14 +181,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 const data = await response.json();
-                allTasks = data || [];
+                allTasks = Array.isArray(data) ? data : [];
             }
             
+            applyFilters();
             renderCalendar();
-            renderTasksList();
         } catch (error) {
             console.error('Error fetching tasks:', error);
             showErrorState('Failed to load tasks. Please try again later.');
+            allTasks = [];
         }
     }
     
@@ -165,12 +198,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         calendarGrid.innerHTML = '';
         
-        if (currentView === 'month') {
-            renderMonthView();
-        } else if (currentView === 'week') {
-            renderWeekView();
-        } else if (currentView === 'day') {
-            renderDayView();
+        switch (currentView) {
+            case 'month':
+                renderMonthView();
+                break;
+            case 'week':
+                renderWeekView();
+                break;
+            case 'day':
+                renderDayView();
+                break;
         }
     }
     
@@ -216,17 +253,31 @@ document.addEventListener('DOMContentLoaded', function() {
             dayNumber.textContent = cellDate.getDate();
             dayCell.appendChild(dayNumber);
             
+            // Add quick add button
+            const quickAddBtn = document.createElement('button');
+            quickAddBtn.className = 'quick-add-btn';
+            quickAddBtn.innerHTML = '<i class="fas fa-plus"></i>';
+            quickAddBtn.title = 'Quick add task';
+            quickAddBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openQuickAdd(e.target, cellDate);
+            });
+            dayCell.appendChild(quickAddBtn);
+            
             // Add tasks for this day
             const dayTasks = getTasksForDate(cellDate);
             if (dayTasks.length > 0) {
+                dayCell.classList.add('has-tasks');
+                
                 const tasksContainer = document.createElement('div');
                 tasksContainer.className = 'day-tasks';
                 
+                // Show up to 3 tasks
                 dayTasks.slice(0, 3).forEach(task => {
                     const taskDot = document.createElement('div');
                     taskDot.className = `task-dot ${task.category} ${task.priority}`;
-                    taskDot.textContent = task.title.length > 15 ? task.title.substring(0, 15) + '...' : task.title;
-                    taskDot.title = task.title;
+                    taskDot.textContent = task.title.length > 20 ? task.title.substring(0, 20) + '...' : task.title;
+                    taskDot.title = `${task.title} - ${task.time ? formatTime(task.time) : 'No time set'}`;
                     taskDot.addEventListener('click', (e) => {
                         e.stopPropagation();
                         openTaskDetailModal(task);
@@ -238,6 +289,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const moreIndicator = document.createElement('div');
                     moreIndicator.className = 'task-dot other';
                     moreIndicator.textContent = `+${dayTasks.length - 3} more`;
+                    moreIndicator.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectDate(cellDate);
+                    });
                     tasksContainer.appendChild(moreIndicator);
                 }
                 
@@ -252,18 +307,146 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function renderWeekView() {
-        // Implementation for week view would go here
-        calendarGrid.innerHTML = '<div class="empty-state"><h3>Week View</h3><p>Week view coming soon!</p></div>';
+        const startOfWeek = new Date(currentDate);
+        startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+        
+        // Create week grid
+        calendarGrid.className = 'week-view-grid';
+        
+        // Time column header
+        const timeHeader = document.createElement('div');
+        timeHeader.className = 'calendar-header-cell';
+        timeHeader.textContent = 'Time';
+        calendarGrid.appendChild(timeHeader);
+        
+        // Day headers
+        for (let i = 0; i < 7; i++) {
+            const day = new Date(startOfWeek);
+            day.setDate(startOfWeek.getDate() + i);
+            
+            const headerCell = document.createElement('div');
+            headerCell.className = 'calendar-header-cell';
+            headerCell.innerHTML = `
+                <div>${dayNames[i]}</div>
+                <div style="font-size: 1.2em; font-weight: bold;">${day.getDate()}</div>
+            `;
+            calendarGrid.appendChild(headerCell);
+        }
+        
+        // Time slots (8 AM to 8 PM)
+        for (let hour = 8; hour <= 20; hour++) {
+            const timeSlot = document.createElement('div');
+            timeSlot.className = 'week-time-slot';
+            timeSlot.textContent = formatHour(hour);
+            calendarGrid.appendChild(timeSlot);
+            
+            // Day columns for this hour
+            for (let i = 0; i < 7; i++) {
+                const day = new Date(startOfWeek);
+                day.setDate(startOfWeek.getDate() + i);
+                
+                const dayColumn = document.createElement('div');
+                dayColumn.className = 'week-day-column';
+                
+                // Add tasks for this hour
+                const dayTasks = getTasksForDateAndHour(day, hour);
+                dayTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `time-slot-task ${task.category}`;
+                    taskElement.textContent = task.title;
+                    taskElement.addEventListener('click', () => openTaskDetailModal(task));
+                    dayColumn.appendChild(taskElement);
+                });
+                
+                // Add click to create task
+                dayColumn.addEventListener('click', () => {
+                    quickAddDate = day;
+                    openAddTaskModal(day, hour);
+                });
+                
+                calendarGrid.appendChild(dayColumn);
+            }
+        }
     }
     
     function renderDayView() {
-        // Implementation for day view would go here
-        calendarGrid.innerHTML = '<div class="empty-state"><h3>Day View</h3><p>Day view coming soon!</p></div>';
+        calendarGrid.className = 'day-view-container';
+        
+        // Time slots column
+        const timeSlotsColumn = document.createElement('div');
+        timeSlotsColumn.className = 'day-time-slots';
+        
+        // Content column
+        const contentColumn = document.createElement('div');
+        contentColumn.className = 'day-content';
+        
+        for (let hour = 6; hour <= 23; hour++) {
+            const timeSlot = document.createElement('div');
+            timeSlot.className = 'week-time-slot';
+            timeSlot.textContent = formatHour(hour);
+            timeSlot.style.height = '60px';
+            timeSlotsColumn.appendChild(timeSlot);
+        }
+        
+        // Add tasks for the current date
+        const dayTasks = getTasksForDate(currentDate);
+        dayTasks.forEach(task => {
+            if (task.time) {
+                const [hours] = task.time.split(':').map(Number);
+                const top = (hours - 6) * 60; // 60px per hour, starting at 6 AM
+                
+                const taskElement = document.createElement('div');
+                taskElement.className = `time-slot-task ${task.category}`;
+                taskElement.style.top = `${top}px`;
+                taskElement.style.height = '50px';
+                taskElement.innerHTML = `
+                    <strong>${task.title}</strong><br>
+                    <small>${formatTime(task.time)}</small>
+                `;
+                taskElement.addEventListener('click', () => openTaskDetailModal(task));
+                contentColumn.appendChild(taskElement);
+            }
+        });
+        
+        calendarGrid.appendChild(timeSlotsColumn);
+        calendarGrid.appendChild(contentColumn);
     }
     
     function getTasksForDate(date) {
         const dateString = date.toISOString().split('T')[0];
-        return allTasks.filter(task => task.date === dateString);
+        return filteredTasks.filter(task => task.date === dateString);
+    }
+    
+    function getTasksForDateAndHour(date, hour) {
+        const dateString = date.toISOString().split('T')[0];
+        return filteredTasks.filter(task => {
+            if (task.date !== dateString || !task.time) return false;
+            const taskHour = parseInt(task.time.split(':')[0]);
+            return taskHour === hour;
+        });
+    }
+    
+    function getTasksForPeriod() {
+        if (currentView === 'month') {
+            const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            return getTasksInRange(startOfMonth, endOfMonth);
+        } else if (currentView === 'week') {
+            const startOfWeek = new Date(currentDate);
+            startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            return getTasksInRange(startOfWeek, endOfWeek);
+        } else if (currentView === 'day') {
+            return getTasksForDate(currentDate);
+        }
+        return filteredTasks;
+    }
+    
+    function getTasksInRange(startDate, endDate) {
+        const start = startDate.toISOString().split('T')[0];
+        const end = endDate.toISOString().split('T')[0];
+        return filteredTasks.filter(task => task.date >= start && task.date <= end);
     }
     
     function renderTasksList() {
@@ -271,30 +454,43 @@ document.addEventListener('DOMContentLoaded', function() {
         
         tasksList.innerHTML = '';
         
-        let filteredTasks = applyTaskFilters();
+        let tasksToShow;
+        if (selectedDate) {
+            tasksToShow = getTasksForDate(selectedDate);
+            updateTasksTitle(`Tasks for ${formatDate(selectedDate.toISOString().split('T')[0])}`);
+        } else {
+            tasksToShow = getTasksForPeriod();
+            updateTasksTitle(`Tasks for ${getPeriodTitle()}`);
+        }
         
-        if (filteredTasks.length === 0) {
+        if (tasksToShow.length === 0) {
             tasksList.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-tasks"></i>
                     <h3>No tasks found</h3>
-                    <p>Try adjusting your filters or add a new task.</p>
+                    <p>${selectedDate ? 'No tasks scheduled for this date.' : 'Try adjusting your filters or add a new task.'}</p>
                 </div>
             `;
             return;
         }
         
         // Sort tasks by date and time
-        filteredTasks.sort((a, b) => {
+        tasksToShow.sort((a, b) => {
             const dateA = new Date(a.date + ' ' + (a.time || '00:00'));
             const dateB = new Date(b.date + ' ' + (b.time || '00:00'));
             return dateA - dateB;
         });
         
-        filteredTasks.forEach(task => {
+        // Create tasks grid
+        const tasksGrid = document.createElement('div');
+        tasksGrid.className = 'tasks-grid';
+        
+        tasksToShow.forEach(task => {
             const taskItem = createTaskItem(task);
-            tasksList.appendChild(taskItem);
+            tasksGrid.appendChild(taskItem);
         });
+        
+        tasksList.appendChild(tasksGrid);
     }
     
     function createTaskItem(task) {
@@ -305,9 +501,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const taskDate = new Date(task.date);
-        const isOverdue = task.status !== 'completed' && taskDate < new Date();
+        const today = new Date();
+        const isOverdue = task.status !== 'completed' && taskDate < today;
+        
+        if (isOverdue) {
+            taskItem.classList.add('overdue');
+        }
         
         taskItem.innerHTML = `
+            <div class="task-priority ${task.priority}"></div>
             <div class="task-header">
                 <div>
                     <div class="task-title">${task.title}</div>
@@ -318,9 +520,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${isOverdue ? '<i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i> Overdue' : ''}
                     </div>
                 </div>
-                <div class="task-priority ${task.priority}"></div>
             </div>
-            <div class="task-category ${task.category}">${task.category}</div>
+            <div class="task-category ${task.category}">${task.category.replace('_', ' ')}</div>
             ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
             <div class="task-status ${task.status}">
                 <i class="${getStatusIcon(task.status)}"></i>
@@ -333,54 +534,58 @@ document.addEventListener('DOMContentLoaded', function() {
         return taskItem;
     }
     
-    function applyTaskFilters() {
-        let filtered = [...allTasks];
+    function updateTasksTitle(title) {
+        if (tasksTitle) {
+            tasksTitle.textContent = title;
+        }
+    }
+    
+    function getPeriodTitle() {
+        if (currentView === 'month') {
+            return `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+        } else if (currentView === 'week') {
+            const startOfWeek = new Date(currentDate);
+            startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            return `Week of ${formatDate(startOfWeek.toISOString().split('T')[0])}`;
+        } else if (currentView === 'day') {
+            return formatDate(currentDate.toISOString().split('T')[0]);
+        }
+        return 'All Tasks';
+    }
+    
+    function applyFilters() {
+        filteredTasks = [...allTasks];
         
         // Status filter
         if (statusFilter && statusFilter.value) {
-            filtered = filtered.filter(task => task.status === statusFilter.value);
+            filteredTasks = filteredTasks.filter(task => task.status === statusFilter.value);
         }
         
         // Category filter
         if (categoryFilter && categoryFilter.value) {
-            filtered = filtered.filter(task => task.category === categoryFilter.value);
+            filteredTasks = filteredTasks.filter(task => task.category === categoryFilter.value);
         }
         
-        return filtered;
-    }
-    
-    function applyFilters() {
+        // Priority filter
+        if (priorityFilter && priorityFilter.value) {
+            filteredTasks = filteredTasks.filter(task => task.priority === priorityFilter.value);
+        }
+        
+        renderCalendar();
         renderTasksList();
     }
     
     function selectDate(date) {
         selectedDate = date;
         renderCalendar();
-        
-        // Filter tasks list to show only tasks for selected date
-        const dateTasks = getTasksForDate(date);
-        if (tasksList) {
-            tasksList.innerHTML = '';
-            
-            if (dateTasks.length === 0) {
-                tasksList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-calendar-day"></i>
-                        <h3>No tasks for ${formatDate(date.toISOString().split('T')[0])}</h3>
-                        <p>Click "Add Task" to create a new task for this date.</p>
-                    </div>
-                `;
-            } else {
-                dateTasks.forEach(task => {
-                    const taskItem = createTaskItem(task);
-                    tasksList.appendChild(taskItem);
-                });
-            }
-        }
+        renderTasksList();
     }
     
     function changeView(view) {
         currentView = view;
+        selectedDate = null; // Clear selection when changing views
         
         // Update active button
         document.querySelectorAll('.view-btn').forEach(btn => {
@@ -390,7 +595,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // Reset calendar grid classes
+        calendarGrid.className = 'calendar-grid';
+        
         renderCalendar();
+        renderTasksList();
         updatePeriodDisplay();
     }
     
@@ -403,7 +612,9 @@ document.addEventListener('DOMContentLoaded', function() {
             currentDate.setDate(currentDate.getDate() - 1);
         }
         
+        selectedDate = null;
         renderCalendar();
+        renderTasksList();
         updatePeriodDisplay();
     }
     
@@ -416,7 +627,9 @@ document.addEventListener('DOMContentLoaded', function() {
             currentDate.setDate(currentDate.getDate() + 1);
         }
         
+        selectedDate = null;
         renderCalendar();
+        renderTasksList();
         updatePeriodDisplay();
     }
     
@@ -424,8 +637,8 @@ document.addEventListener('DOMContentLoaded', function() {
         currentDate = new Date();
         selectedDate = null;
         renderCalendar();
-        updatePeriodDisplay();
         renderTasksList();
+        updatePeriodDisplay();
     }
     
     function updatePeriodDisplay() {
@@ -445,7 +658,71 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function openAddTaskModal() {
+    // Quick Add Functions
+    function openQuickAdd(button, date) {
+        if (!quickAddPopup) return;
+        
+        quickAddDate = date;
+        quickTaskTitle.value = '';
+        quickTaskCategory.value = 'assignment';
+        
+        // Position popup near the button
+        const rect = button.getBoundingClientRect();
+        quickAddPopup.style.position = 'fixed';
+        quickAddPopup.style.top = `${rect.bottom + 5}px`;
+        quickAddPopup.style.left = `${rect.left}px`;
+        quickAddPopup.style.zIndex = '1000';
+        
+        // Adjust position if it would go off screen
+        const popupRect = quickAddPopup.getBoundingClientRect();
+        if (popupRect.right > window.innerWidth - 10) {
+            quickAddPopup.style.left = `${window.innerWidth - popupRect.width - 10}px`;
+        }
+        if (popupRect.bottom > window.innerHeight - 10) {
+            quickAddPopup.style.top = `${rect.top - popupRect.height - 5}px`;
+        }
+        
+        quickAddPopup.classList.remove('hidden');
+        quickTaskTitle.focus();
+    }
+    
+    function closeQuickAdd() {
+        if (quickAddPopup) {
+            quickAddPopup.classList.add('hidden');
+        }
+        quickAddDate = null;
+    }
+    
+    async function handleQuickAdd() {
+        if (!quickTaskTitle.value.trim() || !quickAddDate) {
+            showNotification('Please enter a task title', 'error');
+            return;
+        }
+        
+        const taskData = {
+            title: quickTaskTitle.value.trim(),
+            date: quickAddDate.toISOString().split('T')[0],
+            category: quickTaskCategory.value,
+            priority: 'medium',
+            status: 'pending',
+            user_id: currentUser.id
+        };
+        
+        try {
+            const result = await createTask(taskData);
+            if (result) {
+                closeQuickAdd();
+                await loadTasks();
+                showNotification('Task added successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Error creating quick task:', error);
+            showNotification('Failed to add task', 'error');
+        }
+    }
+    
+    // Modal Functions
+    function openAddTaskModal(date = null, hour = null) {
         editingTask = null;
         resetTaskForm();
         
@@ -453,9 +730,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (saveBtn) saveBtn.textContent = 'Save Task';
         if (deleteBtn) deleteBtn.classList.add('hidden');
         
-        // Set default date to selected date or today
-        const defaultDate = selectedDate || new Date();
+        // Set default date
+        const defaultDate = date || selectedDate || new Date();
         if (taskDate) taskDate.value = defaultDate.toISOString().split('T')[0];
+        
+        // Set default time if hour is provided
+        if (hour !== null && taskTime) {
+            taskTime.value = `${hour.toString().padStart(2, '0')}:00`;
+        }
         
         if (taskModal) taskModal.classList.add('active');
     }
@@ -502,7 +784,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="detail-section">
                 <div class="detail-label">Category</div>
                 <div class="detail-value">
-                    <span class="task-category ${task.category}">${task.category}</span>
+                    <span class="task-category ${task.category}">${task.category.replace('_', ' ')}</span>
                 </div>
             </div>
             
@@ -641,6 +923,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // API Functions
     async function createTask(taskData) {
         try {
             const response = await fetch(TASKS_URL, {
@@ -724,7 +1007,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return date.toLocaleDateString('en-US', {
                 weekday: 'short',
                 month: 'short',
-                day: 'numeric'
+                day: 'numeric',
+                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
             });
         }
     }
@@ -739,6 +1023,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return time.toLocaleTimeString('en-US', {
             hour: 'numeric',
             minute: '2-digit',
+            hour12: true
+        });
+    }
+    
+    function formatHour(hour) {
+        const time = new Date();
+        time.setHours(hour, 0);
+        return time.toLocaleTimeString('en-US', {
+            hour: 'numeric',
             hour12: true
         });
     }
@@ -767,19 +1060,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showLoadingState() {
-        if (calendarGrid) {
-            calendarGrid.innerHTML = `
+        if (tasksList) {
+            tasksList.innerHTML = `
                 <div class="loading-spinner">
                     <div class="spinner"></div>
-                    <p>Loading calendar...</p>
+                    <p>Loading tasks...</p>
                 </div>
             `;
         }
     }
     
     function showErrorState(message) {
-        if (calendarGrid) {
-            calendarGrid.innerHTML = `
+        if (tasksList) {
+            tasksList.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-exclamation-circle"></i>
                     <h3>Something went wrong</h3>
@@ -820,81 +1113,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add notification styles if not already present
-const notificationStyles = `
-.notification {
-    position: fixed;
-    top: 100px;
-    right: 20px;
-    background: white;
-    border-radius: 8px;
-    padding: 16px 20px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-width: 300px;
-    max-width: 400px;
-    z-index: 10000;
-    animation: slideInRight 0.3s ease-out;
-    border-left: 4px solid #3b82f6;
+// Additional utility functions that might be needed
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
-.notification.success {
-    border-left-color: #10b981;
-}
-
-.notification.error {
-    border-left-color: #ef4444;
-}
-
-.notification-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.notification-content i {
-    font-size: 18px;
-}
-
-.notification.success .notification-content i {
-    color: #10b981;
-}
-
-.notification.error .notification-content i {
-    color: #ef4444;
-}
-
-.notification.info .notification-content i {
-    color: #3b82f6;
-}
-
-.notification-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #64748b;
-    padding: 4px;
-    margin-left: 10px;
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
+// Export functions for external use if needed
+window.CalendarApp = {
+    refreshTasks: function() {
+        const calendar = document.querySelector('[data-calendar-instance]');
+        if (calendar && calendar.loadTasks) {
+            calendar.loadTasks();
+        }
+    },
+    
+    addTask: function(taskData) {
+        // External API for adding tasks programmatically
+        return fetch(`${API_BASE_URL}/tasks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(taskData)
+        }).then(response => response.json());
     }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-`;
-
-// Add styles to the document if not already present
-if (!document.getElementById('calendar-notification-styles')) {
-    const styleSheet = document.createElement('style');
-    styleSheet.id = 'calendar-notification-styles';
-    styleSheet.textContent = notificationStyles;
-    document.head.appendChild(styleSheet);
-}
+};
