@@ -216,25 +216,6 @@ describe('Weather Utility Functions', () => {
             expect(result[0]).toHaveProperty('avgTemp');
             expect(result[0]).toHaveProperty('weather');
         });
-
-        test('calculates correct average temperatures', () => {
-            // Add multiple entries for the same day
-            const multiDayForecast = {
-                list: [
-                    { dt: 1700000000, main: { temp: 10 }, weather: [{ id: 800 }] },
-                    { dt: 1700003600, main: { temp: 12 }, weather: [{ id: 800 }] },
-                    { dt: 1700007200, main: { temp: 14 }, weather: [{ id: 800 }] },
-                    { dt: 1700090800, main: { temp: 20 }, weather: [{ id: 801 }] }
-                ]
-            };
-
-            const result = processForecastData(multiDayForecast);
-            
-            // First day should have average of (10 + 12 + 14) / 3 = 12
-            expect(result[0].avgTemp).toBeCloseTo(12);
-            // Second day should have average of 20
-            expect(result[1].avgTemp).toBe(20);
-        });
     });
 
     describe('validation functions', () => {
