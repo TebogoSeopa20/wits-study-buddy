@@ -13,6 +13,8 @@ const connectionsApi = require('./backend/connections-api');
 const app = express();
 app.use('/api', connectionsApi); 
 
+
+
 // Define absolute paths for frontend directories
 const frontendPath = path.join(__dirname, 'frontend');
 const htmlPath = path.join(frontendPath, 'html');

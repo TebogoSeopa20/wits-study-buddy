@@ -93,7 +93,20 @@
                 <h1><i class="fas fa-comments"></i> ChatRoom</h1>
                 <p>Connect and chat with your study partners and tutors</p>
                 
-                
+                <div class="chatroom-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="connectionsCount">0</div>
+                        <div class="stat-label">Connections</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="conversationsCount">0</div>
+                        <div class="stat-label">Conversations</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="onlineCount">0</div>
+                        <div class="stat-label">Online Now</div>
+                    </div>
+                </div>
             </header>
 
             <!-- Connections Sidebar -->
@@ -163,6 +176,19 @@
                         </section>
                     </section>
                     
+                    <!-- Reply indicator (hidden by default) -->
+                    <div class="reply-indicator" id="replyIndicator">
+                        <div class="reply-indicator-content">
+                            <div class="reply-indicator-header">
+                                <span>Replying to</span>
+                                <button class="close-reply" id="closeReply">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="reply-indicator-message" id="replyIndicatorMessage"></div>
+                        </div>
+                    </div>
+                    
                     <!-- Message input (hidden by default) -->
                     <footer class="message-input-container" id="messageInputContainer">
                         <nav class="input-actions">
@@ -223,6 +249,26 @@
                         </section>
                     </article>
                 </dialog>
+                
+                <!-- Message options menu (hidden by default) -->
+                <div class="message-options-menu" id="messageOptionsMenu">
+                    <button class="option-btn" data-action="reply">
+                        <i class="fas fa-reply"></i>
+                        <span>Reply</span>
+                    </button>
+                    <button class="option-btn" data-action="star">
+                        <i class="far fa-star"></i>
+                        <span>Star</span>
+                    </button>
+                    <button class="option-btn" data-action="edit">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit</span>
+                    </button>
+                    <button class="option-btn" data-action="delete">
+                        <i class="fas fa-trash"></i>
+                        <span>Delete</span>
+                    </button>
+                </div>
             </section>
         </section>
     </main>

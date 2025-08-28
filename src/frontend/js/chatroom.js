@@ -1,4 +1,4 @@
-// chatroom.js - Fixed connection status and API error issues
+// chatroom.js - WhatsApp-like interface with message interactions
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize chatroom
     initChatroom();
@@ -33,6 +33,11 @@ function getCurrentUser() {
         return null;
     }
 }
+
+// Global variables for message interactions
+let selectedMessage = null;
+let isEditingMessage = false;
+let replyingToMessage = null;
 
 // Initialize chatroom
 async function initChatroom() {
@@ -121,6 +126,9 @@ function showNoChatSelected() {
     document.querySelectorAll('.conversation-item').forEach(item => {
         item.classList.remove('active');
     });
+    
+    // Clear reply indicator if visible
+    closeReplyIndicator();
 }
 
 // Update chatroom stats with real data
@@ -231,6 +239,322 @@ function setupEventListeners() {
             e.target.closest('.notification').remove();
         }
     });
+    
+    // Add message context menu event listeners
+    setupMessageContextMenu();
+    
+    // Add reply indicator close button listener
+    const closeReply = document.getElementById('closeReply');
+    if (closeReply) closeReply.addEventListener('click', closeReplyIndicator);
+}
+
+// Setup message context menu
+function setupMessageContextMenu() {
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageOptionsMenu = document.getElementById('messageOptionsMenu');
+    
+    if (!messagesContainer || !messageOptionsMenu) return;
+    
+    // Long press handling for touch devices
+    let longPressTimer;
+    let longPressTarget;
+    
+    messagesContainer.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        const messageElement = e.target.closest('.message');
+        if (messageElement && !isEditingMessage) {
+            showMessageOptions(messageElement, e.clientX, e.clientY);
+        }
+    });
+    
+    // Touch events for mobile
+    messagesContainer.addEventListener('touchstart', function(e) {
+        const messageElement = e.target.closest('.message');
+        if (messageElement && !isEditingMessage) {
+            longPressTarget = messageElement;
+            longPressTimer = setTimeout(() => {
+                showMessageOptions(messageElement, e.touches[0].clientX, e.touches[0].clientY);
+            }, 500);
+        }
+    });
+    
+    messagesContainer.addEventListener('touchend', function() {
+        clearTimeout(longPressTimer);
+    });
+    
+    messagesContainer.addEventListener('touchmove', function() {
+        clearTimeout(longPressTimer);
+    });
+    
+    // Click outside to close menu
+    document.addEventListener('click', function(e) {
+        if (!messageOptionsMenu.contains(e.target) && messageOptionsMenu.style.display === 'flex') {
+            messageOptionsMenu.style.display = 'none';
+        }
+    });
+    
+    // Add event listeners to option buttons
+    const optionButtons = messageOptionsMenu.querySelectorAll('.option-btn');
+    optionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            handleMessageAction(action);
+        });
+    });
+}
+
+// Show message options menu
+function showMessageOptions(messageElement, x, y) {
+    const messageOptionsMenu = document.getElementById('messageOptionsMenu');
+    if (!messageOptionsMenu) return;
+    
+    selectedMessage = messageElement;
+    
+    // Position the menu
+    const rect = messageOptionsMenu.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Adjust position to stay within viewport
+    let adjustedX = x;
+    let adjustedY = y;
+    
+    if (x + rect.width > viewportWidth) {
+        adjustedX = viewportWidth - rect.width - 10;
+    }
+    
+    if (y + rect.height > viewportHeight) {
+        adjustedY = viewportHeight - rect.height - 10;
+    }
+    
+    messageOptionsMenu.style.left = `${adjustedX}px`;
+    messageOptionsMenu.style.top = `${adjustedY}px`;
+    messageOptionsMenu.classList.add('show');
+    
+    // Highlight the selected message
+    messageElement.classList.add('context-menu-open');
+}
+
+// Handle message actions
+function handleMessageAction(action) {
+    if (!selectedMessage) return;
+    
+    const messageId = selectedMessage.getAttribute('data-message-id');
+    const message = findMessageById(messageId);
+    
+    if (!message) return;
+    
+    switch(action) {
+        case 'reply':
+            setupReplyToMessage(message);
+            break;
+        case 'star':
+            toggleStarMessage(message);
+            break;
+        case 'edit':
+            editMessage(message);
+            break;
+        case 'delete':
+            deleteMessage(message);
+            break;
+    }
+    
+    // Close the menu
+    const messageOptionsMenu = document.getElementById('messageOptionsMenu');
+    if (messageOptionsMenu) messageOptionsMenu.classList.remove('show');
+    
+    // Remove highlight
+    selectedMessage.classList.remove('context-menu-open');
+    selectedMessage = null;
+}
+
+// Find message by ID
+function findMessageById(messageId) {
+    if (!window.currentChat) return null;
+    
+    const currentUserId = window.currentUser.id;
+    const participantId = window.currentChat.participant.id || window.currentChat.participant.user_id;
+    const conversationKey = `conversation_${currentUserId}_${participantId}`;
+    const messages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
+    
+    return messages.find(msg => msg.id === messageId);
+}
+
+// Setup reply to message
+function setupReplyToMessage(message) {
+    replyingToMessage = message;
+    
+    const replyIndicator = document.getElementById('replyIndicator');
+    const replyIndicatorMessage = document.getElementById('replyIndicatorMessage');
+    
+    if (replyIndicator && replyIndicatorMessage) {
+        // Set reply message preview
+        let previewText = message.content;
+        if (message.type !== 'text') {
+            previewText = `[${message.type} message]`;
+        } else if (previewText.length > 50) {
+            previewText = previewText.substring(0, 50) + '...';
+        }
+        
+        replyIndicatorMessage.textContent = previewText;
+        replyIndicator.classList.add('show');
+        
+        // Focus on message input
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) messageInput.focus();
+    }
+}
+
+// Close reply indicator
+function closeReplyIndicator() {
+    replyingToMessage = null;
+    
+    const replyIndicator = document.getElementById('replyIndicator');
+    if (replyIndicator) replyIndicator.classList.remove('show');
+}
+
+// Toggle star message
+function toggleStarMessage(message) {
+    message.starred = !message.starred;
+    updateMessageInStorage(message);
+    updateMessageInUI(message);
+}
+
+// Edit message
+function editMessage(message) {
+    if (message.senderId !== window.currentUser.id) return;
+    
+    isEditingMessage = true;
+    
+    const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+    if (!messageElement) return;
+    
+    const messageContent = messageElement.querySelector('.message-content');
+    if (!messageContent) return;
+    
+    // Create edit input
+    const editContainer = document.createElement('div');
+    editContainer.className = 'message-edit-container';
+    
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.value = message.content;
+    editInput.className = 'message-edit-input';
+    
+    const editActions = document.createElement('div');
+    editActions.className = 'message-edit-actions';
+    
+    const saveButton = document.createElement('button');
+    saveButton.textContent = 'Save';
+    saveButton.className = 'btn btn-primary btn-small';
+    saveButton.onclick = () => saveMessageEdit(message, editInput.value);
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.textContent = 'Cancel';
+    cancelButton.className = 'btn btn-outline btn-small';
+    cancelButton.onclick = cancelMessageEdit;
+    
+    editActions.appendChild(saveButton);
+    editActions.appendChild(cancelButton);
+    
+    editContainer.appendChild(editInput);
+    editContainer.appendChild(editActions);
+    
+    // Replace message content with edit interface
+    const originalContent = messageContent.innerHTML;
+    messageContent.innerHTML = '';
+    messageContent.appendChild(editContainer);
+    
+    // Store original content for cancel operation
+    messageContent.dataset.originalContent = originalContent;
+    
+    // Focus on input
+    editInput.focus();
+}
+
+// Save message edit
+function saveMessageEdit(message, newContent) {
+    if (!newContent.trim()) return;
+    
+    message.content = newContent;
+    message.edited = true;
+    message.editTimestamp = new Date().toISOString();
+    
+    updateMessageInStorage(message);
+    updateMessageInUI(message);
+    
+    isEditingMessage = false;
+}
+
+// Cancel message edit
+function cancelMessageEdit() {
+    isEditingMessage = false;
+    
+    const messageElement = document.querySelector('.message-edit-container')?.closest('.message-content');
+    if (!messageElement) return;
+    
+    messageElement.innerHTML = messageElement.dataset.originalContent;
+}
+
+// Delete message
+function deleteMessage(message) {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+    
+    if (message.senderId !== window.currentUser.id) {
+        // For messages from others, we can only delete locally
+        message.deleted = true;
+        updateMessageInStorage(message);
+        updateMessageInUI(message);
+    } else {
+        // For our own messages, we can delete completely
+        removeMessageFromStorage(message);
+        removeMessageFromUI(message);
+    }
+}
+
+// Update message in storage
+function updateMessageInStorage(message) {
+    if (!window.currentChat) return;
+    
+    const currentUserId = window.currentUser.id;
+    const participantId = window.currentChat.participant.id || window.currentChat.participant.user_id;
+    const conversationKey = `conversation_${currentUserId}_${participantId}`;
+    const messages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
+    
+    const index = messages.findIndex(msg => msg.id === message.id);
+    if (index !== -1) {
+        messages[index] = message;
+        localStorage.setItem(conversationKey, JSON.stringify(messages));
+    }
+}
+
+// Remove message from storage
+function removeMessageFromStorage(message) {
+    if (!window.currentChat) return;
+    
+    const currentUserId = window.currentUser.id;
+    const participantId = window.currentChat.participant.id || window.currentChat.participant.user_id;
+    const conversationKey = `conversation_${currentUserId}_${participantId}`;
+    const messages = JSON.parse(localStorage.getItem(conversationKey) || '[]');
+    
+    const filteredMessages = messages.filter(msg => msg.id !== message.id);
+    localStorage.setItem(conversationKey, JSON.stringify(filteredMessages));
+}
+
+// Update message in UI
+function updateMessageInUI(message) {
+    const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+    if (!messageElement) return;
+    
+    // Re-render the message
+    const isSent = message.senderId === window.currentUser.id;
+    messageElement.outerHTML = createMessageHTML(message, isSent);
+}
+
+// Remove message from UI
+function removeMessageFromUI(message) {
+    const messageElement = document.querySelector(`[data-message-id="${message.id}"]`);
+    if (messageElement) messageElement.remove();
 }
 
 // Get participants data from API
@@ -874,57 +1198,103 @@ function renderMessages(messages) {
     let html = '';
     
     messages.forEach(message => {
+        // Skip deleted messages
+        if (message.deleted) return;
+        
         const isSent = message.senderId === currentUserId;
-        
-        html += `
-            <div class='message ${isSent ? 'sent' : 'received'}'>
-                <div class='message-content'>
-        `;
-        
-        // Different content based on message type
-        if (message.type === 'text') {
-            html += `
-                <p class='message-text'>${message.content}</p>
-            `;
-        } else if (message.type === 'image') {
-            html += `
-                <img src='${message.content}' alt='Shared image' class='message-image'>
-            `;
-        } else if (message.type === 'file') {
-            html += `
-                <div class='message-file'>
-                    <i class='fas fa-file'></i>
-                    <span>${message.fileName || 'Document'}</span>
-                </div>
-            `;
-        } else if (message.type === 'audio') {
-            html += `
-                <div class='message-audio'>
-                    <audio controls class='audio-player'>
-                        <source src='${message.content}' type='audio/webm'>
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
-            `;
-        }
-        
-        // Message time and status
-        html += `
-                    <div class='message-time'>${formatMessageTime(message.timestamp)}</div>
-                    ${isSent ? `
-                        <div class='message-status ${message.read ? 'read' : message.delivered ? 'delivered' : 'sent'}'>
-                            <i class='fas fa-check${message.read ? '-double' : ''}'></i>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
+        html += createMessageHTML(message, isSent);
     });
     
     messagesContainer.innerHTML = html;
     
     // Scroll to bottom of messages
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Create message HTML with all features
+function createMessageHTML(message, isSent) {
+    let html = `
+        <div class='message ${isSent ? 'sent' : 'received'}' data-message-id='${message.id}'>
+            <div class='message-content'>
+    `;
+    
+    // Add reply preview if this is a reply
+    if (message.replyTo) {
+        const repliedMessage = findMessageById(message.replyTo);
+        if (repliedMessage) {
+            let replyPreview = repliedMessage.content;
+            if (repliedMessage.type !== 'text') {
+                replyPreview = `[${repliedMessage.type} message]`;
+            } else if (replyPreview.length > 30) {
+                replyPreview = replyPreview.substring(0, 30) + '...';
+            }
+            
+            html += `
+                <div class='message-reply'>
+                    <div class='message-reply-author'>${isSent ? 'You' : window.currentChat.participant.name}</div>
+                    <div class='message-reply-text'>${replyPreview}</div>
+                </div>
+            `;
+        }
+    }
+    
+    // Different content based on message type
+    if (message.type === 'text') {
+        html += `
+            <p class='message-text'>${message.content}</p>
+        `;
+        
+        // Show edited indicator if message was edited
+        if (message.edited) {
+            html += `<span class='message-edited'>(edited)</span>`;
+        }
+    } else if (message.type === 'image') {
+        html += `
+            <img src='${message.content}' alt='Shared image' class='message-image'>
+        `;
+    } else if (message.type === 'file') {
+        html += `
+            <div class='message-file'>
+                <i class='fas fa-file'></i>
+                <span>${message.fileName || 'Document'}</span>
+            </div>
+        `;
+    } else if (message.type === 'audio') {
+        html += `
+            <div class='message-audio'>
+                <audio controls class='audio-player'>
+                    <source src='${message.content}' type='audio/webm'>
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        `;
+    }
+    
+    // Message time and status
+    html += `
+                <div class='message-time'>${formatMessageTime(message.timestamp)}</div>
+    `;
+    
+    // Star indicator if message is starred
+    if (message.starred) {
+        html += `<div class='message-starred'><i class='fas fa-star'></i></div>`;
+    }
+    
+    // Message status for sent messages
+    if (isSent) {
+        html += `
+            <div class='message-status ${message.read ? 'read' : message.delivered ? 'delivered' : 'sent'}'>
+                <i class='fas fa-check${message.read ? '-double' : ''}'></i>
+            </div>
+        `;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    return html;
 }
 
 // Send a message
@@ -946,6 +1316,12 @@ function sendMessage() {
         read: false
     };
     
+    // Add reply data if replying to a message
+    if (replyingToMessage) {
+        message.replyTo = replyingToMessage.id;
+        closeReplyIndicator();
+    }
+    
     // Add message to UI immediately for better UX
     addMessageToUI(message);
     
@@ -965,44 +1341,7 @@ function addMessageToUI(message) {
     if (!messagesContainer) return;
     
     const isSent = message.senderId === window.currentUser.id;
-    
-    let messageHtml = `
-        <div class='message ${isSent ? 'sent' : 'received'}'>
-            <div class='message-content'>
-    `;
-    
-    if (message.type === 'text') {
-        messageHtml += `<p class='message-text'>${message.content}</p>`;
-    } else if (message.type === 'image') {
-        messageHtml += `<img src='${message.content}' alt='Shared image' class='message-image'>`;
-    } else if (message.type === 'file') {
-        messageHtml += `
-            <div class='message-file'>
-                <i class='fas fa-file'></i>
-                <span>${message.fileName || 'Document'}</span>
-            </div>
-        `;
-    } else if (message.type === 'audio') {
-        messageHtml += `
-            <div class='message-audio'>
-                <audio controls class='audio-player'>
-                    <source src='${message.content}' type='audio/webm'>
-                    Your browser does not support the audio element.
-                </audio>
-            </div>
-        `;
-    }
-    
-    messageHtml += `
-                <div class='message-time'>${formatMessageTime(message.timestamp)}</div>
-                ${isSent ? `
-                    <div class='message-status sent'>
-                        <i class='fas fa-check'></i>
-                    </div>
-                ` : ''}
-            </div>
-        </div>
-    `;
+    const messageHtml = createMessageHTML(message, isSent);
     
     // Remove "no messages" text if it exists
     if (messagesContainer.querySelector('.no-messages')) {
