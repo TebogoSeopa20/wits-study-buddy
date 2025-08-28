@@ -8,6 +8,8 @@ const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const usersApi = require('./backend/users-api');
 const connectionsApi = require('./backend/connections-api');
+const studyGroupsApi = require('./backend/study-groups-api');
+const notificationsApi = require('./backend/notifications-api');
 
 // Create the Express application
 const app = express();
@@ -47,6 +49,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Then mount your API routes AFTER the middleware
 app.use('/api', usersApi);
 app.use('/api', connectionsApi);
+app.use('/api', studyGroupsApi);
+app.use('/api', notificationsApi);
 
 // Serve all static files from frontend directory
 app.use(express.static(path.join(__dirname, 'frontend')));
@@ -189,17 +193,27 @@ app.get('/auth/google/callback', async (req, res) => {
       return res.redirect('/login?error=session_creation_failed');
     }
     
+    // Store user data in session
     req.session.user = sessionData.user;
     req.session.access_token = sessionData.session.access_token;
     req.session.refresh_token = sessionData.session.refresh_token;
+    
+    // Prepare user data for client-side storage
+    const userForClient = {
+      ...sessionData.user,
+      session: sessionData.session
+    };
     
     const userRole = sessionData.user?.user_metadata?.role || 'student';
     const dashboardUrl = getDashboardUrlByRole(userRole);
     const redirectTo = req.session.redirectAfterLogin || dashboardUrl;
     delete req.session.redirectAfterLogin;
     
+    // Encode user data for URL parameter
+    const encodedUserData = encodeURIComponent(JSON.stringify(userForClient));
+    
     console.log(`Redirecting to: ${redirectTo}`);
-    return res.redirect(redirectTo);
+    return res.redirect(`${redirectTo}?success=true&userData=${encodedUserData}`);
   } catch (error) {
     console.error(`Google auth error: ${error.message}`);
     return res.redirect('/login?error=google_auth_error');

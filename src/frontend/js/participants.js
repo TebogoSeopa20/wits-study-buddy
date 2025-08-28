@@ -104,6 +104,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearOptions = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', '6th Year'];
     
     // DOM elements with correct IDs from your HTML
+    const connectionsSection = document.getElementById('connectionsSection');
+    const connectionStats = document.getElementById('connectionStats');
+    const pendingCount = document.getElementById('pendingCount');
+    const connectedCount = document.getElementById('connectedCount');
+    const sentCount = document.getElementById('sentCount');
+    const totalCount = document.getElementById('totalCount');
+    const pendingConnections = document.getElementById('pendingConnections');
+    const sentConnections = document.getElementById('sentConnections');
     const participantsGrid = document.getElementById('participantsGrid');
     const searchInput = document.getElementById('searchInput');
     const roleFilter = document.getElementById('roleFilter');
@@ -113,6 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let filteredProfiles = [];
     let currentUser = null;
     let userConnections = {};
+    let currentTab = 'all';
+    let currentView = 'grid';
     
     // Check if essential elements exist before initializing
     if (!participantsGrid) {
@@ -134,6 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadUserConnections().then(() => {
             loadParticipants();
             setupEventListeners();
+            updateConnectionStats();
         });
     }
     
@@ -157,9 +168,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             userConnections = data;
+            updateConnectionStats();
+            displayConnectionRequests();
         } catch (error) {
             console.error('Error fetching user connections:', error);
             userConnections = { connected_users: [] };
+            updateConnectionStats();
+            displayConnectionRequests();
         }
     }
     
@@ -167,11 +182,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!userConnections.connected_users) return 'none';
         
         const connection = userConnections.connected_users.find(
-            conn => conn.user_id === targetUserId
+            conn => conn.user_id === targetUserId || conn.requester_id === targetUserId
         );
         
         return connection ? connection.status : 'none';
     }
+
+    
     
     function setupEventListeners() {
         // Search functionality
@@ -187,6 +204,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 applyFilters();
             });
         }
+        
+        // Add tab event listeners
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all tabs
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Set current tab
+                currentTab = this.getAttribute('data-tab');
+                applyFilters();
+            });
+        });
+        
+        // Add view toggle event listeners
+        const viewButtons = document.querySelectorAll('.view-toggle-btn');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all view buttons
+                viewButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Set current view
+                currentView = this.getAttribute('data-view');
+                displayParticipants();
+            });
+        });
     }
     
     function debounce(func, wait) {
@@ -199,6 +246,33 @@ document.addEventListener('DOMContentLoaded', function() {
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
         };
+    }
+    
+    function updateConnectionStats() {
+        if (!connectionStats) return;
+        
+        // Count different connection types
+        let connected = 0;
+        let pending = 0;
+        let sent = 0;
+        
+        if (userConnections.connected_users) {
+            userConnections.connected_users.forEach(conn => {
+                if (conn.status === 'accepted') {
+                    connected++;
+                } else if (conn.status === 'pending' && conn.requester_id === currentUser.id) {
+                    sent++;
+                } else if (conn.status === 'pending' && conn.requester_id !== currentUser.id) {
+                    pending++;
+                }
+            });
+        }
+        
+        // Update the stats display
+        if (connectedCount) connectedCount.textContent = connected;
+        if (pendingCount) pendingCount.textContent = pending;
+        if (sentCount) sentCount.textContent = sent;
+        if (totalCount) totalCount.textContent = allProfiles.length;
     }
     
     async function loadParticipants() {
@@ -224,6 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             populateFilterOptions();
             displayParticipants();
+            updateConnectionStats();
         } catch (error) {
             console.error('Error fetching participants:', error);
             showErrorState('Failed to load participants. Please try again later.');
@@ -372,7 +447,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const connectionStatus = getConnectionStatus(profile.user_id || profile.id);
             const matchesConnection = !selectedConnection || connectionStatus === selectedConnection;
             
-            return matchesSearch && matchesRole && matchesFaculty && matchesCourse && matchesYear && matchesConnection;
+            // Tab filter
+            let matchesTab = true;
+            if (currentTab !== 'all') {
+                if (currentTab === 'connections') {
+                    matchesTab = connectionStatus === 'accepted';
+                } else if (currentTab === 'pending') {
+                    matchesTab = connectionStatus === 'pending_approval';
+                } else if (currentTab === 'sent') {
+                    matchesTab = connectionStatus === 'pending';
+                }
+            }
+            
+            return matchesSearch && matchesRole && matchesFaculty && matchesCourse && 
+                   matchesYear && matchesConnection && matchesTab;
         });
         
         displayParticipants();
@@ -386,10 +474,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        filteredProfiles.forEach(profile => {
-            const participantCard = createParticipantCard(profile);
-            participantsGrid.appendChild(participantCard);
-        });
+        if (currentView === 'grid') {
+            participantsGrid.className = 'participants-grid';
+            filteredProfiles.forEach(profile => {
+                const participantCard = createParticipantCard(profile);
+                participantsGrid.appendChild(participantCard);
+            });
+        } else {
+            participantsGrid.className = 'participants-list';
+            filteredProfiles.forEach(profile => {
+                const participantListItem = createParticipantListItem(profile);
+                participantsGrid.appendChild(participantListItem);
+            });
+        }
     }
     
     function createParticipantCard(profile) {
@@ -446,45 +543,202 @@ document.addEventListener('DOMContentLoaded', function() {
         return card;
     }
     
-    function renderConnectionButton(status, profileId) {
-        switch(status) {
-            case 'pending':
-                return `
-                    <button class="action-btn outline" onclick="cancelRequest('${profileId}')">
-                        <i class="fas fa-clock"></i> Request Sent
-                    </button>
-                `;
-            case 'pending_approval':
-                return `
-                    <button class="action-btn primary" onclick="acceptRequest('${profileId}')">
+    function createParticipantListItem(profile) {
+        const listItem = document.createElement('div');
+        listItem.className = 'participant-list-item';
+        
+        // Get initials for avatar
+        const initials = getInitials(profile.name || '');
+        const profileId = profile.user_id || profile.id;
+        const connectionStatus = getConnectionStatus(profileId);
+        
+        listItem.innerHTML = `
+            <div class="list-avatar">${initials}</div>
+            <div class="list-details">
+                <h3 class="list-name">${profile.name || 'No Name'}</h3>
+                <div class="list-meta">
+                    <span><i class="fas fa-envelope"></i> ${profile.email || 'No email'}</span>
+                    <span><i class="fas fa-graduation-cap"></i> ${profile.faculty || 'Not specified'}</span>
+                    <span><i class="fas fa-book"></i> ${profile.course || 'Not specified'}</span>
+                    <span><i class="fas fa-calendar-alt"></i> ${profile.year_of_study || 'Not specified'}</span>
+                </div>
+            </div>
+            <div class="list-actions">
+                ${renderConnectionButton(connectionStatus, profileId)}
+            </div>
+        `;
+        
+        return listItem;
+    }
+    
+// Add this function to create the View Profile button
+function renderViewProfileButton(profileId) {
+    return `
+        <button class="action-btn outline" onclick="viewProfile('${profileId}')">
+            <i class="fas fa-eye"></i> View Profile
+        </button>
+    `;
+}
+
+// Update the renderConnectionButton function to handle all connection states
+function renderConnectionButton(status, profileId) {
+    let buttons = '';
+    
+    switch(status) {
+        case 'pending': // Current user sent request, waiting for response
+            buttons = `
+                <button class="action-btn outline" onclick="cancelRequest('${profileId}')">
+                    <i class="fas fa-ban"></i> Cancel Request
+                </button>
+            `;
+            break;
+        case 'pending_approval': // Someone sent request to current user
+            buttons = `
+                <button class="action-btn primary" onclick="acceptRequest('${profileId}')">
+                    <i class="fas fa-check"></i> Accept
+                </button>
+                <button class="action-btn outline" onclick="rejectRequest('${profileId}')">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+            `;
+            break;
+        case 'accepted': // Connected
+            buttons = `
+                <button class="action-btn primary" onclick="messageUser('${profileId}')">
+                    <i class="fas fa-comment"></i> Message
+                </button>
+                <button class="action-btn outline" onclick="disconnect('${profileId}')">
+                    <i class="fas fa-user-times"></i> Disconnect
+                </button>
+            `;
+            break;
+        case 'blocked_by_me': // Current user blocked this person
+            buttons = `
+                <button class="action-btn outline" onclick="unblockUser('${profileId}')">
+                    <i class="fas fa-ban"></i> Unblock
+                </button>
+            `;
+            break;
+        case 'blocked_by_them': // This person blocked current user
+            buttons = `
+                <span class="blocked-text">You are blocked</span>
+            `;
+            break;
+        default: // No connection
+            buttons = `
+                <button class="action-btn primary" onclick="connectWith('${profileId}')">
+                    <i class="fas fa-user-plus"></i> Connect
+                </button>
+            `;
+    }
+    
+    // Added View Profile button to all states except when blocked by them
+    if (status !== 'blocked_by_them') {
+        buttons += renderViewProfileButton(profileId);
+    }
+    
+    return buttons;
+}
+
+// Update the viewProfile function in participants.js
+window.viewProfile = function(profileId) {
+    // Store the profile ID to view in session storage
+    // Make sure we're using the correct ID field (user_id or id)
+    const profile = allProfiles.find(p => (p.user_id || p.id) === profileId);
+    if (profile) {
+        // Use the profile's id field (not user_id) for the API call
+        const idToStore = profile.id;
+        console.log('Viewing profile with ID:', idToStore);
+        sessionStorage.setItem('viewProfileId', idToStore);
+        // Redirect to profile view page
+        window.location.href = 'student-profile-view.html';
+    } else {
+        console.error('Profile not found for ID:', profileId);
+        showNotification('Could not view profile. Please try again.', 'error');
+    }
+};
+    
+    function displayConnectionRequests() {
+        if (!pendingConnections || !sentConnections) return;
+        
+        // Clear existing content
+        pendingConnections.innerHTML = '<h3>Pending Requests</h3>';
+        sentConnections.innerHTML = '<h3>Sent Requests</h3>';
+        
+        // Check if we have connections data
+        if (!userConnections.connected_users || userConnections.connected_users.length === 0) {
+            pendingConnections.innerHTML += '<p class="no-requests">No pending connection requests</p>';
+            sentConnections.innerHTML += '<p class="no-requests">No sent connection requests</p>';
+            return;
+        }
+        
+        let hasPending = false;
+        let hasSent = false;
+        
+        // Process connections
+        userConnections.connected_users.forEach(conn => {
+            if (conn.status === 'pending') {
+                if (conn.requester_id === currentUser.id) {
+                    // This is a sent request
+                    hasSent = true;
+                    const profile = allProfiles.find(p => (p.user_id || p.id) === conn.user_id);
+                    if (profile) {
+                        const requestElement = createConnectionRequestElement(profile, conn, 'sent');
+                        sentConnections.appendChild(requestElement);
+                    }
+                } else {
+                    // This is a pending request (waiting for approval)
+                    hasPending = true;
+                    const profile = allProfiles.find(p => (p.user_id || p.id) === conn.requester_id);
+                    if (profile) {
+                        const requestElement = createConnectionRequestElement(profile, conn, 'pending');
+                        pendingConnections.appendChild(requestElement);
+                    }
+                }
+            }
+        });
+        
+        // Show messages if no requests found
+        if (!hasPending) {
+            pendingConnections.innerHTML += '<p class="no-requests">No pending connection requests</p>';
+        }
+        
+        if (!hasSent) {
+            sentConnections.innerHTML += '<p class="no-requests">No sent connection requests</p>';
+        }
+    }
+    
+    function createConnectionRequestElement(profile, connection, type) {
+        const element = document.createElement('div');
+        element.className = 'connection-item';
+        
+        const initials = getInitials(profile.name || '');
+        const profileId = profile.user_id || profile.id;
+        
+        element.innerHTML = `
+            <div class="connection-avatar">${initials}</div>
+            <div class="connection-info">
+                <div class="connection-name">${profile.name || 'No Name'}</div>
+                <div class="connection-email">${profile.email || 'No email'}</div>
+                <div class="connection-meta">${profile.course || 'Not specified'}</div>
+            </div>
+            <div class="connection-actions">
+                ${type === 'pending' ? `
+                    <button class="action-btn primary small" onclick="acceptRequest('${profileId}')">
                         <i class="fas fa-check"></i> Accept
                     </button>
-                    <button class="action-btn outline" onclick="rejectRequest('${profileId}')">
+                    <button class="action-btn outline small" onclick="rejectRequest('${profileId}')">
                         <i class="fas fa-times"></i> Reject
                     </button>
-                `;
-            case 'accepted':
-                return `
-                    <button class="action-btn primary" onclick="messageUser('${profileId}')">
-                        <i class="fas fa-comment"></i> Message
+                ` : `
+                    <button class="action-btn outline small" onclick="cancelRequest('${profileId}')">
+                        <i class="fas fa-clock"></i> Cancel Request
                     </button>
-                    <button class="action-btn outline" onclick="disconnect('${profileId}')">
-                        <i class="fas fa-user-times"></i> Disconnect
-                    </button>
-                `;
-            case 'blocked':
-                return `
-                    <button class="action-btn outline" onclick="unblockUser('${profileId}')">
-                        <i class="fas fa-ban"></i> Unblock
-                    </button>
-                `;
-            default:
-                return `
-                    <button class="action-btn primary" onclick="connectWith('${profileId}')">
-                        <i class="fas fa-user-plus"></i> Connect
-                    </button>
-                `;
-        }
+                `}
+            </div>
+        `;
+        
+        return element;
     }
     
     function getInitials(name) {
@@ -529,34 +783,97 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Global functions for connection actions
-    window.connectWith = async function(profileId) {
-        try {
-            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/send-request`, {
+
+    
+// Update the connectWith function to create a notification
+window.connectWith = async function(profileId) {
+    try {
+        const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/send-request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                target_user_id: profileId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        const targetProfile = allProfiles.find(p => (p.user_id || p.id) === profileId);
+        
+        // Create notification for the target user
+        if (targetProfile) {
+            await fetch(`${API_BASE_URL}/notifications/connection-request`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    target_user_id: profileId
+                    sender_id: currentUser.id,
+                    target_user_id: profileId,
+                    connection_id: result.connection_id
                 })
             });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            showNotification(`Connection request sent to ${getProfileName(profileId)}`, 'success');
-            
-            // Reload connections and refresh UI
-            await loadUserConnections();
-            applyFilters();
-        } catch (error) {
-            console.error('Error sending connection request:', error);
-            showNotification('Failed to send connection request', 'error');
         }
-    };
-    
+        
+        showNotification(`Connection request sent to ${getProfileName(profileId)}`, 'success');
+        
+        // Reload connections and refresh UI
+        await loadUserConnections();
+        applyFilters();
+    } catch (error) {
+        console.error('Error sending connection request:', error);
+        showNotification('Failed to send connection request', 'error');
+    }
+};
+
+// Update the acceptRequest function to create a notification
+window.acceptRequest = async function(profileId) {
+    try {
+        const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/accept`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                requester_id: profileId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Create notification for the requester
+        await fetch(`${API_BASE_URL}/notifications/connection-accepted`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender_id: currentUser.id,
+                target_user_id: profileId,
+                connection_id: result.connection_id
+            })
+        });
+        
+        showNotification(`Connection request accepted`, 'success');
+        
+        // Reload connections and refresh UI
+        await loadUserConnections();
+        applyFilters();
+    } catch (error) {
+        console.error('Error accepting connection request:', error);
+        showNotification('Failed to accept connection request', 'error');
+    }
+};
+
     window.cancelRequest = async function(profileId) {
         try {
             const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/remove`, {
@@ -584,32 +901,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
-    window.acceptRequest = async function(profileId) {
-        try {
-            const response = await fetch(`${CONNECTIONS_URL}/${currentUser.id}/accept`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    requester_id: profileId
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            showNotification(`Connection request accepted`, 'success');
-            
-            // Reload connections and refresh UI
-            await loadUserConnections();
-            applyFilters();
-        } catch (error) {
-            console.error('Error accepting connection request:', error);
-            showNotification('Failed to accept connection request', 'error');
-        }
-    };
+
     
     window.rejectRequest = async function(profileId) {
         try {
@@ -669,7 +961,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     window.messageUser = function(profileId) {
         // Redirect to chat with this user
-        window.location.href = `chatroom.html?user=${profileId}`;
+        window.location.href = `student-chatroom.html?user=${profileId}`;
     };
     
     window.blockUser = async function(profileId) {
@@ -831,3 +1123,19 @@ const notificationStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = notificationStyles;
 document.head.appendChild(styleSheet);
+
+async function createNotification(notificationData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notificationData)
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error creating notification:', error);
+        return false;
+    }
+}

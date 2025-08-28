@@ -1,0 +1,553 @@
+/* profile-view.css */
+.profile-view-container {
+   width: 100%;
+    margin: 2rem auto;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+    animation: fadeIn 0.6s ease-out;
+}
+
+.back-button-container {
+    margin-bottom: 1.5rem;
+}
+
+.back-button {
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    background: white;
+    border: 1px solid var(--study-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--study-dark);
+}
+
+.back-button:hover {
+    background: var(--study-blue-lighter);
+    border-color: var(--study-blue);
+    color: var(--study-blue);
+}
+
+.profile-view-header {
+    background: linear-gradient(135deg, var(--study-blue), var(--study-blue-light));
+    border-radius: 1rem;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 10px 20px rgba(30, 64, 175, 0.2);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.profile-view-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.profile-view-header h1 i {
+    color: var(--study-gold);
+}
+
+.profile-view-content {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--study-card-shadow);
+}
+
+.profile-detail-view {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+}
+
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-avatar-large {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: var(--study-blue-lighter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: var(--study-blue);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    border: 4px solid var(--study-border);
+}
+
+.profile-name-large {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--study-dark);
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.profile-role-large {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border-radius: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-role-large.student {
+    background: var(--study-blue-lighter);
+    color: var(--study-blue);
+}
+
+.profile-role-large.tutor {
+    background: var(--study-gold);
+    color: white;
+}
+
+.connection-status {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.connection-status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.connection-status-badge.connected {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--study-success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.connection-status-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--study-warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.connection-status-badge.not-connected {
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--study-muted);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-section {
+    background: var(--study-bg);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.profile-section h3 {
+    font-size: 1.25rem;
+    color: var(--study-dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.profile-section h3 i {
+    color: var(--study-blue);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item-full {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-label-full {
+    font-size: 0.85rem;
+    color: var(--study-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-value-full {
+    font-size: 1rem;
+    color: var(--study-dark);
+    font-weight: 500;
+}
+
+.bio-section {
+    line-height: 1.6;
+    color: var(--study-dark);
+}
+
+.interests-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.interest-tag {
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    background: var(--study-blue-lighter);
+    color: var(--study-blue);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-detail-view {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-sidebar {
+        text-align: center;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* profile-view.css */
+.profile-view-container {
+    width: 100%;
+    margin: 2rem auto;
+    padding: 0 clamp(1rem, 4vw, 2rem);
+    animation: fadeIn 0.6s ease-out;
+}
+
+.back-button-container {
+    margin-bottom: 1.5rem;
+}
+
+.back-button {
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    background: white;
+    border: 1px solid var(--study-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--study-dark);
+}
+
+.back-button:hover {
+    background: var(--study-blue-lighter);
+    border-color: var(--study-blue);
+    color: var(--study-blue);
+}
+
+.profile-view-header {
+    background: linear-gradient(135deg, var(--study-blue), var(--study-blue-light));
+    border-radius: 1rem;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 10px 20px rgba(30, 64, 175, 0.2);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.profile-view-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.profile-view-header h1 i {
+    color: var(--study-gold);
+}
+
+.profile-view-content {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--study-card-shadow);
+}
+
+.profile-detail-view {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 2rem;
+}
+
+.profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-avatar-large {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: var(--study-blue-lighter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    color: var(--study-blue);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    border: 4px solid var(--study-border);
+}
+
+.profile-name-large {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--study-dark);
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.profile-role-large {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border-radius: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-role-large.student {
+    background: var(--study-blue-lighter);
+    color: var(--study-blue);
+}
+
+.profile-role-large.tutor {
+    background: var(--study-gold);
+    color: white;
+}
+
+.connection-status {
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.connection-status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.connection-status-badge.connected {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--study-success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.connection-status-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--study-warning);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.connection-status-badge.not-connected {
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--study-muted);
+    border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-section {
+    background: var(--study-bg);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.profile-section h3 {
+    font-size: 1.25rem;
+    color: var(--study-dark);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.profile-section h3 i {
+    color: var(--study-blue);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item-full {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-label-full {
+    font-size: 0.85rem;
+    color: var(--study-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-value-full {
+    font-size: 1rem;
+    color: var(--study-dark);
+    font-weight: 500;
+}
+
+.connections-stats,
+.groups-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--study-blue);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--study-muted);
+}
+
+.groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.group-card {
+    background: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--study-border);
+}
+
+.group-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--study-dark);
+    margin-bottom: 0.5rem;
+}
+
+.group-subject {
+    font-size: 0.9rem;
+    color: var(--study-blue);
+    margin-bottom: 0.5rem;
+}
+
+.group-members {
+    font-size: 0.85rem;
+    color: var(--study-muted);
+}
+
+.view-more {
+    text-align: center;
+    margin-top: 1rem;
+    color: var(--study-blue);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.view-more:hover {
+    text-decoration: underline;
+}
+
+.no-data {
+    text-align: center;
+    color: var(--study-muted);
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-detail-view {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-sidebar {
+        text-align: center;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .connections-stats,
+    .groups-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .groups-grid {
+        grid-template-columns: 1fr;
+    }
+}

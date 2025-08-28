@@ -1,4 +1,13 @@
-// Enhanced landing page functionality with animations
+// Enhanced landing page functionality with animations and real-time stats
+
+// API configuration
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = isLocal 
+    ? 'http://localhost:3000/api' 
+    : 'https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/api';
+
+const PROFILES_URL = `${API_BASE_URL}/profiles`;
+const GROUPS_URL = `${API_BASE_URL}/groups`;
 
 // Initialize scroll animations
 function initScrollAnimations() {
@@ -24,12 +33,42 @@ function initScrollAnimations() {
     }
 }
 
-// Initialize counter animations
-function initCounterAnimations() {
+// Initialize counter animations with real data
+async function initCounterAnimations() {
     const counters = document.querySelectorAll('.stat-number[data-target]');
     const statsSection = document.querySelector('.stats');
     
     if (!statsSection || !counters.length) return;
+    
+    // Fetch real data from APIs
+    try {
+        const [profilesResponse, groupsResponse] = await Promise.all([
+            fetch(PROFILES_URL),
+            fetch(`${GROUPS_URL}/search/public`)
+        ]);
+        
+        if (!profilesResponse.ok || !groupsResponse.ok) {
+            throw new Error('Failed to fetch data from APIs');
+        }
+        
+        const profiles = await profilesResponse.json();
+        const groups = await groupsResponse.json();
+        
+        // Calculate real statistics
+        const activeStudents = profiles.length;
+        const studyGroups = groups.count || 0;
+        
+        // Update data attributes with real values
+        counters[0].setAttribute('data-target', activeStudents);
+        counters[1].setAttribute('data-target', studyGroups);
+        
+        // Keep the other two stats as they are (study hours and improved grades)
+        // These would need additional endpoints to calculate
+        
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        // Keep the default values if API calls fail
+    }
     
     function animateCounter(element, target) {
         let current = 0;

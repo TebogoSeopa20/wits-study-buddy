@@ -1,11 +1,11 @@
 // main.test.js
-import {
+const {
     initMobileMenuToggle,
     initScrollAnimations,
     checkMobileView,
     initMobileNavigation,
     initAllMobileFeatures
-} from '../src/frontend/js/main.js';
+}  = require ('../src/frontend/test_utils/mainUtils.js');
 
 describe('Mobile Menu Module', () => {
     let originalDocument;
