@@ -1,4 +1,4 @@
-// groups.js - Study Groups Management
+// groups.js - Study Groups Management with Scheduling
 document.addEventListener('DOMContentLoaded', function() {
     // API configuration
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -301,6 +301,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
                 courseSelect.disabled = true;
             }
+            
+            // Reset scheduling fields
+            document.getElementById('groupIsScheduled').checked = false;
+            document.getElementById('scheduleStart').value = '';
+            document.getElementById('scheduleEnd').value = '';
+            document.getElementById('meetingTimes').value = '';
+            toggleScheduleFields(false);
         });
         
         closeDetailsBtn.addEventListener('click', () => {
@@ -345,6 +352,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteGroup(groupId);
             }
         });
+        
+        // Schedule toggle
+        document.getElementById('groupIsScheduled').addEventListener('change', function() {
+            toggleScheduleFields(this.checked);
+        });
+    }
+    
+    function toggleScheduleFields(show) {
+        const scheduleFields = document.getElementById('scheduleFields');
+        if (show) {
+            scheduleFields.style.display = 'block';
+        } else {
+            scheduleFields.style.display = 'none';
+        }
     }
     
     async function loadAllData() {
@@ -503,15 +524,79 @@ document.addEventListener('DOMContentLoaded', function() {
         const isAdmin = isMember && group.user_role === 'admin';
         const progressPercentage = (group.member_count / group.max_members) * 100;
         
+        // Determine group status based on scheduling
+        let statusBadge = '';
+        let statusClass = '';
+        let statusText = '';
+        
+        if (group.is_scheduled) {
+            const now = new Date();
+            const startDate = new Date(group.scheduled_start);
+            const endDate = new Date(group.scheduled_end);
+            
+            if (now < startDate) {
+                statusBadge = `<span class="status-badge scheduled">Scheduled</span>`;
+                statusClass = 'scheduled';
+                statusText = 'Scheduled';
+            } else if (now >= startDate && now <= endDate) {
+                statusBadge = `<span class="status-badge active">Active</span>`;
+                statusClass = 'active';
+                statusText = 'Active';
+            } else {
+                statusBadge = `<span class="status-badge archived">Archived</span>`;
+                statusClass = 'archived';
+                statusText = 'Archived';
+            }
+        } else {
+            statusBadge = `<span class="status-badge ${group.status}">${group.status}</span>`;
+            statusClass = group.status;
+            statusText = group.status;
+        }
+        
+        // Parse meeting times if they exist
+        let meetingTimes = [];
+        if (group.meeting_times) {
+            try {
+                if (typeof group.meeting_times === 'string') {
+                    meetingTimes = JSON.parse(group.meeting_times);
+                } else if (Array.isArray(group.meeting_times)) {
+                    meetingTimes = group.meeting_times;
+                }
+            } catch (e) {
+                console.error('Error parsing meeting times:', e);
+                meetingTimes = [];
+            }
+        }
+        
         return `
-            <div class="group-card" data-group-id="${group.group_id}">
+            <div class="group-card ${statusClass}" data-group-id="${group.group_id}">
                 <div class="group-header">
+                    ${statusBadge}
                     <h3 class="group-name">${group.group_name || 'Unnamed Group'}</h3>
                     <span class="group-subject">${group.subject || 'General'}</span>
                 </div>
                 
                 <div class="group-details">
                     <p class="group-description">${group.description || 'No description provided.'}</p>
+                    
+                    ${group.is_scheduled ? `
+                        <div class="schedule-info">
+                            <div class="schedule-item">
+                                <i class="fas fa-calendar-day"></i>
+                                <span>Starts: ${formatDate(group.scheduled_start)}</span>
+                            </div>
+                            <div class="schedule-item">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Ends: ${formatDate(group.scheduled_end)}</span>
+                            </div>
+                            ${meetingTimes && meetingTimes.length > 0 ? `
+                                <div class="schedule-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Meetings: ${meetingTimes.join(', ')}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
                     
                     <div class="group-meta">
                         <div class="meta-item">
@@ -564,19 +649,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const isCreator = isMember && group.user_role === 'creator';
         const isAdmin = isMember && group.user_role === 'admin';
         
+        // Determine group status based on scheduling
+        let statusBadge = '';
+        let statusClass = '';
+        
+        if (group.is_scheduled) {
+            const now = new Date();
+            const startDate = new Date(group.scheduled_start);
+            const endDate = new Date(group.scheduled_end);
+            
+            if (now < startDate) {
+                statusBadge = `<span class="status-badge scheduled">Scheduled</span>`;
+                statusClass = 'scheduled';
+            } else if (now >= startDate && now <= endDate) {
+                statusBadge = `<span class="status-badge active">Active</span>`;
+                statusClass = 'active';
+            } else {
+                statusBadge = `<span class="status-badge archived">Archived</span>`;
+                statusClass = 'archived';
+            }
+        } else {
+            statusBadge = `<span class="status-badge ${group.status}">${group.status}</span>`;
+            statusClass = group.status;
+        }
+        
         return `
-            <div class="group-list-item" data-group-id="${group.group_id}">
+            <div class="group-list-item ${statusClass}" data-group-id="${group.group_id}">
                 <div class="list-avatar">
                     ${getInitials(group.group_name || 'G')}
                 </div>
                 
                 <div class="list-details">
                     <h3 class="list-name">${group.group_name || 'Unnamed Group'}</h3>
+                    ${statusBadge}
                     <div class="list-meta">
                         <span><i class="fas fa-book"></i> ${group.subject || 'General'}</span>
                         <span><i class="fas fa-university"></i> ${group.faculty || 'Not specified'}</span>
                         <span><i class="fas fa-users"></i> ${group.member_count} members</span>
-                        <span><i class="fas fa-calendar-alt"></i> ${group.year_of_study || 'Not specified'}</span>
+                        ${group.is_scheduled ? `
+                            <span><i class="fas fa-calendar"></i> ${formatDate(group.scheduled_start)} - ${formatDate(group.scheduled_end)}</span>
+                        ` : ''}
                     </div>
                 </div>
                 
@@ -599,6 +711,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
+    }
+    
+    function formatDate(dateString) {
+        if (!dateString) return 'Not scheduled';
+        
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     }
     
     async function viewGroupDetails(groupId) {
@@ -632,6 +757,61 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalGroupYear').textContent = group.year_of_study || 'Not specified';
             document.getElementById('modalGroupMembers').textContent = `${group.member_count || 0} / ${group.max_members || 10}`;
             document.getElementById('modalGroupPrivacy').textContent = group.is_private ? 'Private' : 'Public';
+            
+            // Parse meeting times if they exist
+            let meetingTimes = [];
+            if (group.meeting_times) {
+                try {
+                    if (typeof group.meeting_times === 'string') {
+                        meetingTimes = JSON.parse(group.meeting_times);
+                    } else if (Array.isArray(group.meeting_times)) {
+                        meetingTimes = group.meeting_times;
+                    }
+                } catch (e) {
+                    console.error('Error parsing meeting times:', e);
+                    meetingTimes = [];
+                }
+            }
+            
+            // Show scheduling info if available
+            const scheduleStartItem = document.getElementById('modalScheduleStart');
+            const scheduleEndItem = document.getElementById('modalScheduleEnd');
+            const meetingTimesItem = document.getElementById('modalMeetingTimes');
+            
+            if (group.is_scheduled) {
+                scheduleStartItem.style.display = 'flex';
+                scheduleEndItem.style.display = 'flex';
+                document.getElementById('modalGroupStartDate').textContent = formatDate(group.scheduled_start);
+                document.getElementById('modalGroupEndDate').textContent = formatDate(group.scheduled_end);
+                
+                if (meetingTimes && meetingTimes.length > 0) {
+                    meetingTimesItem.style.display = 'flex';
+                    document.getElementById('modalGroupMeetingTimes').textContent = meetingTimes.join(', ');
+                } else {
+                    meetingTimesItem.style.display = 'none';
+                }
+                
+                // Determine current status
+                const now = new Date();
+                const startDate = new Date(group.scheduled_start);
+                const endDate = new Date(group.scheduled_end);
+                
+                let statusText = '';
+                if (now < startDate) {
+                    statusText = 'Scheduled';
+                } else if (now >= startDate && now <= endDate) {
+                    statusText = 'Active';
+                } else {
+                    statusText = 'Archived';
+                }
+                
+                document.getElementById('modalGroupStatus').textContent = statusText;
+            } else {
+                scheduleStartItem.style.display = 'none';
+                scheduleEndItem.style.display = 'none';
+                meetingTimesItem.style.display = 'none';
+                document.getElementById('modalGroupStatus').textContent = group.status;
+            }
             
             // Show invite code if user is member
             const isMember = userGroups.some(g => g.group_id === groupId);
@@ -698,215 +878,109 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-// Add this function to groups.js
-async function createNotification(notificationData) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/notifications`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(notificationData)
-        });
-        return response.ok;
-    } catch (error) {
-        console.error('Error creating notification:', error);
-        return false;
-    }
-}
-
-// Update the joinGroup function to create a notification for group admins
-async function joinGroup(groupId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: currentUser.id
-            })
-        });
+    async function createGroup() {
+        const name = document.getElementById('groupName').value.trim();
+        const subject = document.getElementById('groupSubject').value.trim();
+        const faculty = document.getElementById('groupFaculty').value;
+        const course = document.getElementById('groupCourse').value;
+        const isScheduled = document.getElementById('groupIsScheduled').checked;
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (!name || !subject) {
+            showError('Group name and subject are required.');
+            return;
         }
         
-        const result = await response.json();
+        if (faculty && !course) {
+            showError('Please select a course for the selected faculty.');
+            return;
+        }
         
-        // Get group details to notify admins
-        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
-        if (groupResponse.ok) {
-            const groupData = await groupResponse.json();
-            const group = groupData.group;
+        if (isScheduled) {
+            const startDate = document.getElementById('scheduleStart').value;
+            const endDate = document.getElementById('scheduleEnd').value;
             
-            // Get group admins
-            const membersResponse = await fetch(`${API_BASE_URL}/groups/${groupId}/members`);
-            if (membersResponse.ok) {
-                const membersData = await membersResponse.json();
-                const admins = membersData.members.filter(m => m.role === 'admin' || m.role === 'creator');
-                const adminIds = admins.map(a => a.user_id).filter(id => id !== currentUser.id);
-                
-                // Notify admins about new member
-                if (adminIds.length > 0) {
-                    await fetch(`${API_BASE_URL}/notifications/group-member-joined`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            sender_id: currentUser.id,
-                            group_id: groupId,
-                            group_name: group.name,
-                            admin_user_ids: adminIds
-                        })
-                    });
-                }
+            if (!startDate || !endDate) {
+                showError('Start and end dates are required for scheduled groups.');
+                return;
+            }
+            
+            if (new Date(startDate) >= new Date(endDate)) {
+                showError('End date must be after start date.');
+                return;
+            }
+            
+            if (new Date(startDate) <= new Date()) {
+                showError('Start date must be in the future.');
+                return;
             }
         }
         
-        showSuccess(`Successfully joined the group!`);
-        
-        // Reload data
-        await loadAllData();
-        
-    } catch (error) {
-        console.error('Error joining group:', error);
-        showError('Failed to join group. Please try again.');
-    }
-}
-
-// Update the createGroup function to notify invited members
-async function createGroup() {
-    const formData = new FormData(createGroupForm);
-    const name = document.getElementById('groupName').value.trim();
-    const subject = document.getElementById('groupSubject').value.trim();
-    const faculty = document.getElementById('groupFaculty').value;
-    const course = document.getElementById('groupCourse').value;
-    
-    if (!name || !subject) {
-        showError('Group name and subject are required.');
-        return;
-    }
-    
-    if (faculty && !course) {
-        showError('Please select a course for the selected faculty.');
-        return;
-    }
-    
-    try {
-        const groupData = {
-            name: name,
-            description: document.getElementById('groupDescription').value.trim(),
-            subject: subject,
-            creator_id: currentUser.id,
-            max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
-            is_private: document.getElementById('groupIsPrivate').checked,
-            faculty: faculty,
-            course: course,
-            year_of_study: document.getElementById('groupYear').value
-        };
-        
-        const response = await fetch(`${API_BASE_URL}/groups/create`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(groupData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        // If there are invited members, send them notifications
-        const invitedMembersInput = document.getElementById('invitedMembers');
-        if (invitedMembersInput && invitedMembersInput.value) {
-            try {
-                const invitedEmails = invitedMembersInput.value.split(',').map(email => email.trim());
+        try {
+            const groupData = {
+                name: name,
+                description: document.getElementById('groupDescription').value.trim(),
+                subject: subject,
+                creator_id: currentUser.id,
+                max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
+                is_private: document.getElementById('groupIsPrivate').checked,
+                faculty: faculty,
+                course: course,
+                year_of_study: document.getElementById('groupYear').value
+            };
+            
+            // Add scheduling data if applicable
+            if (isScheduled) {
+                groupData.scheduled_start = document.getElementById('scheduleStart').value;
+                groupData.scheduled_end = document.getElementById('scheduleEnd').value;
                 
-                // For each invited email, find the user and send notification
-                for (const email of invitedEmails) {
-                    const userResponse = await fetch(`${API_BASE_URL}/profiles/email/${encodeURIComponent(email)}`);
-                    if (userResponse.ok) {
-                        const userData = await userResponse.json();
-                        
-                        await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                sender_id: currentUser.id,
-                                target_user_id: userData.user_id,
-                                group_id: result.group.id,
-                                group_name: result.group.name,
-                                invite_code: result.group.invite_code
-                            })
-                        });
-                    }
+                const meetingTimes = document.getElementById('meetingTimes').value;
+                if (meetingTimes) {
+                    groupData.meeting_times = meetingTimes.split(',').map(time => time.trim());
                 }
-            } catch (error) {
-                console.error('Error sending invitations:', error);
-                // Continue even if invitations fail
             }
-        }
-        
-        showSuccess(`Group "${result.group.name}" created successfully!`);
-        
-        // Close modal and reset form
-        closeModal(createGroupModal);
-        createGroupForm.reset();
-        
-        // Reset faculty and course dropdowns
-        facultySelect.value = '';
-        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-        courseSelect.disabled = true;
-        
-        // Reload data
-        await loadAllData();
-        
-    } catch (error) {
-        console.error('Error creating group:', error);
-        showError('Failed to create group. Please try again.');
-    }
-}
-
-// Add this function to handle group invitations
-async function inviteToGroup(groupId, userIds) {
-    try {
-        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
-        if (!groupResponse.ok) {
-            throw new Error(`HTTP error! status: ${groupResponse.status}`);
-        }
-        
-        const groupData = await groupResponse.json();
-        const group = groupData.group;
-        
-        for (const userId of userIds) {
-            await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
+            
+            const endpoint = isScheduled ? `${API_BASE_URL}/groups/create-scheduled` : `${API_BASE_URL}/groups/create`;
+            
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    sender_id: currentUser.id,
-                    target_user_id: userId,
-                    group_id: groupId,
-                    group_name: group.name,
-                    invite_code: group.invite_code
-                })
+                body: JSON.stringify(groupData)
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            showSuccess(`Group "${result.group.name}" created successfully!`);
+            
+            // Close modal and reset form
+            closeModal(createGroupModal);
+            createGroupForm.reset();
+            
+            // Reset faculty and course dropdowns
+            facultySelect.value = '';
+            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+            courseSelect.disabled = true;
+            
+            // Reset scheduling fields
+            document.getElementById('groupIsScheduled').checked = false;
+            document.getElementById('scheduleStart').value = '';
+            document.getElementById('scheduleEnd').value = '';
+            document.getElementById('meetingTimes').value = '';
+            toggleScheduleFields(false);
+            
+            // Reload data
+            await loadAllData();
+            
+        } catch (error) {
+            console.error('Error creating group:', error);
+            showError('Failed to create group. Please try again.');
         }
-        
-        return true;
-    } catch (error) {
-        console.error('Error sending group invitations:', error);
-        return false;
     }
-}
     
     async function joinGroupByCode() {
         const inviteCode = inviteCodeInput.value.trim();
@@ -929,13 +1003,15 @@ async function inviteToGroup(groupId, userIds) {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to join group');
             }
             
             const result = await response.json();
-            showSuccess(`Successfully joined ${result.group_name}!`);
             
-            // Close modal and clear input
+            showSuccess(`Successfully joined group "${result.group.name}"!`);
+            
+            // Close modal and reset input
             closeModal(joinByCodeModal);
             inviteCodeInput.value = '';
             
@@ -943,8 +1019,37 @@ async function inviteToGroup(groupId, userIds) {
             await loadAllData();
             
         } catch (error) {
-            console.error('Error joining group by code:', error);
-            showError('Failed to join group. Please check the invite code and try again.');
+            console.error('Error joining group:', error);
+            showError(error.message || 'Failed to join group. Please check the invite code and try again.');
+        }
+    }
+    
+    async function joinGroup(groupId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: currentUser.id
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            showSuccess(`Successfully joined group!`);
+            
+            // Reload data
+            await loadAllData();
+            
+        } catch (error) {
+            console.error('Error joining group:', error);
+            showError('Failed to join group. Please try again.');
         }
     }
     
@@ -968,14 +1073,10 @@ async function inviteToGroup(groupId, userIds) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const result = await response.json();
-            showSuccess('You have left the group.');
+            showSuccess('Successfully left the group.');
             
             // Reload data
             await loadAllData();
-            
-            // Close details modal if open
-            closeModal(groupDetailsModal);
             
         } catch (error) {
             console.error('Error leaving group:', error);
@@ -983,12 +1084,9 @@ async function inviteToGroup(groupId, userIds) {
         }
     }
     
-
-
-    
     async function editGroup(groupId) {
         // Implementation for editing a group
-        showError('Edit group functionality is not yet implemented.');
+        showInfo('Edit group functionality will be implemented soon.');
     }
     
     async function deleteGroup(groupId) {
@@ -998,27 +1096,20 @@ async function inviteToGroup(groupId, userIds) {
         
         try {
             const response = await fetch(`${API_BASE_URL}/groups/${groupId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user_id: currentUser.id
-                })
+                method: 'DELETE'
             });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            const result = await response.json();
             showSuccess('Group deleted successfully.');
+            
+            // Close modal if open
+            closeModal(groupDetailsModal);
             
             // Reload data
             await loadAllData();
-            
-            // Close details modal
-            closeModal(groupDetailsModal);
             
         } catch (error) {
             console.error('Error deleting group:', error);
@@ -1029,80 +1120,15 @@ async function inviteToGroup(groupId, userIds) {
     function updateStats() {
         // Calculate stats
         const totalGroups = publicGroups.length;
-        const myGroups = userGroups.length;
-        const ownedGroups = userGroups.filter(g => g.user_role === 'creator').length;
+        const myGroupsCount = userGroups.length;
+        const ownedGroupsCount = userGroups.filter(g => g.user_role === 'creator').length;
         const totalMembers = userGroups.reduce((sum, group) => sum + group.member_count, 0);
         
         // Update DOM
-        totalGroupsEl.textContent = totalGroups;
-        myGroupsEl.textContent = myGroups;
-        ownedGroupsEl.textContent = ownedGroups;
-        totalMembersEl.textContent = totalMembers;
-        
-        // Animate the stats update
-        animateValue(totalGroupsEl, 0, totalGroups, 1000);
-        animateValue(myGroupsEl, 0, myGroups, 1000);
-        animateValue(ownedGroupsEl, 0, ownedGroups, 1000);
-        animateValue(totalMembersEl, 0, totalMembers, 1000);
-    }
-    
-    function showLoading() {
-        groupsGrid.innerHTML = `
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-                <p>Loading groups...</p>
-            </div>
-        `;
-    }
-    
-    function showError(message) {
-        // Create a toast notification
-        const toast = document.createElement('div');
-        toast.className = 'toast-notification error';
-        toast.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-            <button class="toast-close">&times;</button>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Add close button functionality
-        toast.querySelector('.toast-close').addEventListener('click', () => {
-            toast.remove();
-        });
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.remove();
-            }
-        }, 5000);
-    }
-    
-    function showSuccess(message) {
-        // Create a toast notification
-        const toast = document.createElement('div');
-        toast.className = 'toast-notification success';
-        toast.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>${message}</span>
-            <button class="toast-close">&times;</button>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Add close button functionality
-        toast.querySelector('.toast-close').addEventListener('click', () => {
-            toast.remove();
-        });
-        
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.remove();
-            }
-        }, 3000);
+        if (totalGroupsEl) totalGroupsEl.textContent = totalGroups;
+        if (myGroupsEl) myGroupsEl.textContent = myGroupsCount;
+        if (ownedGroupsEl) ownedGroupsEl.textContent = ownedGroupsCount;
+        if (totalMembersEl) totalMembersEl.textContent = totalMembers;
     }
     
     function showEmptyState() {
@@ -1110,10 +1136,8 @@ async function inviteToGroup(groupId, userIds) {
             <div class="empty-state">
                 <i class="fas fa-users"></i>
                 <h3>No groups found</h3>
-                <p>${currentTab === 'my-groups' 
-                    ? 'You haven\'t joined any groups yet. Join a group or create your own to get started!' 
-                    : 'No groups match your search criteria. Try adjusting your filters.'}</p>
-                ${currentTab !== 'my-groups' ? `
+                <p>Try adjusting your search or filters, or create a new group.</p>
+                ${currentTab === 'my-groups' ? `
                     <button class="btn btn-primary" id="createFirstGroupBtn">
                         <i class="fas fa-plus"></i> Create Your First Group
                     </button>
@@ -1121,10 +1145,8 @@ async function inviteToGroup(groupId, userIds) {
             </div>
         `;
         
-        // Add event listener to create button if it exists
-        const createBtn = document.getElementById('createFirstGroupBtn');
-        if (createBtn) {
-            createBtn.addEventListener('click', () => {
+        if (currentTab === 'my-groups') {
+            document.getElementById('createFirstGroupBtn').addEventListener('click', () => {
                 openModal(createGroupModal);
             });
         }
@@ -1147,29 +1169,122 @@ async function inviteToGroup(groupId, userIds) {
     }
     
     function getInitials(name) {
-        if (!name) return 'G';
-        
         return name.split(' ')
-            .map(part => part.charAt(0))
+            .map(word => word.charAt(0))
             .join('')
             .toUpperCase()
             .substring(0, 2);
     }
     
-    function animateValue(element, start, end, duration) {
-        let startTimestamp = null;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            const value = Math.floor(progress * (end - start) + start);
-            element.textContent = value;
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
-        };
-        window.requestAnimationFrame(step);
+    function showLoading() {
+        // Implementation for showing loading state
+        groupsGrid.innerHTML = `
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading groups...</p>
+            </div>
+        `;
     }
-    // Utility function for debouncing
+    
+    function showError(message) {
+        // Implementation for showing error message
+        const notification = document.createElement('div');
+        notification.className = 'notification error';
+        notification.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+            <button class="notification-close">&times;</button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+        
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        });
+    }
+    
+    function showSuccess(message) {
+        // Implementation for showing success message
+        const notification = document.createElement('div');
+        notification.className = 'notification success';
+        notification.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+            <button class="notification-close">&times;</button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+        
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        });
+    }
+    
+    function showInfo(message) {
+        // Implementation for showing info message
+        const notification = document.createElement('div');
+        notification.className = 'notification info';
+        notification.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            <span>${message}</span>
+            <button class="notification-close">&times;</button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+        
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        });
+    }
+    
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -1181,65 +1296,4 @@ async function inviteToGroup(groupId, userIds) {
             timeout = setTimeout(later, wait);
         };
     }
-    
-    // Add toast notification styles
-    const toastStyles = document.createElement('style');
-    toastStyles.textContent = `
-        .toast-notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            z-index: 10000;
-            animation: slideIn 0.3s ease-out;
-            max-width: 350px;
-        }
-        
-        .toast-notification.success {
-            border-left: 4px solid var(--study-success);
-        }
-        
-        .toast-notification.error {
-            border-left: 4px solid var(--study-error);
-        }
-        
-        .toast-notification i {
-            font-size: 1.25rem;
-        }
-        
-        .toast-notification.success i {
-            color: var(--study-success);
-        }
-        
-        .toast-notification.error i {
-            color: var(--study-error);
-        }
-        
-        .toast-close {
-            background: none;
-            border: none;
-            font-size: 1.25rem;
-            cursor: pointer;
-            margin-left: auto;
-            color: var(--study-muted);
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-    document.head.appendChild(toastStyles);
 });

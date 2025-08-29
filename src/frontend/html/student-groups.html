@@ -13,6 +13,118 @@
     <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/groups.css">
     <link rel="stylesheet" href="../css/profile.css">
+    
+    <style>
+        /* Additional styles for scheduling functionality */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .status-badge.scheduled {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        
+        .status-badge.active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-badge.archived {
+            background: rgba(107, 114, 128, 0.2);
+            color: #6b7280;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+        
+        .schedule-info {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 0.5rem;
+            border-left: 3px solid var(--study-blue);
+        }
+        
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            color: var(--study-muted);
+        }
+        
+        .schedule-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .schedule-item i {
+            width: 14px;
+            color: var(--study-blue);
+        }
+        
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            max-width: 350px;
+        }
+        
+        .toast-notification.success {
+            border-left: 4px solid var(--study-success);
+        }
+        
+        .toast-notification.error {
+            border-left: 4px solid var(--study-error);
+        }
+        
+        .toast-notification i {
+            font-size: 1.25rem;
+        }
+        
+        .toast-notification.success i {
+            color: var(--study-success);
+        }
+        
+        .toast-notification.error i {
+            color: var(--study-error);
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-left: auto;
+            color: var(--study-muted);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -271,7 +383,7 @@
                                 </select>
                             </div>
                             
-                            <!-- Replace the existing course input field with this select field -->
+                            <!-- Course select field -->
                             <div class="form-group">
                                 <label for="groupCourse">Course</label>
                                 <select id="groupCourse" disabled>
@@ -290,7 +402,7 @@
                                     <option value="3rd Year">3rd Year</option>
                                     <option value="4th Year">4th Year</option>
                                     <option value="5th Year">5th Year</option>
-                                    <option value="5th Year">6th Year</option>
+                                    <option value="6th Year">6th Year</option>
                                 </select>
                             </div>
                             
@@ -306,6 +418,35 @@
                                 <span class="checkmark"></span>
                                 Private Group (requires invite)
                             </label>
+                        </div>
+                        
+                        <!-- Scheduling fields -->
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="groupIsScheduled">
+                                <span class="checkmark"></span>
+                                Schedule this group
+                            </label>
+                        </div>
+
+                        <div id="scheduleFields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="scheduleStart">Start Date *</label>
+                                    <input type="datetime-local" id="scheduleStart" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="scheduleEnd">End Date *</label>
+                                    <input type="datetime-local" id="scheduleEnd" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="meetingTimes">Meeting Times</label>
+                                <input type="text" id="meetingTimes" placeholder="e.g., Monday 2pm, Wednesday 4pm">
+                                <small>Enter comma-separated meeting times</small>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -358,6 +499,27 @@
                         <div class="detail-item">
                             <label>Privacy:</label>
                             <p id="modalGroupPrivacy">Public</p>
+                        </div>
+                        
+                        <div class="detail-item">
+                            <label>Status:</label>
+                            <p id="modalGroupStatus">Active</p>
+                        </div>
+                        
+                        <!-- Scheduling details -->
+                        <div class="detail-item" id="modalScheduleStart" style="display: none;">
+                            <label>Start Date:</label>
+                            <p id="modalGroupStartDate">Not scheduled</p>
+                        </div>
+                        
+                        <div class="detail-item" id="modalScheduleEnd" style="display: none;">
+                            <label>End Date:</label>
+                            <p id="modalGroupEndDate">Not scheduled</p>
+                        </div>
+                        
+                        <div class="detail-item" id="modalMeetingTimes" style="display: none;">
+                            <label>Meeting Times:</label>
+                            <p id="modalGroupMeetingTimes">Not specified</p>
                         </div>
                         
                         <div class="detail-item" id="modalInviteCodeContainer">
@@ -432,5 +594,6 @@
     <script src="../js/auth.js"></script>
     <script src="../js/groups.js"></script>
     <script src="../js/notifications.js"></script>
+    
 </body>
 </html>
