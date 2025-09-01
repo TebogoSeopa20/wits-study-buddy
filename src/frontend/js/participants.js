@@ -957,6 +957,32 @@ window.acceptRequest = async function(profileId) {
             console.error('Error disconnecting:', error);
             showNotification('Failed to disconnect', 'error');
         }
+
+
+        try {
+            const response = await fetch(`${CONNECTIONS_URL}/${profileId}/remove`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    connection_id: currentUser.id
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            showNotification(`Disconnected successfully`, 'success');
+            
+            // Reload connections and refresh UI
+            await loadUserConnections();
+            applyFilters();
+        } catch (error) {
+            console.error('Error disconnecting:', error);
+            showNotification('Failed to disconnect', 'error');
+        }
     };
     
     window.messageUser = function(profileId) {

@@ -17,38 +17,74 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 // Get all public studygroups with creator information
 router.get('/studygroups', async (req, res) => {
-  const { page = 1, limit = 20, status = 'active' } = req.query;
+  const { page = 1, limit = 20, status = 'active', is_scheduled } = req.query;
   const offset = (page - 1) * limit;
+  const limitInt = parseInt(limit);
 
   try {
-    // Get public studygroups with creator details
-    const { data: studygroups, error, count } = await supabase
+    let query = supabase
       .from('study_groups')
       .select(`
         *,
         profiles:creator_id (name, email, faculty, course, year_of_study)
       `, { count: 'exact' })
       .eq('is_private', false)
-      .eq('status', status)
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limitInt - 1)
       .order('created_at', { ascending: false });
+
+    // Apply status filter if provided
+    if (status && status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    // Apply scheduled filter if provided
+    if (is_scheduled !== undefined) {
+      query = query.eq('is_scheduled', is_scheduled === 'true');
+    }
+
+    const { data: studygroups, error, count } = await query;
 
     if (error) throw error;
 
     // For each studygroup, get member details
     const studygroupsWithMembers = await Promise.all(
-      studygroups.map(async (studygroup) => {
-        const { data: members, error: membersError } = await supabase
-          .rpc('get_group_members_details', {
-            target_group_id: studygroup.id
-          });
+      (studygroups || []).map(async (studygroup) => {
+        try {
+          const { data: members, error: membersError } = await supabase
+            .rpc('get_group_members_details', {
+              target_group_id: studygroup.id
+            });
 
-        if (membersError) {
-          console.error(`Error fetching members for studygroup ${studygroup.id}:`, membersError);
-          return { ...studygroup, members: [] };
+          if (membersError) {
+            console.error(`Error fetching members for studygroup ${studygroup.id}:`, membersError);
+            // Fallback: get basic member count if RPC fails
+            const { count: memberCount } = await supabase
+              .from('group_members')
+              .select('*', { count: 'exact', head: true })
+              .eq('group_id', studygroup.id)
+              .eq('status', 'active')
+              .catch(() => ({ count: 0 }));
+
+            return { 
+              ...studygroup, 
+              members: [],
+              member_count: memberCount || 0
+            };
+          }
+
+          return { 
+            ...studygroup, 
+            members: members || [],
+            member_count: members ? members.length : 0
+          };
+        } catch (err) {
+          console.error(`Error processing studygroup ${studygroup.id}:`, err);
+          return { 
+            ...studygroup, 
+            members: [],
+            member_count: 0
+          };
         }
-
-        return { ...studygroup, members: members || [] };
       })
     );
 
@@ -56,9 +92,9 @@ router.get('/studygroups', async (req, res) => {
       studygroups: studygroupsWithMembers,
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
-        total: count,
-        total_pages: Math.ceil(count / limit)
+        limit: limitInt,
+        total: count || 0,
+        total_pages: Math.ceil((count || 0) / limitInt)
       }
     });
   } catch (err) {
@@ -91,17 +127,43 @@ router.get('/studygroups/:id', async (req, res) => {
     }
 
     // Get member details
-    const { data: members, error: membersError } = await supabase
-      .rpc('get_group_members_details', {
-        target_group_id: id
-      });
+    let members = [];
+    try {
+      const { data: membersData, error: membersError } = await supabase
+        .rpc('get_group_members_details', {
+          target_group_id: id
+        });
 
-    if (membersError) throw membersError;
+      if (membersError) {
+        console.error('Error fetching members via RPC, using fallback:', membersError);
+        // Fallback: get basic member list
+        const { data: fallbackMembers } = await supabase
+          .from('group_members')
+          .select(`
+            user_id,
+            profiles (name, email, faculty, course, year_of_study),
+            role,
+            status,
+            joined_at
+          `)
+          .eq('group_id', id)
+          .eq('status', 'active')
+          .catch(() => ({ data: [] }));
+
+        members = fallbackMembers || [];
+      } else {
+        members = membersData || [];
+      }
+    } catch (err) {
+      console.error('Error fetching members:', err);
+      members = [];
+    }
 
     res.status(200).json({
       studygroup: {
         ...studygroup,
-        members: members || []
+        members: members,
+        member_count: members.length
       }
     });
   } catch (err) {
@@ -117,11 +179,13 @@ router.get('/studygroups/search', async (req, res) => {
     faculty,
     course,
     year_of_study,
+    is_scheduled,
     page = 1,
     limit = 20
   } = req.query;
   
   const offset = (page - 1) * limit;
+  const limitInt = parseInt(limit);
 
   try {
     let query = supabase
@@ -132,7 +196,7 @@ router.get('/studygroups/search', async (req, res) => {
       `, { count: 'exact' })
       .eq('is_private', false)
       .eq('status', 'active')
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limitInt - 1)
       .order('created_at', { ascending: false });
 
     // Apply filters if provided
@@ -140,6 +204,9 @@ router.get('/studygroups/search', async (req, res) => {
     if (faculty) query = query.ilike('faculty', `%${faculty}%`);
     if (course) query = query.ilike('course', `%${course}%`);
     if (year_of_study) query = query.eq('year_of_study', year_of_study);
+    if (is_scheduled !== undefined) {
+      query = query.eq('is_scheduled', is_scheduled === 'true');
+    }
 
     const { data: studygroups, error, count } = await query;
 
@@ -147,19 +214,24 @@ router.get('/studygroups/search', async (req, res) => {
 
     // For each studygroup, get basic member count (not full details for performance)
     const studygroupsWithMemberCount = await Promise.all(
-      studygroups.map(async (studygroup) => {
-        const { count, error: countError } = await supabase
-          .from('group_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('group_id', studygroup.id)
-          .eq('status', 'active');
+      (studygroups || []).map(async (studygroup) => {
+        try {
+          const { count, error: countError } = await supabase
+            .from('group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('group_id', studygroup.id)
+            .eq('status', 'active');
 
-        if (countError) {
-          console.error(`Error counting members for studygroup ${studygroup.id}:`, countError);
+          if (countError) {
+            console.error(`Error counting members for studygroup ${studygroup.id}:`, countError);
+            return { ...studygroup, member_count: 0 };
+          }
+
+          return { ...studygroup, member_count: count || 0 };
+        } catch (err) {
+          console.error(`Error processing studygroup ${studygroup.id}:`, err);
           return { ...studygroup, member_count: 0 };
         }
-
-        return { ...studygroup, member_count: count || 0 };
       })
     );
 
@@ -169,13 +241,14 @@ router.get('/studygroups/search', async (req, res) => {
         subject: subject || null,
         faculty: faculty || null,
         course: course || null,
-        year_of_study: year_of_study || null
+        year_of_study: year_of_study || null,
+        is_scheduled: is_scheduled || null
       },
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
-        total: count,
-        total_pages: Math.ceil(count / limit)
+        limit: limitInt,
+        total: count || 0,
+        total_pages: Math.ceil((count || 0) / limitInt)
       }
     });
   } catch (err) {
@@ -187,11 +260,12 @@ router.get('/studygroups/search', async (req, res) => {
 // Get studygroups by faculty
 router.get('/studygroups/faculty/:faculty', async (req, res) => {
   const { faculty } = req.params;
-  const { page = 1, limit = 20 } = req.query;
+  const { is_scheduled, page = 1, limit = 20 } = req.query;
   const offset = (page - 1) * limit;
+  const limitInt = parseInt(limit);
 
   try {
-    const { data: studygroups, error, count } = await supabase
+    let query = supabase
       .from('study_groups')
       .select(`
         *,
@@ -200,8 +274,15 @@ router.get('/studygroups/faculty/:faculty', async (req, res) => {
       .eq('is_private', false)
       .eq('status', 'active')
       .ilike('faculty', `%${faculty}%`)
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limitInt - 1)
       .order('created_at', { ascending: false });
+
+    // Apply scheduled filter if provided
+    if (is_scheduled !== undefined) {
+      query = query.eq('is_scheduled', is_scheduled === 'true');
+    }
+
+    const { data: studygroups, error, count } = await query;
 
     if (error) throw error;
 
@@ -209,9 +290,9 @@ router.get('/studygroups/faculty/:faculty', async (req, res) => {
       studygroups: studygroups || [],
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
-        total: count,
-        total_pages: Math.ceil(count / limit)
+        limit: limitInt,
+        total: count || 0,
+        total_pages: Math.ceil((count || 0) / limitInt)
       }
     });
   } catch (err) {
@@ -223,11 +304,12 @@ router.get('/studygroups/faculty/:faculty', async (req, res) => {
 // Get studygroups by subject
 router.get('/studygroups/subject/:subject', async (req, res) => {
   const { subject } = req.params;
-  const { page = 1, limit = 20 } = req.query;
+  const { is_scheduled, page = 1, limit = 20 } = req.query;
   const offset = (page - 1) * limit;
+  const limitInt = parseInt(limit);
 
   try {
-    const { data: studygroups, error, count } = await supabase
+    let query = supabase
       .from('study_groups')
       .select(`
         *,
@@ -236,8 +318,15 @@ router.get('/studygroups/subject/:subject', async (req, res) => {
       .eq('is_private', false)
       .eq('status', 'active')
       .ilike('subject', `%${subject}%`)
-      .range(offset, offset + limit - 1)
+      .range(offset, offset + limitInt - 1)
       .order('created_at', { ascending: false });
+
+    // Apply scheduled filter if provided
+    if (is_scheduled !== undefined) {
+      query = query.eq('is_scheduled', is_scheduled === 'true');
+    }
+
+    const { data: studygroups, error, count } = await query;
 
     if (error) throw error;
 
@@ -245,9 +334,9 @@ router.get('/studygroups/subject/:subject', async (req, res) => {
       studygroups: studygroups || [],
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
-        total: count,
-        total_pages: Math.ceil(count / limit)
+        limit: limitInt,
+        total: count || 0,
+        total_pages: Math.ceil((count || 0) / limitInt)
       }
     });
   } catch (err) {
@@ -256,30 +345,66 @@ router.get('/studygroups/subject/:subject', async (req, res) => {
   }
 });
 
-// Get upcoming scheduled studygroups
+// Get upcoming scheduled study groups (FIXED VERSION)
 router.get('/studygroups/scheduled/upcoming', async (req, res) => {
   const { days_ahead = 7, page = 1, limit = 20 } = req.query;
   const offset = (page - 1) * limit;
+  const daysAheadInt = parseInt(days_ahead);
+  const limitInt = parseInt(limit);
 
   try {
-    const { data, error } = await supabase
-      .rpc('get_upcoming_scheduled_groups', {
-        days_ahead: parseInt(days_ahead)
-      });
+    // Get current date and future date based on days_ahead
+    const now = new Date().toISOString();
+    const futureDate = new Date(Date.now() + daysAheadInt * 24 * 60 * 60 * 1000).toISOString();
+
+    // Query for scheduled groups that start within the specified timeframe
+    const { data: studygroups, error, count } = await supabase
+      .from('study_groups')
+      .select(`
+        *,
+        profiles:creator_id (name, email, faculty, course, year_of_study)
+      `, { count: 'exact' })
+      .eq('is_private', false)
+      .eq('is_scheduled', true)
+      .in('status', ['scheduled', 'active'])
+      .gte('scheduled_start', now)
+      .lte('scheduled_start', futureDate)
+      .range(offset, offset + limitInt - 1)
+      .order('scheduled_start', { ascending: true });
 
     if (error) throw error;
 
-    // Apply pagination
-    const paginatedData = data.slice(offset, offset + parseInt(limit));
+    // For each studygroup, get member count
+    const studygroupsWithMemberCount = await Promise.all(
+      (studygroups || []).map(async (studygroup) => {
+        try {
+          const { count, error: countError } = await supabase
+            .from('group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('group_id', studygroup.id)
+            .eq('status', 'active');
+
+          if (countError) {
+            console.error(`Error counting members for studygroup ${studygroup.id}:`, countError);
+            return { ...studygroup, member_count: 0 };
+          }
+
+          return { ...studygroup, member_count: count || 0 };
+        } catch (err) {
+          console.error(`Error processing studygroup ${studygroup.id}:`, err);
+          return { ...studygroup, member_count: 0 };
+        }
+      })
+    );
 
     res.status(200).json({
-      studygroups: paginatedData || [],
-      days_ahead: parseInt(days_ahead),
+      studygroups: studygroupsWithMemberCount,
+      days_ahead: daysAheadInt,
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
-        total: data.length,
-        total_pages: Math.ceil(data.length / limit)
+        limit: limitInt,
+        total: count || 0,
+        total_pages: Math.ceil((count || 0) / limitInt)
       }
     });
   } catch (err) {
