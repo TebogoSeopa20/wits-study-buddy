@@ -23,7 +23,6 @@ module.exports = {
     'src/frontend/test_utils/groupsUtils.js',
     'src/frontend/test_utils/weatherUtils.js',
     'src/frontend/test_utils/mapUtils.js',
-    'src/frontend/test_utils/loginUtils.js',
 
   ],
 

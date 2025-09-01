@@ -15,8 +15,64 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
+// Get all groups (including scheduled ones)
+router.get('/groups', async (req, res) => {
+  const { status = 'active', limit = 100, offset = 0 } = req.query;
+
+  try {
+    let query = supabase
+      .from('study_groups')
+      .select(`
+        *,
+        profiles!creator_id (name, email),
+        group_members!inner (user_id, status)
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false });
+
+    // Filter by status if provided
+    if (status && status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    // Apply limit and offset for pagination
+    query = query.range(offset, offset + limit - 1);
+
+    const { data: groups, error, count } = await query;
+
+    if (error) throw error;
+
+    // Process groups to include member count and membership status
+    const processedGroups = await Promise.all(
+      (groups || []).map(async (group) => {
+        // Get member count
+        const { count: memberCount, error: countError } = await supabase
+          .from('group_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('group_id', group.id)
+          .eq('status', 'active');
+
+        if (countError) console.error('Error counting members:', countError);
+
+        return {
+          ...group,
+          member_count: memberCount || 0,
+          is_scheduled: group.is_scheduled || false
+        };
+      })
+    );
+
+    res.status(200).json({
+      groups: processedGroups || [],
+      count: count || 0,
+      total: count || 0
+    });
+  } catch (err) {
+    console.error('Error fetching all groups:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Create a new study group
-// Update the existing create endpoint to handle both types
 router.post('/groups/create', async (req, res) => {
   const {
     name,
