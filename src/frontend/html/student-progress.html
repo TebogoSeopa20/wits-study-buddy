@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <title>Wits - Student Progress</title>
+    <meta name="description" content="Track your academic progress, achievements, and study habits.">
     <meta name="author" content="Wits">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
+    <meta property="og:title" content="Wits - Progress Tracking">
+    <meta property="og:description" content="Track your academic progress, achievements, and study habits.">
     <meta property="og:type" content="website">
-    <link rel="icon" href="../images/icon.png" type="image/png">
     <link rel="stylesheet" href="../css/landing.css">
     <link rel="stylesheet" href="../css/progress.css">
     <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="../css/form-status.css">
+
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -30,17 +32,16 @@
         </header>
         
         <ul class="nav-links">
-            <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="student-participants.html#">Participants</a></li>
-            <li><a href="student-groups.html#">Groups</a></li>
-            <li><a href="student-chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-progress.html#" class="active">Progress</a></li>
-            <li><a href="student-calendar.html#">Calendar</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="student-dash.html">Dashboard</a></li>
+            <li><a href="student-participants.html">Participants</a></li>
+            <li><a href="student-groups.html">Groups</a></li>
+            <li><a href="student-chatroom.html">ChatRoom</a></li>
+            <li><a href="student-progress.html" class="active">Progress</a></li>
+            <li><a href="student-calendar.html">Calendar</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
-        <!-- Update the user-controls section -->
         <div class="user-controls">
             <a href="student-notifications.html" class="nav-btn notification-btn">
                 <i class="fas fa-bell"></i>
@@ -71,14 +72,14 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html#">Dashboard</a></li>
-            <li><a href="student-participants.html#">Participants</a></li>
-            <li><a href="student-groups.html#">Groups</a></li>
-            <li><a href="student-chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-progress.html#" class="active">Progress</a></li>
-            <li><a href="student-calendar.html#">Calendar</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="student-dash.html">Dashboard</a></li>
+            <li><a href="student-participants.html">Participants</a></li>
+            <li><a href="student-groups.html">Groups</a></li>
+            <li><a href="student-chatroom.html">ChatRoom</a></li>
+            <li><a href="student-progress.html" class="active">Progress</a></li>
+            <li><a href="student-calendar.html">Calendar</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
@@ -93,32 +94,179 @@
         </div>
     </nav>
 
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our Progress page. <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students and track your progress here.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
-    
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
+    <main class="progress-container">
+        <!-- Progress Header -->
+        <header class="progress-header">
+            <h1><i class="fas fa-chart-line"></i> Your Academic Progress</h1>
+            <p>Track your achievements, study habits, and growth over time</p>
+            
+            <section class="progress-actions">
+                <button id="addModuleBtn" class="action-btn primary">
+                    <i class="fas fa-plus"></i> Add Module
+                </button>
+                
+                <article class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="progressSearch" placeholder="Search modules, topics, or milestones...">
+                </article>
+            </section>
+        </header>
+
+        <!-- Progress Stats -->
+        <section class="progress-stats" id="progressStats">
+            <article class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-value" id="moduleCount">0</div>
+                <div class="stat-label">Total Modules</div>
             </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
-            </div>
+            
+            <article class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-value" id="completedCount">0</div>
+                <div class="stat-label">Topics Completed</div>
+            </article>
+            
+            <article class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-value" id="rewardCount">0</div>
+                <div class="stat-label">Rewards Earned</div>
+            </article>
         </section>
 
+        <!-- Progress Content -->
+        <section class="progress-content">
+            <!-- Modules Grid -->
+            <section class="modules-grid" id="modulesGrid">
+                <!-- Modules will be dynamically inserted here -->
+            </section>
+            
+            <!-- Progress Analytics -->
+            <section class="progress-analytics">
+                <article class="analytics-card">
+                    <header>
+                        <h2><i class="fas fa-chart-pie"></i> Progress Overview</h2>
+                    </header>
+                    <section class="analytics-content">
+                        <canvas id="progressChart"></canvas>
+                        <p class="progress-percentage" id="progressPercentage">0% Complete</p>
+                    </section>
+                </article>
+                
+                <article class="analytics-card">
+                    <header>
+                        <h2><i class="fas fa-clock"></i> Time Management</h2>
+                    </header>
+                    <section class="analytics-content">
+                        <canvas id="timeChart"></canvas>
+                        <p class="time-remaining" id="timeRemaining">No active milestones</p>
+                        <button id="managementAdviceBtn" class="action-btn outline" style="display: none;">
+                            <i class="fas fa-lightbulb"></i> Management Advice
+                        </button>
+                    </section>
+                </article>
+            </section>
+        </section>
     </main>
     
+    <!-- Add Module Modal -->
+    <section id="addModuleModal" class="modal">
+        <article class="modal-content">
+            <header class="modal-header">
+                <h2>Add New Module</h2>
+                <button class="modal-close">&times;</button>
+            </header>
+            
+            <form id="moduleForm" class="modal-form">
+                <article class="form-group">
+                    <label for="moduleName">Module Name</label>
+                    <input type="text" id="moduleName" required>
+                </article>
+                
+                <article class="form-group">
+                    <label for="moduleTopics">Topics (one per line)</label>
+                    <textarea id="moduleTopics" rows="5" placeholder="Enter each topic on a new line" required></textarea>
+                </article>
+                
+                <article class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="addMilestone">
+                        <span class="checkmark"></span>
+                        Add Milestone
+                    </label>
+                </article>
+                
+                <section id="milestoneSection" class="form-section" style="display: none;">
+                    <article class="form-group">
+                        <label for="milestoneDescription">Milestone Description</label>
+                        <input type="text" id="milestoneDescription" placeholder="What do you want to achieve?">
+                    </article>
+                    
+                    <article class="form-group">
+                        <label for="milestoneStart">Start Date</label>
+                        <input type="date" id="milestoneStart">
+                    </article>
+                    
+                    <article class="form-group">
+                        <label for="milestoneEnd">End Date</label>
+                        <input type="date" id="milestoneEnd">
+                    </article>
+                </section>
+                
+                <article class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="addReward">
+                        <span class="checkmark"></span>
+                        Set a Reward
+                    </label>
+                </article>
+                
+                <section id="rewardSection" class="form-section" style="display: none;">
+                    <article class="form-group">
+                        <label for="rewardDescription">Reward Description</label>
+                        <textarea id="rewardDescription" rows="3" placeholder="What will you reward yourself with?"></textarea>
+                    </article>
+                </section>
+                
+                <article class="form-actions">
+                    <button type="button" class="action-btn outline" id="cancelModule">Cancel</button>
+                    <button type="submit" class="action-btn primary">Add Module</button>
+                </article>
+            </form>
+        </article>
+    </section>
+
+    <!-- Management Advice Modal -->
+    <section id="adviceModal" class="modal">
+        <article class="modal-content">
+            <header class="modal-header">
+                <h2>Time Management Advice</h2>
+                <button class="modal-close">&times;</button>
+            </header>
+            
+            <section class="advice-content">
+                <p id="adviceText">Based on your progress, here are some tips to improve your time management:</p>
+                <ul id="adviceList"></ul>
+            </section>
+            
+            <article class="modal-actions">
+                <button class="action-btn primary" id="closeAdvice">Got it!</button>
+            </article>
+        </article>
+    </section>
+
+    <!-- Toast Notification -->
+    <section id="toast" class="toast-notification">
+        <i class="fas fa-check-circle"></i>
+        <p id="toastMessage"></p>
+        <button class="toast-close">&times;</button>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <article class="container">
@@ -168,9 +316,5 @@
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/progress.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
-    <script src="../js/student-dash.js"></script>
-    <script src="../js/notifications.js"></script>
 </body>
 </html>
