@@ -89,17 +89,16 @@ app.use((req, res, next) => {
 // Helper function to get dashboard URL by role
 function getDashboardUrlByRole(role) {
   const normalizedRole = role ? role.toLowerCase() : 'student';
-  const baseUrl = process.env.BASE_URL;
-  
+  const baseUrl = process.env.BASE_URL; // <--- This is the key!
+
   switch (normalizedRole) {
     case 'tutor':
       return `${baseUrl}/tutor-dash.html`;
     case 'student':
     default:
-      return `${baseUrl}/student-dash.html`;
+      return `${baseUrl}/Student-dash.html`; // <--- Note the case sensitivity
   }
 }
-
 
 // Google Auth Endpoints
 app.get('/auth/google', (req, res) => {
