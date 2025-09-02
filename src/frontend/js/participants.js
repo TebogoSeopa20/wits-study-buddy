@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const PROFILES_URL = `${API_BASE_URL}/profiles`;
     const CONNECTIONS_URL = `${API_BASE_URL}/connections`;
+
+        // TutorCore API configuration
+    const TUTORCORE_API_KEY = '57123b91539464d52a7eaf2df53de592a8b3929884115c1bfc1882480bb5389e';
+    const TUTORCORE_BASE_URL = 'https://tutorcore.works/api/external';
+    const TUTORCORE_TUTORS_URL = `${TUTORCORE_BASE_URL}/tutors`;
+    const TUTORCORE_PROFICIENCIES_URL = `${TUTORCORE_BASE_URL}/proficiencies`;
     
     // Faculty and courses data
     const facultyCourses = {
@@ -247,6 +253,112 @@ document.addEventListener('DOMContentLoaded', function() {
             timeout = setTimeout(later, wait);
         };
     }
+
+      async function loadExternalTutors() {
+        try {
+            const response = await fetch(TUTORCORE_TUTORS_URL, {
+                headers: {
+                    'Authorization': `Bearer ${TUTORCORE_API_KEY}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            externalTutors = data.map(tutor => ({
+                ...tutor,
+                isExternalTutor: true,
+                role: 'tutor',
+                user_id: `tutor_${tutor.id}` // Create a unique ID for tutors
+            }));
+            
+            updateConnectionStats();
+            applyFilters();
+        } catch (error) {
+            console.error('Error fetching external tutors:', error);
+            // Don't show error to user, just log it
+        }
+    }
+    
+    async function loadTutorProficiencies() {
+        try {
+            const response = await fetch(TUTORCORE_PROFICIENCIES_URL, {
+                headers: {
+                    'Authorization': `Bearer ${TUTORCORE_API_KEY}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            tutorProficiencies = await response.json();
+            populateTutorFilters();
+        } catch (error) {
+            console.error('Error fetching tutor proficiencies:', error);
+        }
+    }
+    
+    function populateTutorFilters() {
+        if (!tutorCurriculumFilter || !tutorProficiencies.length) return;
+        
+        // Clear existing options
+        tutorCurriculumFilter.innerHTML = '<option value="">All Curriculums</option>';
+        
+        // Add curriculum options
+        tutorProficiencies.forEach(proficiency => {
+            const option = document.createElement('option');
+            option.value = proficiency.name;
+            option.textContent = proficiency.name;
+            tutorCurriculumFilter.appendChild(option);
+        });
+    }
+    
+    function updateTutorSubjectFilter() {
+        if (!tutorSubjectFilter || !tutorCurriculumFilter.value) return;
+        
+        // Clear existing options
+        tutorSubjectFilter.innerHTML = '<option value="">All Subjects</option>';
+        tutorSubjectFilter.disabled = false;
+        
+        // Find selected curriculum
+        const curriculum = tutorProficiencies.find(p => p.name === tutorCurriculumFilter.value);
+        if (!curriculum || !curriculum.subjects) return;
+        
+        // Add subject options
+        Object.values(curriculum.subjects).forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject.name;
+            option.textContent = subject.name;
+            tutorSubjectFilter.appendChild(option);
+        });
+    }
+    
+    function updateTutorGradeFilter() {
+        if (!tutorGradeFilter || !tutorCurriculumFilter.value || !tutorSubjectFilter.value) return;
+        
+        // Clear existing options
+        tutorGradeFilter.innerHTML = '<option value="">All Grades</option>';
+        tutorGradeFilter.disabled = false;
+        
+        // Find selected curriculum and subject
+        const curriculum = tutorProficiencies.find(p => p.name === tutorCurriculumFilter.value);
+        if (!curriculum || !curriculum.subjects) return;
+        
+        const subject = Object.values(curriculum.subjects).find(s => s.name === tutorSubjectFilter.value);
+        if (!subject || !subject.grades) return;
+        
+        // Add grade options
+        subject.grades.forEach(grade => {
+            const option = document.createElement('option');
+            option.value = grade;
+            option.textContent = `Grade ${grade}`;
+            tutorGradeFilter.appendChild(option);
+        });
+    }
+   
     
     function updateConnectionStats() {
         if (!connectionStats) return;
