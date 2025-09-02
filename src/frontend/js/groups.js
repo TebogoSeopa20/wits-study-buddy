@@ -1,4 +1,4 @@
-// groups.js - Study Groups Management
+// groups.js - Study Groups Management with Scheduled Groups Support
 document.addEventListener('DOMContentLoaded', function() {
     // API configuration
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -127,8 +127,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const inviteCodeInput = document.getElementById('inviteCode');
     
     // Group creation form elements
+    const groupNameInput = document.getElementById('groupName');
+    const groupDescriptionInput = document.getElementById('groupDescription');
+    const groupSubjectInput = document.getElementById('groupSubject');
     const facultySelect = document.getElementById('groupFaculty');
     const courseSelect = document.getElementById('groupCourse');
+    const yearSelect = document.getElementById('groupYear');
+    const maxMembersInput = document.getElementById('groupMaxMembers');
+    const isPrivateCheckbox = document.getElementById('groupIsPrivate');
+    const isScheduledCheckbox = document.getElementById('groupIsScheduled');
+    const scheduleStartInput = document.getElementById('scheduleStart');
+    const scheduleEndInput = document.getElementById('scheduleEnd');
+    const meetingTimesInput = document.getElementById('meetingTimes');
     
     // Stats elements
     const totalGroupsEl = document.getElementById('totalGroups');
@@ -170,48 +180,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function initFacultyCourseDropdowns() {
-        // Get references to the faculty and course dropdowns in the create group form
-        const facultySelect = document.getElementById('groupFaculty');
-        const courseSelect = document.getElementById('groupCourse');
+        // Clear existing options
+        facultySelect.innerHTML = '<option value="">Select Faculty</option>';
+        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+        courseSelect.disabled = true;
         
-        if (facultySelect && courseSelect) {
-            // Clear existing options
-            facultySelect.innerHTML = '<option value="">Select Faculty</option>';
-            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-            courseSelect.disabled = true;
+        // Add faculty options
+        Object.keys(facultyCourses).forEach(faculty => {
+            const option = document.createElement('option');
+            option.value = faculty;
+            option.textContent = faculty;
+            facultySelect.appendChild(option);
+        });
+        
+        // Add event listener for faculty change
+        facultySelect.addEventListener('change', function() {
+            const selectedFaculty = this.value;
             
-            // Add faculty options
-            Object.keys(facultyCourses).forEach(faculty => {
-                const option = document.createElement('option');
-                option.value = faculty;
-                option.textContent = faculty;
-                facultySelect.appendChild(option);
-            });
+            // Clear course selection
+            courseSelect.innerHTML = '<option value="">Select a Course</option>';
             
-            // Add event listener for faculty change
-            facultySelect.addEventListener('change', function() {
-                const selectedFaculty = this.value;
+            if (selectedFaculty && facultyCourses[selectedFaculty]) {
+                courseSelect.disabled = false;
                 
-                // Clear course selection
-                courseSelect.innerHTML = '<option value="">Select a Course</option>';
-                
-                if (selectedFaculty && facultyCourses[selectedFaculty]) {
-                    courseSelect.disabled = false;
-                    
-                    facultyCourses[selectedFaculty].forEach(course => {
-                        const option = document.createElement('option');
-                        option.value = course;
-                        option.textContent = course;
-                        courseSelect.appendChild(option);
-                    });
-                } else {
-                    courseSelect.disabled = true;
-                    courseSelect.innerHTML = '<option value="">Select a Faculty first</option>';
-                }
-                
-                courseSelect.value = '';
-            });
-        }
+                facultyCourses[selectedFaculty].forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course;
+                    option.textContent = course;
+                    courseSelect.appendChild(option);
+                });
+            } else {
+                courseSelect.disabled = true;
+                courseSelect.innerHTML = '<option value="">Select a Faculty first</option>';
+            }
+            
+            courseSelect.value = '';
+        });
     }
     
     function setupEventListeners() {
@@ -286,20 +290,14 @@ document.addEventListener('DOMContentLoaded', function() {
             inviteCodeInput.value = '';
         });
         
-        // Updated the cancelCreateBtn event listener to properly reset the course dropdown
         cancelCreateBtn.addEventListener('click', () => {
             closeModal(createGroupModal);
             createGroupForm.reset();
             
             // Reset faculty and course dropdowns
-            const facultySelect = document.getElementById('groupFaculty');
-            const courseSelect = document.getElementById('groupCourse');
-            
-            if (facultySelect && courseSelect) {
-                facultySelect.value = '';
-                courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-                courseSelect.disabled = true;
-            }
+            facultySelect.value = '';
+            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+            courseSelect.disabled = true;
         });
         
         closeDetailsBtn.addEventListener('click', () => {
@@ -344,6 +342,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteGroup(groupId);
             }
         });
+
+        // Schedule checkbox toggle
+        if (isScheduledCheckbox) {
+            isScheduledCheckbox.addEventListener('change', function() {
+                const scheduleFields = document.getElementById('scheduleFields');
+                if (scheduleFields) {
+                    scheduleFields.style.display = this.checked ? 'block' : 'none';
+                    
+                    // Add required attribute when visible
+                    if (this.checked) {
+                        scheduleStartInput.setAttribute('required', 'true');
+                        scheduleEndInput.setAttribute('required', 'true');
+                    } else {
+                        scheduleStartInput.removeAttribute('required');
+                        scheduleEndInput.removeAttribute('required');
+                    }
+                }
+            });
+        }
     }
     
     async function loadAllData() {
@@ -403,6 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateFilteredGroups() {
         switch(currentTab) {
             case 'my-groups':
+                // Show all groups the user is a member of
                 filteredGroups = [...userGroups];
                 break;
             case 'discover':
@@ -415,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 break;
             case 'public':
+                // Show all public groups (both active and scheduled)
                 filteredGroups = allGroups.filter(g => 
                     !g.is_private && 
                     g.status !== 'archived' && 
@@ -777,10 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalGroupYear').textContent = group.year_of_study || 'Not specified';
             document.getElementById('modalGroupMembers').textContent = `${group.member_count || 0} / ${group.max_members || 10}`;
             document.getElementById('modalGroupPrivacy').textContent = group.is_private ? 'Private' : 'Public';
-            
-            // Add status to modal
-            const modalHeader = document.querySelector('.modal-header');
-            modalHeader.classList.add(statusClass);
+            document.getElementById('modalGroupStatus').textContent = groupStatus;
             
             // Show schedule information if available
             const scheduleContainer = document.createElement('div');
@@ -788,10 +804,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (group.is_scheduled || group.status === 'scheduled') {
                 scheduleContainer.innerHTML = `
-                    <div class="detail-item">
-                        <label>Status:</label>
-                        <p class="group-status ${statusClass}">${groupStatus}</p>
-                    </div>
                     <div class="detail-item">
                         <label>Schedule Start:</label>
                         <p>${formatDate(group.scheduled_start)}</p>
@@ -891,7 +903,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
@@ -902,7 +915,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error joining group:', error);
-            showError('Failed to join group. Please try again.');
+            showError(error.message || 'Failed to join group. Please try again.');
         }
     }
     
@@ -927,7 +940,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
@@ -942,7 +956,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error joining group by code:', error);
-            showError('Failed to join group. Please check the invite code and try again.');
+            showError(error.message || 'Failed to join group. Please check the invite code and try again.');
         }
     }
     
@@ -963,109 +977,108 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
-            const result = await response.json();
-            showSuccess(`You have left the group.`);
+            showSuccess('You have left the group.');
             
             // Reload data
             await loadAllData();
             
+            // Close details modal if open
+            closeModal(groupDetailsModal);
+            
         } catch (error) {
             console.error('Error leaving group:', error);
-            showError('Failed to leave group. Please try again.');
+            showError(error.message || 'Failed to leave group. Please try again.');
         }
     }
     
     async function createGroup() {
-        const formData = new FormData(createGroupForm);
-        const groupData = {
-            name: formData.get('groupName'),
-            description: formData.get('groupDescription'),
-            subject: formData.get('groupSubject'),
-            creator_id: currentUser.id,
-            max_members: parseInt(formData.get('groupMaxMembers')) || 10,
-            is_private: formData.get('groupPrivacy') === 'private',
-            faculty: formData.get('groupFaculty'),
-            course: formData.get('groupCourse'),
-            year_of_study: formData.get('groupYear')
-        };
-        
-        // Check if it's a scheduled group
-        const isScheduled = formData.get('groupType') === 'scheduled';
-        
-        if (isScheduled) {
-            const scheduledStart = formData.get('groupStartDate');
-            const scheduledEnd = formData.get('groupEndDate');
-            const meetingTimes = formData.get('groupMeetingTimes');
-            
-            if (!scheduledStart || !scheduledEnd) {
-                showError('Please provide both start and end dates for scheduled groups.');
-                return;
-            }
-            
-            groupData.scheduled_start = scheduledStart;
-            groupData.scheduled_end = scheduledEnd;
-            
-            if (meetingTimes) {
-                groupData.meeting_times = meetingTimes.split(',').map(time => time.trim());
-            }
-        }
-        
-        // Validate required fields
-        if (!groupData.name || !groupData.subject) {
-            showError('Please provide a group name and subject.');
+        // Validate form
+        if (!createGroupForm.checkValidity()) {
+            createGroupForm.reportValidity();
             return;
         }
         
-        try {
-            const endpoint = isScheduled 
-                ? `${API_BASE_URL}/groups/create-scheduled`
-                : `${API_BASE_URL}/groups/create`;
+        // Get form values
+        const name = groupNameInput.value.trim();
+        const description = groupDescriptionInput.value.trim();
+        const subject = groupSubjectInput.value.trim();
+        const faculty = facultySelect.value;
+        const course = courseSelect.value;
+        const yearOfStudy = yearSelect.value;
+        const maxMembers = parseInt(maxMembersInput.value);
+        const isPrivate = isPrivateCheckbox.checked;
+        const isScheduled = isScheduledCheckbox.checked;
+        const scheduledStart = isScheduled ? scheduleStartInput.value : null;
+        const scheduledEnd = isScheduled ? scheduleEndInput.value : null;
+        const meetingTimes = isScheduled ? meetingTimesInput.value.split(',').map(t => t.trim()) : [];
+        
+        // Validate scheduled dates
+        if (isScheduled) {
+            const startDate = new Date(scheduledStart);
+            const endDate = new Date(scheduledEnd);
             
-            const response = await fetch(endpoint, {
+            if (startDate >= endDate) {
+                showError('End date must be after start date.');
+                return;
+            }
+        }
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/groups`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(groupData)
+                body: JSON.stringify({
+                    name,
+                    description,
+                    subject,
+                    faculty,
+                    course,
+                    year_of_study: yearOfStudy,
+                    max_members: maxMembers,
+                    is_private: isPrivate,
+                    creator_id: currentUser.id,
+                    is_scheduled: isScheduled,
+                    scheduled_start: scheduledStart,
+                    scheduled_end: scheduledEnd,
+                    meeting_times: meetingTimes
+                })
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
-            showSuccess(`Group "${result.group.name}" created successfully!`);
+            showSuccess(`Group "${name}" created successfully!`);
             
             // Close modal and reset form
             closeModal(createGroupModal);
             createGroupForm.reset();
             
             // Reset faculty and course dropdowns
-            const facultySelect = document.getElementById('groupFaculty');
-            const courseSelect = document.getElementById('groupCourse');
-            
-            if (facultySelect && courseSelect) {
-                facultySelect.value = '';
-                courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-                courseSelect.disabled = true;
-            }
+            facultySelect.value = '';
+            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+            courseSelect.disabled = true;
             
             // Reload data
             await loadAllData();
             
         } catch (error) {
             console.error('Error creating group:', error);
-            showError('Failed to create group. Please try again.');
+            showError(error.message || 'Failed to create group. Please try again.');
         }
     }
     
     async function editGroup(groupId) {
-        // This would open an edit form with pre-filled data
-        // Implementation would be similar to createGroup but with a PATCH request
-        alert('Edit group functionality would open here.');
+        // Implementation for editing a group
+        showError('Edit functionality is not yet implemented.');
     }
     
     async function deleteGroup(groupId) {
@@ -1085,10 +1098,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
-            const result = await response.json();
             showSuccess('Group deleted successfully.');
             
             // Close modal
@@ -1099,52 +1112,63 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error deleting group:', error);
-            showError('Failed to delete group. Please try again.');
+            showError(error.message || 'Failed to delete group. Please try again.');
         }
     }
     
     function updateStats() {
-        // Update stats in the UI
-        totalGroupsEl.textContent = allGroups.length;
-        myGroupsEl.textContent = userGroups.length;
-        
-        // Count owned groups
-        const ownedGroups = userGroups.filter(group => 
-            group.user_role === 'creator' || group.role === 'creator'
+        // Calculate stats
+        const totalGroups = allGroups.length;
+        const myGroupsCount = userGroups.length;
+        const ownedGroups = userGroups.filter(g => 
+            g.user_role === 'creator' || g.role === 'creator'
         ).length;
-        ownedGroupsEl.textContent = ownedGroups;
         
-        // Calculate total members across all user's groups
-        const totalMembers = userGroups.reduce((sum, group) => 
+        const totalMembers = allGroups.reduce((sum, group) => 
             sum + (group.member_count || 0), 0
         );
+        
+        // Update DOM
+        totalGroupsEl.textContent = totalGroups;
+        myGroupsEl.textContent = myGroupsCount;
+        ownedGroupsEl.textContent = ownedGroups;
         totalMembersEl.textContent = totalMembers;
     }
     
     function showEmptyState() {
+        let message = '';
+        
+        switch(currentTab) {
+            case 'my-groups':
+                message = 'You are not a member of any groups yet. Join or create a group to get started!';
+                break;
+            case 'discover':
+                message = 'No groups found matching your criteria. Try adjusting your filters or create a new group.';
+                break;
+            case 'public':
+                message = 'No public groups available at the moment. Try creating a new group!';
+                break;
+        }
+        
         groupsGrid.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-users"></i>
-                <h3>No groups found</h3>
-                <p>${currentTab === 'my-groups' 
-                    ? 'You are not a member of any groups yet.' 
-                    : 'No groups match your search criteria.'}</p>
-                ${currentTab !== 'my-groups' ? 
-                    '<button class="btn btn-primary create-group-btn">Create a Group</button>' : 
-                    '<button class="btn btn-primary join-by-code-btn">Join by Code</button>'
-                }
+                <h3>No Groups Found</h3>
+                <p>${message}</p>
+                ${currentTab !== 'my-groups' ? `
+                    <button class="btn btn-primary" id="createGroupFromEmptyBtn">
+                        <i class="fas fa-plus"></i> Create a Group
+                    </button>
+                ` : ''}
             </div>
         `;
         
-        // Add event listeners to buttons in empty state
-        const createBtn = document.querySelector('.create-group-btn');
+        // Add event listener to create button if it exists
+        const createBtn = document.getElementById('createGroupFromEmptyBtn');
         if (createBtn) {
-            createBtn.addEventListener('click', () => openModal(createGroupModal));
-        }
-        
-        const joinByCodeBtn = document.querySelector('.join-by-code-btn');
-        if (joinByCodeBtn) {
-            joinByCodeBtn.addEventListener('click', () => openModal(joinByCodeModal));
+            createBtn.addEventListener('click', () => {
+                openModal(createGroupModal);
+            });
         }
     }
     
@@ -1157,57 +1181,93 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    function showError(message) {
-        // Show error notification
-        const notification = document.createElement('div');
-        notification.className = 'notification error';
-        notification.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-            <button class="notification-close">&times;</button>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 5000);
-        
-        // Close button
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        });
-    }
-    
     function showSuccess(message) {
-        // Show success notification
+        // Create or get notification container
+        let notificationContainer = document.getElementById('notification-container');
+        if (!notificationContainer) {
+            notificationContainer = document.createElement('div');
+            notificationContainer.id = 'notification-container';
+            notificationContainer.className = 'notification-container';
+            document.body.appendChild(notificationContainer);
+        }
+        
+        // Create notification
         const notification = document.createElement('div');
         notification.className = 'notification success';
         notification.innerHTML = `
             <i class="fas fa-check-circle"></i>
             <span>${message}</span>
-            <button class="notification-close">&times;</button>
+            <button class="notification-close"><i class="fas fa-times"></i></button>
         `;
         
-        document.body.appendChild(notification);
+        notificationContainer.appendChild(notification);
         
         // Auto remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.classList.add('fade-out');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notificationContainer.removeChild(notification);
+                    }
+                }, 300);
             }
         }, 5000);
         
-        // Close button
-        notification.querySelector('.notification-close').addEventListener('click', () => {
+        // Close button functionality
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notificationContainer.removeChild(notification);
+                }
+            }, 300);
+        });
+    }
+    
+    function showError(message) {
+        // Create or get notification container
+        let notificationContainer = document.getElementById('notification-container');
+        if (!notificationContainer) {
+            notificationContainer = document.createElement('div');
+            notificationContainer.id = 'notification-container';
+            notificationContainer.className = 'notification-container';
+            document.body.appendChild(notificationContainer);
+        }
+        
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = 'notification error';
+        notification.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+            <button class="notification-close"><i class="fas fa-times"></i></button>
+        `;
+        
+        notificationContainer.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.classList.add('fade-out');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notificationContainer.removeChild(notification);
+                    }
+                }, 300);
             }
+        }, 5000);
+        
+        // Close button functionality
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', () => {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notificationContainer.removeChild(notification);
+                }
+            }, 300);
         });
     }
     
@@ -1218,14 +1278,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function closeModal(modal) {
         modal.classList.remove('active');
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = '';
     }
     
     function closeAllModals() {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.classList.remove('active');
         });
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = '';
+    }
+    
+    function getInitials(name) {
+        return name.split(' ')
+            .map(word => word.charAt(0))
+            .join('')
+            .toUpperCase()
+            .substring(0, 2);
     }
     
     function formatDate(dateString) {
@@ -1235,18 +1303,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: 'numeric'
         });
-    }
-    
-    function getInitials(name) {
-        return name.split(' ')
-            .map(word => word.charAt(0))
-            .join('')
-            .toUpperCase()
-            .substring(0, 2);
     }
     
     function debounce(func, wait) {

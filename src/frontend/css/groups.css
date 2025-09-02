@@ -584,7 +584,7 @@ body {
 
 .modal-header h2 {
     font-size: 1.5rem;
-    color: white;
+    color: var(--study-gold);
     margin: 0;
 }
 
