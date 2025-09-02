@@ -1,4 +1,4 @@
-// groups.js - Study Groups Management with Scheduled Groups Support
+// groups.js - Study Groups Management
 document.addEventListener('DOMContentLoaded', function() {
     // API configuration
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -102,6 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let allGroups = [];
     let filteredGroups = [];
     let userGroups = [];
+    let publicGroups = [];
     let currentTab = 'my-groups';
     let currentView = 'grid';
     
@@ -127,18 +128,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const inviteCodeInput = document.getElementById('inviteCode');
     
     // Group creation form elements
-    const groupNameInput = document.getElementById('groupName');
-    const groupDescriptionInput = document.getElementById('groupDescription');
-    const groupSubjectInput = document.getElementById('groupSubject');
     const facultySelect = document.getElementById('groupFaculty');
     const courseSelect = document.getElementById('groupCourse');
-    const yearSelect = document.getElementById('groupYear');
-    const maxMembersInput = document.getElementById('groupMaxMembers');
-    const isPrivateCheckbox = document.getElementById('groupIsPrivate');
-    const isScheduledCheckbox = document.getElementById('groupIsScheduled');
-    const scheduleStartInput = document.getElementById('scheduleStart');
-    const scheduleEndInput = document.getElementById('scheduleEnd');
-    const meetingTimesInput = document.getElementById('meetingTimes');
     
     // Stats elements
     const totalGroupsEl = document.getElementById('totalGroups');
@@ -180,42 +171,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function initFacultyCourseDropdowns() {
-        // Clear existing options
-        facultySelect.innerHTML = '<option value="">Select Faculty</option>';
-        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-        courseSelect.disabled = true;
+        // Get references to the faculty and course dropdowns in the create group form
+        const facultySelect = document.getElementById('groupFaculty');
+        const courseSelect = document.getElementById('groupCourse');
         
-        // Add faculty options
-        Object.keys(facultyCourses).forEach(faculty => {
-            const option = document.createElement('option');
-            option.value = faculty;
-            option.textContent = faculty;
-            facultySelect.appendChild(option);
-        });
-        
-        // Add event listener for faculty change
-        facultySelect.addEventListener('change', function() {
-            const selectedFaculty = this.value;
+        if (facultySelect && courseSelect) {
+            // Clear existing options
+            facultySelect.innerHTML = '<option value="">Select Faculty</option>';
+            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+            courseSelect.disabled = true;
             
-            // Clear course selection
-            courseSelect.innerHTML = '<option value="">Select a Course</option>';
+            // Add faculty options
+            Object.keys(facultyCourses).forEach(faculty => {
+                const option = document.createElement('option');
+                option.value = faculty;
+                option.textContent = faculty;
+                facultySelect.appendChild(option);
+            });
             
-            if (selectedFaculty && facultyCourses[selectedFaculty]) {
-                courseSelect.disabled = false;
+            // Add event listener for faculty change
+            facultySelect.addEventListener('change', function() {
+                const selectedFaculty = this.value;
                 
-                facultyCourses[selectedFaculty].forEach(course => {
-                    const option = document.createElement('option');
-                    option.value = course;
-                    option.textContent = course;
-                    courseSelect.appendChild(option);
-                });
-            } else {
-                courseSelect.disabled = true;
-                courseSelect.innerHTML = '<option value="">Select a Faculty first</option>';
-            }
-            
-            courseSelect.value = '';
-        });
+                // Clear course selection
+                courseSelect.innerHTML = '<option value="">Select a Course</option>';
+                
+                if (selectedFaculty && facultyCourses[selectedFaculty]) {
+                    courseSelect.disabled = false;
+                    
+                    facultyCourses[selectedFaculty].forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course;
+                        option.textContent = course;
+                        courseSelect.appendChild(option);
+                    });
+                } else {
+                    courseSelect.disabled = true;
+                    courseSelect.innerHTML = '<option value="">Select a Faculty first</option>';
+                }
+                
+                courseSelect.value = '';
+            });
+        }
     }
     
     function setupEventListeners() {
@@ -290,14 +287,20 @@ document.addEventListener('DOMContentLoaded', function() {
             inviteCodeInput.value = '';
         });
         
+        // Updated the cancelCreateBtn event listener to properly reset the course dropdown
         cancelCreateBtn.addEventListener('click', () => {
             closeModal(createGroupModal);
             createGroupForm.reset();
             
             // Reset faculty and course dropdowns
-            facultySelect.value = '';
-            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-            courseSelect.disabled = true;
+            const facultySelect = document.getElementById('groupFaculty');
+            const courseSelect = document.getElementById('groupCourse');
+            
+            if (facultySelect && courseSelect) {
+                facultySelect.value = '';
+                courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+                courseSelect.disabled = true;
+            }
         });
         
         closeDetailsBtn.addEventListener('click', () => {
@@ -342,36 +345,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteGroup(groupId);
             }
         });
-
-        // Schedule checkbox toggle
-        if (isScheduledCheckbox) {
-            isScheduledCheckbox.addEventListener('change', function() {
-                const scheduleFields = document.getElementById('scheduleFields');
-                if (scheduleFields) {
-                    scheduleFields.style.display = this.checked ? 'block' : 'none';
-                    
-                    // Add required attribute when visible
-                    if (this.checked) {
-                        scheduleStartInput.setAttribute('required', 'true');
-                        scheduleEndInput.setAttribute('required', 'true');
-                    } else {
-                        scheduleStartInput.removeAttribute('required');
-                        scheduleEndInput.removeAttribute('required');
-                    }
-                }
-            });
-        }
     }
     
     async function loadAllData() {
         try {
             showLoading();
             
-            // Load all groups (including scheduled ones)
-            await loadAllGroups();
-            
             // Load user's groups
             await loadUserGroups();
+            
+            // Load all public groups for discovery
+            await loadAllPublicGroups();
             
             // Set all groups based on current tab
             updateFilteredGroups();
@@ -382,27 +366,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    async function loadAllGroups() {
-        try {
-            // Fetch all groups including scheduled ones
-            const response = await fetch(`${API_BASE_URL}/groups?status=all`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            allGroups = data.groups || [];
-            
-        } catch (error) {
-            console.error('Error loading all groups:', error);
-            allGroups = [];
-        }
-    }
-    
     async function loadUserGroups() {
         try {
-            const response = await fetch(`${API_BASE_URL}/groups/user/${currentUser.id}?status=all`);
+            const response = await fetch(`${API_BASE_URL}/groups/user/${currentUser.id}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -417,28 +383,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    async function loadAllPublicGroups() {
+        try {
+            // Fetch all public groups without filters
+            const response = await fetch(`${API_BASE_URL}/groups/search/public`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            publicGroups = data.groups || [];
+            
+        } catch (error) {
+            console.error('Error loading public groups:', error);
+            publicGroups = [];
+        }
+    }
+    
     function updateFilteredGroups() {
         switch(currentTab) {
             case 'my-groups':
-                // Show all groups the user is a member of
                 filteredGroups = [...userGroups];
                 break;
             case 'discover':
                 // Filter out groups user is already in
-                const userGroupIds = userGroups.map(g => g.id || g.group_id);
-                filteredGroups = allGroups.filter(g => 
-                    !userGroupIds.includes(g.id || g.group_id) && 
-                    g.status !== 'archived' && 
-                    g.status !== 'inactive'
-                );
+                const userGroupIds = userGroups.map(g => g.group_id);
+                filteredGroups = publicGroups.filter(g => !userGroupIds.includes(g.group_id));
                 break;
             case 'public':
-                // Show all public groups (both active and scheduled)
-                filteredGroups = allGroups.filter(g => 
-                    !g.is_private && 
-                    g.status !== 'archived' && 
-                    g.status !== 'inactive'
-                );
+                filteredGroups = [...publicGroups];
                 break;
         }
         
@@ -455,28 +429,24 @@ document.addEventListener('DOMContentLoaded', function() {
         let results = filteredGroups.filter(group => {
             // Search term filter
             const matchesSearch = !searchTerm || 
-                (group.name && group.name.toLowerCase().includes(searchTerm)) ||
                 (group.group_name && group.group_name.toLowerCase().includes(searchTerm)) ||
                 (group.subject && group.subject.toLowerCase().includes(searchTerm)) ||
                 (group.faculty && group.faculty.toLowerCase().includes(searchTerm));
             
             // Subject filter
-            const matchesSubject = !subjectValue || 
-                (group.subject && group.subject === subjectValue);
+            const matchesSubject = !subjectValue || group.subject === subjectValue;
             
             // Faculty filter
-            const matchesFaculty = !facultyValue || 
-                (group.faculty && group.faculty === facultyValue);
+            const matchesFaculty = !facultyValue || group.faculty === facultyValue;
             
             // Year filter
-            const matchesYear = !yearValue || 
-                (group.year_of_study && group.year_of_study === yearValue);
+            const matchesYear = !yearValue || group.year_of_study === yearValue;
             
             return matchesSearch && matchesSubject && matchesFaculty && matchesYear;
         });
         
         // Sort by member count (descending)
-        results.sort((a, b) => (b.member_count || 0) - (a.member_count || 0));
+        results.sort((a, b) => b.member_count - a.member_count);
         
         // Update display
         displayGroups(results);
@@ -491,28 +461,24 @@ document.addEventListener('DOMContentLoaded', function() {
         let results = filteredGroups.filter(group => {
             // Search term filter
             const matchesSearch = !searchTerm || 
-                (group.name && group.name.toLowerCase().includes(searchTerm)) ||
                 (group.group_name && group.group_name.toLowerCase().includes(searchTerm)) ||
                 (group.subject && group.subject.toLowerCase().includes(searchTerm)) ||
                 (group.faculty && group.faculty.toLowerCase().includes(searchTerm));
             
             // Subject filter
-            const matchesSubject = !subjectValue || 
-                (group.subject && group.subject === subjectValue);
+            const matchesSubject = !subjectValue || group.subject === subjectValue;
             
             // Faculty filter
-            const matchesFaculty = !facultyValue || 
-                (group.faculty && group.faculty === facultyValue);
+            const matchesFaculty = !facultyValue || group.faculty === facultyValue;
             
             // Year filter
-            const matchesYear = !yearValue || 
-                (group.year_of_study && group.year_of_study === yearValue);
+            const matchesYear = !yearValue || group.year_of_study === yearValue;
             
             return matchesSearch && matchesSubject && matchesFaculty && matchesYear;
         });
         
         // Sort by member count (descending)
-        results.sort((a, b) => (b.member_count || 0) - (a.member_count || 0));
+        results.sort((a, b) => b.member_count - a.member_count);
         
         // Update display
         displayGroups(results);
@@ -532,48 +498,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createGroupCard(group) {
-        const groupId = group.id || group.group_id;
-        const groupName = group.name || group.group_name || 'Unnamed Group';
-        const isMember = userGroups.some(g => (g.id || g.group_id) === groupId);
-        const userRole = isMember ? (group.user_role || group.role) : null;
-        const isCreator = isMember && userRole === 'creator';
-        const isAdmin = isMember && userRole === 'admin';
-        const memberCount = group.member_count || 0;
-        const maxMembers = group.max_members || 10;
-        const progressPercentage = (memberCount / maxMembers) * 100;
-        
-        // Determine group status
-        let groupStatus = group.status || 'Active';
-        let statusClass = 'status-active';
-        
-        if (group.is_scheduled || group.status === 'scheduled') {
-            const now = new Date();
-            const startDate = new Date(group.scheduled_start);
-            const endDate = new Date(group.scheduled_end);
-            
-            if (now < startDate) {
-                groupStatus = 'Scheduled';
-                statusClass = 'status-scheduled';
-            } else if (now > endDate) {
-                groupStatus = 'Completed';
-                statusClass = 'status-completed';
-            } else {
-                groupStatus = 'Active';
-                statusClass = 'status-active';
-            }
-        } else if (group.status === 'archived') {
-            groupStatus = 'Archived';
-            statusClass = 'status-completed';
-        } else if (group.status === 'inactive') {
-            groupStatus = 'Inactive';
-            statusClass = 'status-completed';
-        }
+        const isMember = userGroups.some(g => g.group_id === group.group_id);
+        const isCreator = isMember && group.user_role === 'creator';
+        const isAdmin = isMember && group.user_role === 'admin';
+        const progressPercentage = (group.member_count / group.max_members) * 100;
         
         return `
-            <div class="group-card" data-group-id="${groupId}">
+            <div class="group-card" data-group-id="${group.group_id}">
                 <div class="group-header">
-                    <div class="group-status ${statusClass}">${groupStatus}</div>
-                    <h3 class="group-name">${groupName}</h3>
+                    <h3 class="group-name">${group.group_name || 'Unnamed Group'}</h3>
                     <span class="group-subject">${group.subject || 'General'}</span>
                 </div>
                 
@@ -597,27 +530,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     
-                    ${(group.is_scheduled || group.status === 'scheduled') ? `
-                        <div class="schedule-info">
-                            <div class="meta-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Starts: ${formatDate(group.scheduled_start)}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-hourglass-end"></i>
-                                <span>Ends: ${formatDate(group.scheduled_end)}</span>
-                            </div>
-                            ${group.meeting_times && group.meeting_times.length > 0 ? `
-                                <div class="meta-item">
-                                    <i class="fas fa-calendar-check"></i>
-                                    <span>Meets: ${Array.isArray(group.meeting_times) ? group.meeting_times.join(', ') : group.meeting_times}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                    
                     <div class="members-info">
-                        <div class="members-count">${memberCount} / ${maxMembers} members</div>
+                        <div class="members-count">${group.member_count} / ${group.max_members} members</div>
                         <div class="members-progress">
                             <div class="members-progress-bar" style="width: ${progressPercentage}%"></div>
                         </div>
@@ -626,23 +540,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div class="group-actions">
                     ${isMember ? `
-                        <button class="action-btn primary view-group-btn" data-group-id="${groupId}">
+                        <button class="action-btn primary view-group-btn" data-group-id="${group.group_id}">
                             <i class="fas fa-eye"></i> View
                         </button>
-                        ${groupStatus !== 'Completed' && groupStatus !== 'Archived' ? `
-                            <button class="action-btn error leave-group-btn" data-group-id="${groupId}">
-                                <i class="fas fa-sign-out-alt"></i> Leave
-                            </button>
-                        ` : ''}
-                    ` : groupStatus !== 'Completed' && groupStatus !== 'Archived' ? `
-                        <button class="action-btn primary join-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-user-plus"></i> Join
-                        </button>
-                        <button class="action-btn outline view-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-eye"></i> View
+                        <button class="action-btn error leave-group-btn" data-group-id="${group.group_id}">
+                            <i class="fas fa-sign-out-alt"></i> Leave
                         </button>
                     ` : `
-                        <button class="action-btn outline view-group-btn" data-group-id="${groupId}">
+                        <button class="action-btn primary join-group-btn" data-group-id="${group.group_id}">
+                            <i class="fas fa-user-plus"></i> Join
+                        </button>
+                        <button class="action-btn outline view-group-btn" data-group-id="${group.group_id}">
                             <i class="fas fa-eye"></i> View
                         </button>
                     `}
@@ -652,84 +560,39 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function createGroupListItem(group) {
-        const groupId = group.id || group.group_id;
-        const groupName = group.name || group.group_name || 'Unnamed Group';
-        const isMember = userGroups.some(g => (g.id || g.group_id) === groupId);
-        const userRole = isMember ? (group.user_role || group.role) : null;
-        const isCreator = isMember && userRole === 'creator';
-        const isAdmin = isMember && userRole === 'admin';
-        const memberCount = group.member_count || 0;
-        
-        // Determine group status
-        let groupStatus = group.status || 'Active';
-        let statusClass = 'status-active';
-        
-        if (group.is_scheduled || group.status === 'scheduled') {
-            const now = new Date();
-            const startDate = new Date(group.scheduled_start);
-            const endDate = new Date(group.scheduled_end);
-            
-            if (now < startDate) {
-                groupStatus = 'Scheduled';
-                statusClass = 'status-scheduled';
-            } else if (now > endDate) {
-                groupStatus = 'Completed';
-                statusClass = 'status-completed';
-            } else {
-                groupStatus = 'Active';
-                statusClass = 'status-active';
-            }
-        } else if (group.status === 'archived') {
-            groupStatus = 'Archived';
-            statusClass = 'status-completed';
-        } else if (group.status === 'inactive') {
-            groupStatus = 'Inactive';
-            statusClass = 'status-completed';
-        }
+        const isMember = userGroups.some(g => g.group_id === group.group_id);
+        const isCreator = isMember && group.user_role === 'creator';
+        const isAdmin = isMember && group.user_role === 'admin';
         
         return `
-            <div class="group-list-item" data-group-id="${groupId}">
+            <div class="group-list-item" data-group-id="${group.group_id}">
                 <div class="list-avatar">
-                    ${getInitials(groupName)}
+                    ${getInitials(group.group_name || 'G')}
                 </div>
                 
                 <div class="list-details">
-                    <div class="list-header">
-                        <h3 class="list-name">${groupName}</h3>
-                        <span class="list-status ${statusClass}">${groupStatus}</span>
-                    </div>
+                    <h3 class="list-name">${group.group_name || 'Unnamed Group'}</h3>
                     <div class="list-meta">
                         <span><i class="fas fa-book"></i> ${group.subject || 'General'}</span>
                         <span><i class="fas fa-university"></i> ${group.faculty || 'Not specified'}</span>
-                        <span><i class="fas fa-users"></i> ${memberCount} members</span>
+                        <span><i class="fas fa-users"></i> ${group.member_count} members</span>
                         <span><i class="fas fa-calendar-alt"></i> ${group.year_of_study || 'Not specified'}</span>
                     </div>
-                    ${(group.is_scheduled || group.status === 'scheduled') ? `
-                        <div class="list-schedule">
-                            <span><i class="fas fa-clock"></i> ${formatDate(group.scheduled_start)} - ${formatDate(group.scheduled_end)}</span>
-                        </div>
-                    ` : ''}
                 </div>
                 
                 <div class="list-actions">
                     ${isMember ? `
-                        <button class="action-btn primary view-group-btn" data-group-id="${groupId}">
+                        <button class="action-btn primary view-group-btn" data-group-id="${group.group_id}">
                             <i class="fas fa-eye"></i> View
                         </button>
-                        ${groupStatus !== 'Completed' && groupStatus !== 'Archived' ? `
-                            <button class="action-btn error leave-group-btn" data-group-id="${groupId}">
-                                <i class="fas fa-sign-out-alt"></i> Leave
-                            </button>
-                        ` : ''}
-                    ` : groupStatus !== 'Completed' && groupStatus !== 'Archived' ? `
-                        <button class="action-btn primary join-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-user-plus"></i> Join
-                        </button>
-                        <button class="action-btn outline view-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-eye"></i> View
+                        <button class="action-btn error leave-group-btn" data-group-id="${group.group_id}">
+                            <i class="fas fa-sign-out-alt"></i> Leave
                         </button>
                     ` : `
-                        <button class="action-btn outline view-group-btn" data-group-id="${groupId}">
+                        <button class="action-btn primary join-group-btn" data-group-id="${group.group_id}">
+                            <i class="fas fa-user-plus"></i> Join
+                        </button>
+                        <button class="action-btn outline view-group-btn" data-group-id="${group.group_id}">
                             <i class="fas fa-eye"></i> View
                         </button>
                     `}
@@ -760,33 +623,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 members = membersData.members || [];
             }
             
-            // Determine group status
-            let groupStatus = group.status || 'Active';
-            let statusClass = 'status-active';
-            
-            if (group.is_scheduled || group.status === 'scheduled') {
-                const now = new Date();
-                const startDate = new Date(group.scheduled_start);
-                const endDate = new Date(group.scheduled_end);
-                
-                if (now < startDate) {
-                    groupStatus = 'Scheduled';
-                    statusClass = 'status-scheduled';
-                } else if (now > endDate) {
-                    groupStatus = 'Completed';
-                    statusClass = 'status-completed';
-                } else {
-                    groupStatus = 'Active';
-                    statusClass = 'status-active';
-                }
-            } else if (group.status === 'archived') {
-                groupStatus = 'Archived';
-                statusClass = 'status-completed';
-            } else if (group.status === 'inactive') {
-                groupStatus = 'Inactive';
-                statusClass = 'status-completed';
-            }
-            
             // Populate modal with group details
             document.getElementById('modalGroupName').textContent = group.name || 'Unnamed Group';
             document.getElementById('modalGroupDescription').textContent = group.description || 'No description provided.';
@@ -796,37 +632,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalGroupYear').textContent = group.year_of_study || 'Not specified';
             document.getElementById('modalGroupMembers').textContent = `${group.member_count || 0} / ${group.max_members || 10}`;
             document.getElementById('modalGroupPrivacy').textContent = group.is_private ? 'Private' : 'Public';
-            document.getElementById('modalGroupStatus').textContent = groupStatus;
-            
-            // Show schedule information if available
-            const scheduleContainer = document.createElement('div');
-            scheduleContainer.className = 'schedule-details';
-            
-            if (group.is_scheduled || group.status === 'scheduled') {
-                scheduleContainer.innerHTML = `
-                    <div class="detail-item">
-                        <label>Schedule Start:</label>
-                        <p>${formatDate(group.scheduled_start)}</p>
-                    </div>
-                    <div class="detail-item">
-                        <label>Schedule End:</label>
-                        <p>${formatDate(group.scheduled_end)}</p>
-                    </div>
-                    ${group.meeting_times && group.meeting_times.length > 0 ? `
-                        <div class="detail-item">
-                            <label>Meeting Times:</label>
-                            <p>${Array.isArray(group.meeting_times) ? group.meeting_times.join(', ') : group.meeting_times}</p>
-                        </div>
-                    ` : ''}
-                `;
-                
-                // Insert after privacy details
-                const privacyItem = document.querySelector('.detail-item:last-child');
-                privacyItem.parentNode.insertBefore(scheduleContainer, privacyItem.nextSibling);
-            }
             
             // Show invite code if user is member
-            const isMember = userGroups.some(g => (g.id || g.group_id) === groupId);
+            const isMember = userGroups.some(g => g.group_id === groupId);
             const inviteCodeContainer = document.getElementById('modalInviteCodeContainer');
             if (isMember && group.invite_code) {
                 inviteCodeContainer.style.display = 'flex';
@@ -851,9 +659,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const actionButtons = document.getElementById('modalActionButtons');
             actionButtons.innerHTML = '';
             
-            const userGroup = userGroups.find(g => (g.id || g.group_id) === groupId);
-            const isCreator = userGroup && (userGroup.user_role === 'creator' || userGroup.role === 'creator');
-            const isAdmin = userGroup && (userGroup.user_role === 'admin' || userGroup.role === 'admin');
+            const userGroup = userGroups.find(g => g.group_id === groupId);
+            const isCreator = userGroup && userGroup.user_role === 'creator';
+            const isAdmin = userGroup && userGroup.user_role === 'admin';
             const isMemberOfGroup = userGroup !== undefined;
             
             if (isMemberOfGroup) {
@@ -866,14 +674,14 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     `;
-                } else if (groupStatus !== 'Completed' && groupStatus !== 'Archived') {
+                } else {
                     actionButtons.innerHTML = `
                         <button class="btn btn-error leave-group-btn" data-group-id="${groupId}">
                             <i class="fas fa-sign-out-alt"></i> Leave Group
                         </button>
                     `;
                 }
-            } else if (groupStatus !== 'Completed' && groupStatus !== 'Archived') {
+            } else {
                 actionButtons.innerHTML = `
                     <button class="btn btn-primary join-group-btn" data-group-id="${groupId}">
                         <i class="fas fa-user-plus"></i> Join Group
@@ -890,34 +698,215 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    async function joinGroup(groupId) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
+// Add this function to groups.js
+async function createNotification(notificationData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notificationData)
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error creating notification:', error);
+        return false;
+    }
+}
+
+// Update the joinGroup function to create a notification for group admins
+async function joinGroup(groupId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: currentUser.id
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Get group details to notify admins
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (groupResponse.ok) {
+            const groupData = await groupResponse.json();
+            const group = groupData.group;
+            
+            // Get group admins
+            const membersResponse = await fetch(`${API_BASE_URL}/groups/${groupId}/members`);
+            if (membersResponse.ok) {
+                const membersData = await membersResponse.json();
+                const admins = membersData.members.filter(m => m.role === 'admin' || m.role === 'creator');
+                const adminIds = admins.map(a => a.user_id).filter(id => id !== currentUser.id);
+                
+                // Notify admins about new member
+                if (adminIds.length > 0) {
+                    await fetch(`${API_BASE_URL}/notifications/group-member-joined`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sender_id: currentUser.id,
+                            group_id: groupId,
+                            group_name: group.name,
+                            admin_user_ids: adminIds
+                        })
+                    });
+                }
+            }
+        }
+        
+        showSuccess(`Successfully joined the group!`);
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error joining group:', error);
+        showError('Failed to join group. Please try again.');
+    }
+}
+
+// Update the createGroup function to notify invited members
+async function createGroup() {
+    const formData = new FormData(createGroupForm);
+    const name = document.getElementById('groupName').value.trim();
+    const subject = document.getElementById('groupSubject').value.trim();
+    const faculty = document.getElementById('groupFaculty').value;
+    const course = document.getElementById('groupCourse').value;
+    
+    if (!name || !subject) {
+        showError('Group name and subject are required.');
+        return;
+    }
+    
+    if (faculty && !course) {
+        showError('Please select a course for the selected faculty.');
+        return;
+    }
+    
+    try {
+        const groupData = {
+            name: name,
+            description: document.getElementById('groupDescription').value.trim(),
+            subject: subject,
+            creator_id: currentUser.id,
+            max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
+            is_private: document.getElementById('groupIsPrivate').checked,
+            faculty: faculty,
+            course: course,
+            year_of_study: document.getElementById('groupYear').value
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/groups/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(groupData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // If there are invited members, send them notifications
+        const invitedMembersInput = document.getElementById('invitedMembers');
+        if (invitedMembersInput && invitedMembersInput.value) {
+            try {
+                const invitedEmails = invitedMembersInput.value.split(',').map(email => email.trim());
+                
+                // For each invited email, find the user and send notification
+                for (const email of invitedEmails) {
+                    const userResponse = await fetch(`${API_BASE_URL}/profiles/email/${encodeURIComponent(email)}`);
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        
+                        await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                sender_id: currentUser.id,
+                                target_user_id: userData.user_id,
+                                group_id: result.group.id,
+                                group_name: result.group.name,
+                                invite_code: result.group.invite_code
+                            })
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error sending invitations:', error);
+                // Continue even if invitations fail
+            }
+        }
+        
+        showSuccess(`Group "${result.group.name}" created successfully!`);
+        
+        // Close modal and reset form
+        closeModal(createGroupModal);
+        createGroupForm.reset();
+        
+        // Reset faculty and course dropdowns
+        facultySelect.value = '';
+        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+        courseSelect.disabled = true;
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error creating group:', error);
+        showError('Failed to create group. Please try again.');
+    }
+}
+
+// Add this function to handle group invitations
+async function inviteToGroup(groupId, userIds) {
+    try {
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (!groupResponse.ok) {
+            throw new Error(`HTTP error! status: ${groupResponse.status}`);
+        }
+        
+        const groupData = await groupResponse.json();
+        const group = groupData.group;
+        
+        for (const userId of userIds) {
+            await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    user_id: currentUser.id
+                    sender_id: currentUser.id,
+                    target_user_id: userId,
+                    group_id: groupId,
+                    group_name: group.name,
+                    invite_code: group.invite_code
                 })
             });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            showSuccess(`Successfully joined the group!`);
-            
-            // Reload data
-            await loadAllData();
-            
-        } catch (error) {
-            console.error('Error joining group:', error);
-            showError(error.message || 'Failed to join group. Please try again.');
         }
+        
+        return true;
+    } catch (error) {
+        console.error('Error sending group invitations:', error);
+        return false;
     }
+}
     
     async function joinGroupByCode() {
         const inviteCode = inviteCodeInput.value.trim();
@@ -940,8 +929,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
@@ -956,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error joining group by code:', error);
-            showError(error.message || 'Failed to join group. Please check the invite code and try again.');
+            showError('Failed to join group. Please check the invite code and try again.');
         }
     }
     
@@ -977,10 +965,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
+            const result = await response.json();
             showSuccess('You have left the group.');
             
             // Reload data
@@ -991,94 +979,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Error leaving group:', error);
-            showError(error.message || 'Failed to leave group. Please try again.');
+            showError('Failed to leave group. Please try again.');
         }
     }
     
-    async function createGroup() {
-        // Validate form
-        if (!createGroupForm.checkValidity()) {
-            createGroupForm.reportValidity();
-            return;
-        }
-        
-        // Get form values
-        const name = groupNameInput.value.trim();
-        const description = groupDescriptionInput.value.trim();
-        const subject = groupSubjectInput.value.trim();
-        const faculty = facultySelect.value;
-        const course = courseSelect.value;
-        const yearOfStudy = yearSelect.value;
-        const maxMembers = parseInt(maxMembersInput.value);
-        const isPrivate = isPrivateCheckbox.checked;
-        const isScheduled = isScheduledCheckbox.checked;
-        const scheduledStart = isScheduled ? scheduleStartInput.value : null;
-        const scheduledEnd = isScheduled ? scheduleEndInput.value : null;
-        const meetingTimes = isScheduled ? meetingTimesInput.value.split(',').map(t => t.trim()) : [];
-        
-        // Validate scheduled dates
-        if (isScheduled) {
-            const startDate = new Date(scheduledStart);
-            const endDate = new Date(scheduledEnd);
-            
-            if (startDate >= endDate) {
-                showError('End date must be after start date.');
-                return;
-            }
-        }
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/groups`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name,
-                    description,
-                    subject,
-                    faculty,
-                    course,
-                    year_of_study: yearOfStudy,
-                    max_members: maxMembers,
-                    is_private: isPrivate,
-                    creator_id: currentUser.id,
-                    is_scheduled: isScheduled,
-                    scheduled_start: scheduledStart,
-                    scheduled_end: scheduledEnd,
-                    meeting_times: meetingTimes
-                })
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            showSuccess(`Group "${name}" created successfully!`);
-            
-            // Close modal and reset form
-            closeModal(createGroupModal);
-            createGroupForm.reset();
-            
-            // Reset faculty and course dropdowns
-            facultySelect.value = '';
-            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-            courseSelect.disabled = true;
-            
-            // Reload data
-            await loadAllData();
-            
-        } catch (error) {
-            console.error('Error creating group:', error);
-            showError(error.message || 'Failed to create group. Please try again.');
-        }
-    }
+
+
     
     async function editGroup(groupId) {
         // Implementation for editing a group
-        showError('Edit functionality is not yet implemented.');
+        showError('Edit group functionality is not yet implemented.');
     }
     
     async function deleteGroup(groupId) {
@@ -1098,177 +1008,126 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
+            const result = await response.json();
             showSuccess('Group deleted successfully.');
-            
-            // Close modal
-            closeModal(groupDetailsModal);
             
             // Reload data
             await loadAllData();
             
+            // Close details modal
+            closeModal(groupDetailsModal);
+            
         } catch (error) {
             console.error('Error deleting group:', error);
-            showError(error.message || 'Failed to delete group. Please try again.');
+            showError('Failed to delete group. Please try again.');
         }
     }
     
     function updateStats() {
         // Calculate stats
-        const totalGroups = allGroups.length;
-        const myGroupsCount = userGroups.length;
-        const ownedGroups = userGroups.filter(g => 
-            g.user_role === 'creator' || g.role === 'creator'
-        ).length;
-        
-        const totalMembers = allGroups.reduce((sum, group) => 
-            sum + (group.member_count || 0), 0
-        );
+        const totalGroups = publicGroups.length;
+        const myGroups = userGroups.length;
+        const ownedGroups = userGroups.filter(g => g.user_role === 'creator').length;
+        const totalMembers = userGroups.reduce((sum, group) => sum + group.member_count, 0);
         
         // Update DOM
         totalGroupsEl.textContent = totalGroups;
-        myGroupsEl.textContent = myGroupsCount;
+        myGroupsEl.textContent = myGroups;
         ownedGroupsEl.textContent = ownedGroups;
         totalMembersEl.textContent = totalMembers;
-    }
-    
-    function showEmptyState() {
-        let message = '';
         
-        switch(currentTab) {
-            case 'my-groups':
-                message = 'You are not a member of any groups yet. Join or create a group to get started!';
-                break;
-            case 'discover':
-                message = 'No groups found matching your criteria. Try adjusting your filters or create a new group.';
-                break;
-            case 'public':
-                message = 'No public groups available at the moment. Try creating a new group!';
-                break;
-        }
-        
-        groupsGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-users"></i>
-                <h3>No Groups Found</h3>
-                <p>${message}</p>
-                ${currentTab !== 'my-groups' ? `
-                    <button class="btn btn-primary" id="createGroupFromEmptyBtn">
-                        <i class="fas fa-plus"></i> Create a Group
-                    </button>
-                ` : ''}
-            </div>
-        `;
-        
-        // Add event listener to create button if it exists
-        const createBtn = document.getElementById('createGroupFromEmptyBtn');
-        if (createBtn) {
-            createBtn.addEventListener('click', () => {
-                openModal(createGroupModal);
-            });
-        }
+        // Animate the stats update
+        animateValue(totalGroupsEl, 0, totalGroups, 1000);
+        animateValue(myGroupsEl, 0, myGroups, 1000);
+        animateValue(ownedGroupsEl, 0, ownedGroups, 1000);
+        animateValue(totalMembersEl, 0, totalMembers, 1000);
     }
     
     function showLoading() {
         groupsGrid.innerHTML = `
-            <div class="loading-state">
+            <div class="loading-spinner">
                 <div class="spinner"></div>
                 <p>Loading groups...</p>
             </div>
         `;
     }
     
-    function showSuccess(message) {
-        // Create or get notification container
-        let notificationContainer = document.getElementById('notification-container');
-        if (!notificationContainer) {
-            notificationContainer = document.createElement('div');
-            notificationContainer.id = 'notification-container';
-            notificationContainer.className = 'notification-container';
-            document.body.appendChild(notificationContainer);
-        }
-        
-        // Create notification
-        const notification = document.createElement('div');
-        notification.className = 'notification success';
-        notification.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>${message}</span>
-            <button class="notification-close"><i class="fas fa-times"></i></button>
-        `;
-        
-        notificationContainer.appendChild(notification);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notificationContainer.removeChild(notification);
-                    }
-                }, 300);
-            }
-        }, 5000);
-        
-        // Close button functionality
-        const closeBtn = notification.querySelector('.notification-close');
-        closeBtn.addEventListener('click', () => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notificationContainer.removeChild(notification);
-                }
-            }, 300);
-        });
-    }
-    
     function showError(message) {
-        // Create or get notification container
-        let notificationContainer = document.getElementById('notification-container');
-        if (!notificationContainer) {
-            notificationContainer = document.createElement('div');
-            notificationContainer.id = 'notification-container';
-            notificationContainer.className = 'notification-container';
-            document.body.appendChild(notificationContainer);
-        }
-        
-        // Create notification
-        const notification = document.createElement('div');
-        notification.className = 'notification error';
-        notification.innerHTML = `
+        // Create a toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification error';
+        toast.innerHTML = `
             <i class="fas fa-exclamation-circle"></i>
             <span>${message}</span>
-            <button class="notification-close"><i class="fas fa-times"></i></button>
+            <button class="toast-close">&times;</button>
         `;
         
-        notificationContainer.appendChild(notification);
+        document.body.appendChild(toast);
+        
+        // Add close button functionality
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
+        });
         
         // Auto remove after 5 seconds
         setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.add('fade-out');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notificationContainer.removeChild(notification);
-                    }
-                }, 300);
+            if (toast.parentNode) {
+                toast.remove();
             }
         }, 5000);
+    }
+    
+    function showSuccess(message) {
+        // Create a toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification success';
+        toast.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+            <button class="toast-close">&times;</button>
+        `;
         
-        // Close button functionality
-        const closeBtn = notification.querySelector('.notification-close');
-        closeBtn.addEventListener('click', () => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notificationContainer.removeChild(notification);
-                }
-            }, 300);
+        document.body.appendChild(toast);
+        
+        // Add close button functionality
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
         });
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+    
+    function showEmptyState() {
+        groupsGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <h3>No groups found</h3>
+                <p>${currentTab === 'my-groups' 
+                    ? 'You haven\'t joined any groups yet. Join a group or create your own to get started!' 
+                    : 'No groups match your search criteria. Try adjusting your filters.'}</p>
+                ${currentTab !== 'my-groups' ? `
+                    <button class="btn btn-primary" id="createFirstGroupBtn">
+                        <i class="fas fa-plus"></i> Create Your First Group
+                    </button>
+                ` : ''}
+            </div>
+        `;
+        
+        // Add event listener to create button if it exists
+        const createBtn = document.getElementById('createFirstGroupBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', () => {
+                openModal(createGroupModal);
+            });
+        }
     }
     
     function openModal(modal) {
@@ -1278,35 +1137,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function closeModal(modal) {
         modal.classList.remove('active');
-        document.body.style.overflow = '';
+        document.body.style.overflow = 'auto';
     }
     
     function closeAllModals() {
         document.querySelectorAll('.modal').forEach(modal => {
-            modal.classList.remove('active');
+            closeModal(modal);
         });
-        document.body.style.overflow = '';
     }
     
     function getInitials(name) {
+        if (!name) return 'G';
+        
         return name.split(' ')
-            .map(word => word.charAt(0))
+            .map(part => part.charAt(0))
             .join('')
             .toUpperCase()
             .substring(0, 2);
     }
     
-    function formatDate(dateString) {
-        if (!dateString) return 'Not specified';
-        
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+    function animateValue(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            element.textContent = value;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
     }
-    
+    // Utility function for debouncing
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -1318,4 +1181,65 @@ document.addEventListener('DOMContentLoaded', function() {
             timeout = setTimeout(later, wait);
         };
     }
+    
+    // Add toast notification styles
+    const toastStyles = document.createElement('style');
+    toastStyles.textContent = `
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            max-width: 350px;
+        }
+        
+        .toast-notification.success {
+            border-left: 4px solid var(--study-success);
+        }
+        
+        .toast-notification.error {
+            border-left: 4px solid var(--study-error);
+        }
+        
+        .toast-notification i {
+            font-size: 1.25rem;
+        }
+        
+        .toast-notification.success i {
+            color: var(--study-success);
+        }
+        
+        .toast-notification.error i {
+            color: var(--study-error);
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-left: auto;
+            color: var(--study-muted);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(toastStyles);
 });
