@@ -14,3 +14,5 @@
 
 ## How to run the App locally
 ### npm start
+## How to run the tests locally
+### npm run test
