@@ -601,102 +601,535 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    async function viewGroupDetails(groupId) {
-        try {
-            showLoading();
-            
-            // Fetch group details
-            const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
-            if (!groupResponse.ok) {
-                throw new Error(`HTTP error! status: ${groupResponse.status}`);
-            }
-            
-            const groupData = await groupResponse.json();
-            const group = groupData.group;
-            
-            // Fetch group members
-            const membersResponse = await fetch(`${API_BASE_URL}/groups/${groupId}/members`);
-            let members = [];
-            
-            if (membersResponse.ok) {
-                const membersData = await membersResponse.json();
-                members = membersData.members || [];
-            }
-            
-            // Populate modal with group details
-            document.getElementById('modalGroupName').textContent = group.name || 'Unnamed Group';
-            document.getElementById('modalGroupDescription').textContent = group.description || 'No description provided.';
-            document.getElementById('modalGroupSubject').textContent = group.subject || 'Not specified';
-            document.getElementById('modalGroupFaculty').textContent = group.faculty || 'Not specified';
-            document.getElementById('modalGroupCourse').textContent = group.course || 'Not specified';
-            document.getElementById('modalGroupYear').textContent = group.year_of_study || 'Not specified';
-            document.getElementById('modalGroupMembers').textContent = `${group.member_count || 0} / ${group.max_members || 10}`;
-            document.getElementById('modalGroupPrivacy').textContent = group.is_private ? 'Private' : 'Public';
-            
-            // Show invite code if user is member
-            const isMember = userGroups.some(g => g.group_id === groupId);
-            const inviteCodeContainer = document.getElementById('modalInviteCodeContainer');
-            if (isMember && group.invite_code) {
-                inviteCodeContainer.style.display = 'flex';
-                document.getElementById('modalGroupInviteCode').textContent = group.invite_code;
-            } else {
-                inviteCodeContainer.style.display = 'none';
-            }
-            
-            // Populate members list
-            const membersList = document.getElementById('modalMembersList');
-            membersList.innerHTML = members.map(member => `
-                <div class="member-item">
-                    <div class="member-avatar">${getInitials(member.name || 'U')}</div>
-                    <div class="member-info">
-                        <div class="member-name">${member.name || 'Unknown User'}</div>
-                        <div class="member-role">${member.role} • ${member.member_status}</div>
-                    </div>
+async function viewGroupDetails(groupId) {
+    try {
+        showLoading();
+        
+        // Fetch group details
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (!groupResponse.ok) {
+            throw new Error(`HTTP error! status: ${groupResponse.status}`);
+        }
+        
+        const groupData = await groupResponse.json();
+        const group = groupData.group;
+        
+        // Fetch group members
+        const membersResponse = await fetch(`${API_BASE_URL}/groups/${groupId}/members`);
+        let members = [];
+        
+        if (membersResponse.ok) {
+            const membersData = await membersResponse.json();
+            members = membersData.members || [];
+        }
+        
+        // Populate modal with group details
+        document.getElementById('modalGroupName').textContent = group.name || 'Unnamed Group';
+        document.getElementById('modalGroupDescription').textContent = group.description || 'No description provided.';
+        document.getElementById('modalGroupSubject').textContent = group.subject || 'Not specified';
+        document.getElementById('modalGroupFaculty').textContent = group.faculty || 'Not specified';
+        document.getElementById('modalGroupCourse').textContent = group.course || 'Not specified';
+        document.getElementById('modalGroupYear').textContent = group.year_of_study || 'Not specified';
+        document.getElementById('modalGroupMembers').textContent = `${group.member_count || 0} / ${group.max_members || 10}`;
+        document.getElementById('modalGroupPrivacy').textContent = group.is_private ? 'Private' : 'Public';
+        
+        // Show invite code if user is member
+        const isMember = userGroups.some(g => g.group_id === groupId);
+        const inviteCodeContainer = document.getElementById('modalInviteCodeContainer');
+        if (isMember && group.invite_code) {
+            inviteCodeContainer.style.display = 'flex';
+            document.getElementById('modalGroupInviteCode').textContent = group.invite_code;
+        } else {
+            inviteCodeContainer.style.display = 'none';
+        }
+        
+        // Populate members list
+        const membersList = document.getElementById('modalMembersList');
+        membersList.innerHTML = members.map(member => `
+            <div class="member-item">
+                <div class="member-avatar">${getInitials(member.name || 'U')}</div>
+                <div class="member-info">
+                    <div class="member-name">${member.name || 'Unknown User'}</div>
+                    <div class="member-role">${member.role} • ${member.member_status}</div>
                 </div>
-            `).join('');
-            
-            // Set up action buttons
-            const actionButtons = document.getElementById('modalActionButtons');
-            actionButtons.innerHTML = '';
-            
-            const userGroup = userGroups.find(g => g.group_id === groupId);
-            const isCreator = userGroup && userGroup.user_role === 'creator';
-            const isAdmin = userGroup && userGroup.user_role === 'admin';
-            const isMemberOfGroup = userGroup !== undefined;
-            
-            if (isMemberOfGroup) {
-                if (isCreator) {
-                    actionButtons.innerHTML = `
-                        <button class="btn btn-warning edit-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-error delete-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    `;
-                } else {
-                    actionButtons.innerHTML = `
-                        <button class="btn btn-error leave-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-sign-out-alt"></i> Leave Group
-                        </button>
-                    `;
-                }
+            </div>
+        `).join('');
+        
+        // Set up action buttons
+        const actionButtons = document.getElementById('modalActionButtons');
+        actionButtons.innerHTML = '';
+        
+        const userGroup = userGroups.find(g => g.group_id === groupId);
+        const isCreator = userGroup && userGroup.user_role === 'creator';
+        const isAdmin = userGroup && userGroup.user_role === 'admin';
+        const isMemberOfGroup = userGroup !== undefined;
+        
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'action-buttons-container';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75rem';
+        buttonContainer.style.flexWrap = 'wrap';
+        
+        // Add Join Conversation button for group members only
+        if (isMemberOfGroup) {
+            const joinConversationBtn = document.createElement('button');
+            joinConversationBtn.className = 'btn btn-primary';
+            joinConversationBtn.id = 'joinConversationBtn';
+            joinConversationBtn.innerHTML = '<i class="fas fa-comments"></i> Join Conversation';
+            joinConversationBtn.addEventListener('click', function() {
+                // Redirect to chatroom with group context
+                window.location.href = `student-chatroom.html?group=${encodeURIComponent(groupId)}`;
+            });
+            buttonContainer.appendChild(joinConversationBtn);
+        }
+        
+        // Add Schedule Group button for creator only
+        if (isCreator) {
+            const scheduleGroupBtn = document.createElement('button');
+            scheduleGroupBtn.className = 'btn btn-warning';
+            scheduleGroupBtn.id = 'scheduleGroupBtn';
+            scheduleGroupBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Schedule Group';
+            scheduleGroupBtn.addEventListener('click', function() {
+                // Open scheduling functionality
+                scheduleGroup(groupId);
+            });
+            buttonContainer.appendChild(scheduleGroupBtn);
+        }
+        
+        // Add existing action buttons (Join/Leave/Edit/Delete)
+        if (isMemberOfGroup) {
+            if (isCreator) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-warning edit-group-btn';
+                editBtn.dataset.groupId = groupId;
+                editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                buttonContainer.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-error delete-group-btn';
+                deleteBtn.dataset.groupId = groupId;
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                buttonContainer.appendChild(deleteBtn);
             } else {
-                actionButtons.innerHTML = `
-                    <button class="btn btn-primary join-group-btn" data-group-id="${groupId}">
-                        <i class="fas fa-user-plus"></i> Join Group
-                    </button>
-                `;
+                const leaveBtn = document.createElement('button');
+                leaveBtn.className = 'btn btn-error leave-group-btn';
+                leaveBtn.dataset.groupId = groupId;
+                leaveBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Leave Group';
+                buttonContainer.appendChild(leaveBtn);
             }
-            
-            // Open the modal
-            openModal(groupDetailsModal);
-            
-        } catch (error) {
-            console.error('Error loading group details:', error);
-            showError('Failed to load group details. Please try again.');
+        } else {
+            const joinBtn = document.createElement('button');
+            joinBtn.className = 'btn btn-primary join-group-btn';
+            joinBtn.dataset.groupId = groupId;
+            joinBtn.innerHTML = '<i class="fas fa-user-plus"></i> Join Group';
+            buttonContainer.appendChild(joinBtn);
+        }
+        
+        actionButtons.appendChild(buttonContainer);
+        
+        // Open the modal
+        openModal(groupDetailsModal);
+        
+    } catch (error) {
+        console.error('Error loading group details:', error);
+        showError('Failed to load group details. Please try again.');
+    }
+}
+
+// Update the scheduleGroup function in groups.js
+async function scheduleGroup(groupId) {
+    try {
+        // Fetch current group details
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const groupData = await response.json();
+        const group = groupData.group;
+        
+        // Show scheduling modal with current data
+        showScheduleGroupModal(groupId, group);
+        
+    } catch (error) {
+        console.error('Error scheduling group:', error);
+        showError('Failed to load group details for scheduling.');
+    }
+}
+
+// Add function to create scheduled group
+async function createScheduledGroup() {
+    const scheduleForm = document.getElementById('scheduleGroupForm');
+    const startInput = document.getElementById('scheduleStart');
+    const endInput = document.getElementById('scheduleEnd');
+    const meetingTimes = document.getElementById('meetingTimes');
+    
+    if (!startInput.value || !endInput.value) {
+        showError('Please provide both start and end dates.');
+        return;
+    }
+    
+    // Validate dates
+    const startDate = new Date(startInput.value);
+    const endDate = new Date(endInput.value);
+    
+    if (startDate >= endDate) {
+        showError('Schedule start must be before end time.');
+        return;
+    }
+    
+    // Get group creation form data
+    const name = document.getElementById('groupName').value.trim();
+    const subject = document.getElementById('groupSubject').value.trim();
+    const faculty = document.getElementById('groupFaculty').value;
+    const course = document.getElementById('groupCourse').value;
+    
+    if (!name || !subject) {
+        showError('Group name and subject are required.');
+        return;
+    }
+    
+    try {
+        const groupData = {
+            name: name,
+            description: document.getElementById('groupDescription').value.trim(),
+            subject: subject,
+            creator_id: currentUser.id,
+            schedule_start: startInput.value,
+            schedule_end: endInput.value,
+            meeting_times: meetingTimes.value.split('\n').filter(time => time.trim()),
+            max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
+            is_private: document.getElementById('groupIsPrivate').checked,
+            faculty: faculty,
+            course: course,
+            year_of_study: document.getElementById('groupYear').value
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/groups/create-scheduled`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(groupData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        showSuccess(`Scheduled group "${result.group.name}" created successfully!`);
+        
+        // Close all modals
+        closeScheduleModal();
+        closeModal(createGroupModal);
+        createGroupForm.reset();
+        
+        // Reset faculty and course dropdowns
+        facultySelect.value = '';
+        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+        courseSelect.disabled = true;
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error creating scheduled group:', error);
+        showError('Failed to create scheduled group. Please try again.');
+    }
+}
+
+// Update the updateGroupSchedule function in groups.js
+async function updateGroupSchedule(groupId) {
+    // Get elements from the dynamically created modal
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) {
+        showError('Schedule modal not found. Please try again.');
+        return;
+    }
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    
+    if (!startInput || !endInput) {
+        showError('Schedule form elements not found. Please try again.');
+        return;
+    }
+    
+    if (!startInput.value || !endInput.value) {
+        showError('Please provide both start and end dates.');
+        return;
+    }
+    
+    // Validate dates
+    const startDate = new Date(startInput.value);
+    const endDate = new Date(endInput.value);
+    
+    if (startDate >= endDate) {
+        showError('Schedule start must be before end time.');
+        return;
+    }
+    
+    try {
+        const scheduleData = {
+            user_id: currentUser.id,
+            schedule_start: startInput.value,
+            schedule_end: endInput.value,
+            meeting_times: meetingTimes.value.split('\n').filter(time => time.trim())
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/schedule`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(scheduleData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        showSuccess('Group schedule updated successfully!');
+        
+        // Close modal and reload group details
+        closeScheduleModal();
+        closeModal(groupDetailsModal);
+        
+        // Reload data to reflect changes
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error updating group schedule:', error);
+        showError('Failed to update group schedule. Please try again.');
+    }
+}
+
+function showCreateSchedulingModal(group) {
+    // Create a scheduling modal or redirect to calendar
+    showToast('Opening scheduling interface...', 'info');
+    
+    // Redirect to calendar with group pre-selected for scheduling
+    setTimeout(() => {
+        window.location.href = `student-calendar.html?scheduleGroup=${encodeURIComponent(group.group_id)}&groupName=${encodeURIComponent(group.name)}`;
+    }, 1000);
+}
+
+function showSchedulingModal(group) {
+    // Show existing schedule and allow editing
+    const scheduleInfo = `
+        <div class="schedule-info">
+            <h4>Current Schedule</h4>
+            <p><strong>Start:</strong> ${new Date(group.scheduled_start).toLocaleString()}</p>
+            <p><strong>End:</strong> ${new Date(group.scheduled_end).toLocaleString()}</p>
+            ${group.meeting_times ? `<p><strong>Meeting Times:</strong> ${group.meeting_times}</p>` : ''}
+        </div>
+    `;
+    
+    // You can create a more sophisticated modal here for editing the schedule
+    showToast('Group is already scheduled. Redirecting to calendar for editing...', 'info');
+    
+    setTimeout(() => {
+        window.location.href = `student-calendar.html?editSchedule=${encodeURIComponent(group.group_id)}`;
+    }, 1500);
+}
+
+
+// Add this function to handle the scheduling modal
+function showScheduleGroupModal(groupId, groupData = null) {
+    // Create scheduling modal HTML
+    const modalHTML = `
+        <div class="modal active" id="scheduleGroupModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>${groupData ? 'Update Group Schedule' : 'Schedule Study Group'}</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleGroupForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="scheduleStart">Start Date & Time *</label>
+                                <input type="datetime-local" id="scheduleStart" required 
+                                    value="${groupData?.scheduled_start ? formatDateTimeForInput(groupData.scheduled_start) : ''}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="scheduleEnd">End Date & Time *</label>
+                                <input type="datetime-local" id="scheduleEnd" required
+                                    value="${groupData?.scheduled_end ? formatDateTimeForInput(groupData.scheduled_end) : ''}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="meetingTimes">Regular Meeting Times</label>
+                            <textarea id="meetingTimes" placeholder="e.g., Monday 2pm-4pm, Wednesday 3pm-5pm&#10;Friday 10am-12pm" 
+                                rows="3">${groupData?.meeting_times || ''}</textarea>
+                            <small>Enter each meeting time on a new line. Include day, time, and duration.</small>
+                        </div>
+                        
+                        <div class="schedule-preview" id="schedulePreview" style="display: none;">
+                            <h4>Schedule Preview</h4>
+                            <div id="previewContent"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="cancelScheduleBtn">Cancel</button>
+                    <button class="btn btn-primary" id="confirmScheduleBtn">
+                        ${groupData ? 'Update Schedule' : 'Create Scheduled Group'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Set up event listeners
+    setupScheduleModalEvents(groupId, groupData);
+}
+
+// Helper function to format datetime for input field
+function formatDateTimeForInput(dateTimeString) {
+    const date = new Date(dateTimeString);
+    return date.toISOString().slice(0, 16);
+}
+
+function setupScheduleModalEvents(groupId, groupData) {
+    const modal = document.getElementById('scheduleGroupModal');
+    const closeBtn = modal.querySelector('.modal-close');
+    const cancelBtn = modal.querySelector('#cancelScheduleBtn');
+    const confirmBtn = modal.querySelector('#confirmScheduleBtn');
+    const scheduleForm = modal.querySelector('#scheduleGroupForm');
+    
+    // Close modal events
+    closeBtn.addEventListener('click', closeScheduleModal);
+    cancelBtn.addEventListener('click', closeScheduleModal);
+    
+    // Confirm schedule event
+    confirmBtn.addEventListener('click', () => {
+        if (groupData) {
+            updateGroupSchedule(groupId);
+        } else {
+            createScheduledGroup();
+        }
+    });
+    
+    // Real-time validation and preview
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    
+    [startInput, endInput].forEach(input => {
+        input.addEventListener('change', validateSchedule);
+        input.addEventListener('input', validateSchedule); // Add input event for real-time validation
+    });
+    
+    // Also validate meeting times changes
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    if (meetingTimes) {
+        meetingTimes.addEventListener('input', updateSchedulePreview);
+    }
+    
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeScheduleModal();
+        }
+    });
+    
+    // Initial validation
+    setTimeout(validateSchedule, 100);
+}
+function validateSchedule() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) return;
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const confirmBtn = modal.querySelector('#confirmScheduleBtn');
+    
+    if (!startInput || !endInput || !confirmBtn) return;
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        if (startDate >= endDate) {
+            confirmBtn.disabled = true;
+            showToast('Schedule start must be before end time', 'error');
+        } else {
+            confirmBtn.disabled = false;
+            updateSchedulePreview();
         }
     }
+}
+
+function updateSchedulePreview() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) return;
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    const preview = modal.querySelector('#schedulePreview');
+    const previewContent = modal.querySelector('#previewContent');
+    
+    if (!startInput || !endInput || !preview || !previewContent) return;
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        const duration = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+        
+        previewContent.innerHTML = `
+            <p><strong>Duration:</strong> ${duration} days</p>
+            <p><strong>Starts:</strong> ${startDate.toLocaleString()}</p>
+            <p><strong>Ends:</strong> ${endDate.toLocaleString()}</p>
+            ${meetingTimes.value ? `<p><strong>Regular Meetings:</strong> ${meetingTimes.value.replace(/\n/g, ', ')}</p>` : ''}
+        `;
+        
+        preview.style.display = 'block';
+    }
+}
+
+function updateSchedulePreview() {
+    const startInput = document.getElementById('scheduleStart');
+    const endInput = document.getElementById('scheduleEnd');
+    const meetingTimes = document.getElementById('meetingTimes');
+    const preview = document.getElementById('schedulePreview');
+    const previewContent = document.getElementById('previewContent');
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        const duration = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+        
+        previewContent.innerHTML = `
+            <p><strong>Duration:</strong> ${duration} days</p>
+            <p><strong>Starts:</strong> ${startDate.toLocaleString()}</p>
+            <p><strong>Ends:</strong> ${endDate.toLocaleString()}</p>
+            ${meetingTimes.value ? `<p><strong>Regular Meetings:</strong> ${meetingTimes.value.replace(/\n/g, ', ')}</p>` : ''}
+        `;
+        
+        preview.style.display = 'block';
+    }
+}
+
+function closeScheduleModal() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (modal) {
+        modal.remove();
+    }
+}
     
 // Add this function to groups.js
 async function createNotification(notificationData) {
