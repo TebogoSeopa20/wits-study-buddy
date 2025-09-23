@@ -496,68 +496,72 @@ document.addEventListener('DOMContentLoaded', function() {
                 : createGroupCard(group);
         }).join('');
     }
+function createGroupCard(group) {
+    const isMember = userGroups.some(g => g.group_id === group.group_id);
+    const isCreator = isMember && group.user_role === 'creator';
+    const isAdmin = isMember && group.user_role === 'admin';
+    const progressPercentage = (group.member_count / group.max_members) * 100;
     
-    function createGroupCard(group) {
-        const isMember = userGroups.some(g => g.group_id === group.group_id);
-        const isCreator = isMember && group.user_role === 'creator';
-        const isAdmin = isMember && group.user_role === 'admin';
-        const progressPercentage = (group.member_count / group.max_members) * 100;
-        
-        return `
-            <div class="group-card" data-group-id="${group.group_id}">
-                <div class="group-header">
-                    <h3 class="group-name">${group.group_name || 'Unnamed Group'}</h3>
-                    <span class="group-subject">${group.subject || 'General'}</span>
-                </div>
+    return `
+        <div class="group-card" data-group-id="${group.group_id}">
+            <div class="group-header">
+                <h3 class="group-name">${group.group_name || 'Unnamed Group'}</h3>
+                <span class="group-subject">${group.subject || 'General'}</span>
+            </div>
+            
+            <div class="group-details">
+                <p class="group-description">${group.description || 'No description provided.'}</p>
                 
-                <div class="group-details">
-                    <p class="group-description">${group.description || 'No description provided.'}</p>
-                    
-                    <div class="group-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-university"></i>
-                            <span>${group.faculty || 'Not specified'}</span>
-                        </div>
-                        
-                        <div class="meta-item">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>${group.course || 'Not specified'}</span>
-                        </div>
-                        
-                        <div class="meta-item">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>${group.year_of_study || 'Not specified'}</span>
-                        </div>
+                <div class="group-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-university"></i>
+                        <span>${group.faculty || 'Not specified'}</span>
                     </div>
                     
-                    <div class="members-info">
-                        <div class="members-count">${group.member_count} / ${group.max_members} members</div>
-                        <div class="members-progress">
-                            <div class="members-progress-bar" style="width: ${progressPercentage}%"></div>
-                        </div>
+                    <div class="meta-item">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>${group.course || 'Not specified'}</span>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${group.year_of_study || 'Not specified'}</span>
                     </div>
                 </div>
                 
-                <div class="group-actions">
-                    ${isMember ? `
-                        <button class="action-btn primary view-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="action-btn error leave-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-sign-out-alt"></i> Leave
-                        </button>
-                    ` : `
-                        <button class="action-btn primary join-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-user-plus"></i> Join
-                        </button>
-                        <button class="action-btn outline view-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                    `}
+                <div class="members-info">
+                    <div class="members-count">${group.member_count} / ${group.max_members} members</div>
+                    <div class="members-progress">
+                        <div class="members-progress-bar" style="width: ${progressPercentage}%"></div>
+                    </div>
                 </div>
             </div>
-        `;
-    }
+            
+            <div class="group-actions">
+                ${isMember ? `
+                    <button class="action-btn primary view-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    ${isCreator ? `
+                        <button class="action-btn warning schedule-group-btn" data-group-id="${group.group_id}">
+                            <i class="fas fa-calendar-alt"></i> Schedule
+                        </button>
+                    ` : ''}
+                    <button class="action-btn error leave-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-sign-out-alt"></i> Leave
+                    </button>
+                ` : `
+                    <button class="action-btn primary join-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-user-plus"></i> Join
+                    </button>
+                    <button class="action-btn outline view-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                `}
+            </div>
+        </div>
+    `;
+}
     
     function createGroupListItem(group) {
         const isMember = userGroups.some(g => g.group_id === group.group_id);
@@ -738,6 +742,7 @@ async function viewGroupDetails(groupId) {
 }
 
 // Update the scheduleGroup function in groups.js
+// Update the scheduleGroup function in groups.js
 async function scheduleGroup(groupId) {
     try {
         // Fetch current group details
@@ -843,7 +848,6 @@ async function createScheduledGroup() {
 
 // Update the updateGroupSchedule function in groups.js
 async function updateGroupSchedule(groupId) {
-    // Get elements from the dynamically created modal
     const modal = document.getElementById('scheduleGroupModal');
     if (!modal) {
         showError('Schedule modal not found. Please try again.');
@@ -899,7 +903,6 @@ async function updateGroupSchedule(groupId) {
         
         // Close modal and reload group details
         closeScheduleModal();
-        closeModal(groupDetailsModal);
         
         // Reload data to reflect changes
         await loadAllData();
@@ -1013,11 +1016,13 @@ function setupScheduleModalEvents(groupId, groupData) {
     closeBtn.addEventListener('click', closeScheduleModal);
     cancelBtn.addEventListener('click', closeScheduleModal);
     
-    // Confirm schedule event
+    // Confirm schedule event - differentiate between create and update
     confirmBtn.addEventListener('click', () => {
         if (groupData) {
+            // This is an existing group - update the schedule
             updateGroupSchedule(groupId);
         } else {
+            // This is a new group being created - use the existing create flow
             createScheduledGroup();
         }
     });
@@ -1028,7 +1033,7 @@ function setupScheduleModalEvents(groupId, groupData) {
     
     [startInput, endInput].forEach(input => {
         input.addEventListener('change', validateSchedule);
-        input.addEventListener('input', validateSchedule); // Add input event for real-time validation
+        input.addEventListener('input', validateSchedule);
     });
     
     // Also validate meeting times changes
@@ -1047,6 +1052,7 @@ function setupScheduleModalEvents(groupId, groupData) {
     // Initial validation
     setTimeout(validateSchedule, 100);
 }
+
 function validateSchedule() {
     const modal = document.getElementById('scheduleGroupModal');
     if (!modal) return;
@@ -1068,6 +1074,39 @@ function validateSchedule() {
             confirmBtn.disabled = false;
             updateSchedulePreview();
         }
+    } else {
+        confirmBtn.disabled = true;
+    }
+}
+
+function updateSchedulePreview() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) return;
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    const preview = modal.querySelector('#schedulePreview');
+    const previewContent = modal.querySelector('#previewContent');
+    
+    if (!startInput || !endInput || !preview || !previewContent) return;
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        const duration = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+        
+        previewContent.innerHTML = `
+            <p><strong>Duration:</strong> ${duration} days</p>
+            <p><strong>Starts:</strong> ${startDate.toLocaleString()}</p>
+            <p><strong>Ends:</strong> ${endDate.toLocaleString()}</p>
+            ${meetingTimes.value ? `<p><strong>Regular Meetings:</strong> ${meetingTimes.value.replace(/\n/g, ', ')}</p>` : ''}
+        `;
+        
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
     }
 }
 

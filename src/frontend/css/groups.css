@@ -694,6 +694,29 @@ body {
     font-size: 1.1rem;
 }
 
+.action-btn.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.action-btn.warning:hover {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* Ensure proper spacing for the new button */
+.group-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.group-actions .action-btn {
+    flex: 1;
+    min-width: 120px;
+}
+
 .schedule-info p {
     margin: 0.25rem 0;
     color: var(--study-muted);
