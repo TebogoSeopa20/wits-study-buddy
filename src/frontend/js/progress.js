@@ -1,178 +1,280 @@
-// progress.js - Progress Tracking Functionality
+// Progress Page JavaScript - Enhanced with Color Management and Edit/Delete Features
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize the application
-    initProgressApp();
-});
-
-function initProgressApp() {
-    // Load modules from localStorage or initialize empty array
-    let modules = JSON.parse(localStorage.getItem('progressModules')) || [];
-    
-    // Initialize charts
-    let progressChart = null;
-    let timeChart = null;
-    
-    // DOM Elements
-    const addModuleBtn = document.getElementById('addModuleBtn');
-    const addModuleModal = document.getElementById('addModuleModal');
-    const moduleForm = document.getElementById('moduleForm');
-    const cancelModuleBtn = document.getElementById('cancelModule');
-    const modalCloseBtns = document.querySelectorAll('.modal-close');
-    const progressSearch = document.getElementById('progressSearch');
-    const modulesGrid = document.getElementById('modulesGrid');
-    const managementAdviceBtn = document.getElementById('managementAdviceBtn');
-    const adviceModal = document.getElementById('adviceModal');
-    const closeAdviceBtn = document.getElementById('closeAdvice');
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    const toastClose = document.querySelector('.toast-close');
-    
-    // Checkbox toggles
-    const addMilestoneCheckbox = document.getElementById('addMilestone');
-    const addRewardCheckbox = document.getElementById('addReward');
-    const milestoneSection = document.getElementById('milestoneSection');
-    const rewardSection = document.getElementById('rewardSection');
-    
-    // Stats elements
-    const moduleCountEl = document.getElementById('moduleCount');
-    const completedCountEl = document.getElementById('completedCount');
-    const rewardCountEl = document.getElementById('rewardCount');
-    const progressPercentageEl = document.getElementById('progressPercentage');
-    const timeRemainingEl = document.getElementById('timeRemaining');
-    
-    // Event Listeners
-    addModuleBtn.addEventListener('click', openAddModuleModal);
-    moduleForm.addEventListener('submit', handleModuleSubmit);
-    cancelModuleBtn.addEventListener('click', closeAllModals);
-    modalCloseBtns.forEach(btn => btn.addEventListener('click', closeAllModals));
-    addMilestoneCheckbox.addEventListener('change', toggleMilestoneSection);
-    addRewardCheckbox.addEventListener('change', toggleRewardSection);
-    progressSearch.addEventListener('input', handleSearch);
-    managementAdviceBtn.addEventListener('click', showManagementAdvice);
-    closeAdviceBtn.addEventListener('click', () => adviceModal.classList.remove('active'));
-    toastClose.addEventListener('click', () => toast.style.display = 'none');
-    
-    // Initialize the page
-    updateStats();
-    renderModules(modules);
-    initCharts();
-    
-    // Function to open Add Module modal
-    function openAddModuleModal() {
-        addModuleModal.classList.add('active');
+// Module and Topic Management
+class ProgressManager {
+    constructor() {
+        this.modules = JSON.parse(localStorage.getItem('studentModules')) || [];
+        this.currentEditId = null;
+        this.init();
     }
-    
-    // Function to close all modals
-    function closeAllModals() {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.classList.remove('active');
+
+    init() {
+        this.setupEventListeners();
+        this.renderModules();
+        this.updateStats();
+        this.initializeCharts();
+        this.updateAnalytics();
+    }
+
+    setupEventListeners() {
+        // Add Module Button
+        document.getElementById('addModuleBtn').addEventListener('click', () => {
+            this.openAddModuleModal();
         });
-        moduleForm.reset();
-        milestoneSection.style.display = 'none';
-        rewardSection.style.display = 'none';
+
+        // Modal Controls
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.closeAllModals();
+            });
+        });
+
+        // Module Form Submit
+        document.getElementById('moduleForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveModule();
+        });
+
+        // Cancel Module Button
+        document.getElementById('cancelModule').addEventListener('click', () => {
+            this.closeAllModals();
+        });
+
+        // Delete Module Button
+        document.getElementById('deleteModuleBtn').addEventListener('click', () => {
+            this.deleteModule();
+        });
+
+        // Checkbox Toggles
+        document.getElementById('addMilestone').addEventListener('change', (e) => {
+            this.toggleMilestoneSection(e.target.checked);
+        });
+
+        document.getElementById('addReward').addEventListener('change', (e) => {
+            this.toggleRewardSection(e.target.checked);
+        });
+
+        // Color Input
+        document.getElementById('moduleColor').addEventListener('input', (e) => {
+            document.getElementById('moduleColorValue').textContent = e.target.value;
+        });
+
+        // Search Functionality
+        document.getElementById('progressSearch').addEventListener('input', (e) => {
+            this.filterModules(e.target.value);
+        });
+
+        // Close Advice Button
+        document.getElementById('closeAdvice').addEventListener('click', () => {
+            document.getElementById('adviceModal').classList.remove('active');
+        });
+
+        // Close Toast
+        document.querySelector('.toast-close').addEventListener('click', () => {
+            document.getElementById('toast').classList.remove('active');
+        });
+
+        // Click outside modal to close
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                this.closeAllModals();
+            }
+        });
     }
-    
-    // Toggle milestone section
-    function toggleMilestoneSection() {
-        milestoneSection.style.display = addMilestoneCheckbox.checked ? 'block' : 'none';
-    }
-    
-    // Toggle reward section
-    function toggleRewardSection() {
-        rewardSection.style.display = addRewardCheckbox.checked ? 'block' : 'none';
-    }
-    
-    // Handle module form submission
-    function handleModuleSubmit(e) {
-        e.preventDefault();
+
+    openAddModuleModal(moduleId = null) {
+        const modal = document.getElementById('addModuleModal');
+        const title = document.getElementById('modalTitle');
+        const deleteBtn = document.getElementById('deleteModuleBtn');
         
-        const moduleName = document.getElementById('moduleName').value;
-        const moduleTopics = document.getElementById('moduleTopics').value.split('\n').filter(topic => topic.trim() !== '');
+        if (moduleId) {
+            // Edit mode
+            title.textContent = 'Edit Module';
+            deleteBtn.style.display = 'block';
+            this.currentEditId = moduleId;
+            this.populateModuleForm(moduleId);
+        } else {
+            // Add mode
+            title.textContent = 'Add New Module';
+            deleteBtn.style.display = 'none';
+            this.currentEditId = null;
+            this.resetModuleForm();
+        }
         
-        if (!moduleName || moduleTopics.length === 0) {
-            showToast('Please fill in all required fields', 'error');
+        modal.classList.add('active');
+    }
+
+    resetModuleForm() {
+        document.getElementById('moduleForm').reset();
+        document.getElementById('moduleColor').value = '#4A90E2';
+        document.getElementById('moduleColorValue').textContent = '#4A90E2';
+        document.getElementById('milestoneSection').style.display = 'none';
+        document.getElementById('rewardSection').style.display = 'none';
+        document.getElementById('moduleId').value = '';
+    }
+
+    populateModuleForm(moduleId) {
+        const module = this.modules.find(m => m.id === moduleId);
+        if (!module) return;
+
+        document.getElementById('moduleId').value = module.id;
+        document.getElementById('moduleName').value = module.name;
+        document.getElementById('moduleColor').value = module.color;
+        document.getElementById('moduleColorValue').textContent = module.color;
+        document.getElementById('moduleTopics').value = module.topics.map(t => t.name).join('\n');
+        
+        // Milestone
+        if (module.milestone) {
+            document.getElementById('addMilestone').checked = true;
+            document.getElementById('milestoneSection').style.display = 'block';
+            document.getElementById('milestoneDescription').value = module.milestone.description || '';
+            document.getElementById('milestoneStart').value = module.milestone.start || '';
+            document.getElementById('milestoneEnd').value = module.milestone.end || '';
+        } else {
+            document.getElementById('addMilestone').checked = false;
+            document.getElementById('milestoneSection').style.display = 'none';
+        }
+        
+        // Reward
+        if (module.reward) {
+            document.getElementById('addReward').checked = true;
+            document.getElementById('rewardSection').style.display = 'block';
+            document.getElementById('rewardDescription').value = module.reward.description || '';
+        } else {
+            document.getElementById('addReward').checked = false;
+            document.getElementById('rewardSection').style.display = 'none';
+        }
+    }
+
+    toggleMilestoneSection(show) {
+        document.getElementById('milestoneSection').style.display = show ? 'block' : 'none';
+    }
+
+    toggleRewardSection(show) {
+        document.getElementById('rewardSection').style.display = show ? 'block' : 'none';
+    }
+
+    saveModule() {
+        const moduleId = document.getElementById('moduleId').value;
+        const name = document.getElementById('moduleName').value.trim();
+        const color = document.getElementById('moduleColor').value;
+        const topicsText = document.getElementById('moduleTopics').value.trim();
+        
+        if (!name || !topicsText) {
+            this.showToast('Please fill in all required fields', 'error');
             return;
         }
-        
-        const newModule = {
-            id: Date.now(),
-            name: moduleName,
-            topics: moduleTopics.map(topic => ({
-                name: topic.trim(),
-                completed: false
-            })),
-            createdAt: new Date().toISOString()
+
+        // Parse topics
+        const topics = topicsText.split('\n')
+            .map(topic => topic.trim())
+            .filter(topic => topic !== '')
+            .map((topic, index) => ({
+                id: `topic-${Date.now()}-${index}`,
+                name: topic,
+                completed: false,
+                color: this.generateTopicColor(color, index)
+            }));
+
+        const moduleData = {
+            id: moduleId || `module-${Date.now()}`,
+            name,
+            color,
+            topics,
+            createdAt: moduleId ? this.modules.find(m => m.id === moduleId).createdAt : new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         };
-        
-        // Add milestone if selected
-        if (addMilestoneCheckbox.checked) {
-            const milestoneDescription = document.getElementById('milestoneDescription').value;
-            const milestoneStart = document.getElementById('milestoneStart').value;
-            const milestoneEnd = document.getElementById('milestoneEnd').value;
-            
-            if (milestoneDescription && milestoneStart && milestoneEnd) {
-                newModule.milestone = {
-                    description: milestoneDescription,
-                    startDate: milestoneStart,
-                    endDate: milestoneEnd,
-                    completed: false
-                };
-                
-                showToast('Milestone added successfully!', 'success');
-            }
+
+        // Add milestone if checked
+        if (document.getElementById('addMilestone').checked) {
+            moduleData.milestone = {
+                description: document.getElementById('milestoneDescription').value.trim(),
+                start: document.getElementById('milestoneStart').value,
+                end: document.getElementById('milestoneEnd').value
+            };
         }
-        
-        // Add reward if selected
-        if (addRewardCheckbox.checked) {
-            const rewardDescription = document.getElementById('rewardDescription').value;
-            
-            if (rewardDescription) {
-                newModule.reward = {
-                    description: rewardDescription,
-                    earned: false
-                };
-                
-                showToast('Reward set successfully!', 'success');
-            }
+
+        // Add reward if checked
+        if (document.getElementById('addReward').checked) {
+            moduleData.reward = {
+                description: document.getElementById('rewardDescription').value.trim(),
+                earned: false
+            };
         }
-        
-        // Add to modules array and save
-        modules.push(newModule);
-        saveModules();
-        
-        // Update UI
-        renderModules(modules);
-        updateStats();
-        closeAllModals();
-        
-        showToast('Module added successfully!', 'success');
+
+        if (moduleId) {
+            // Update existing module
+            const index = this.modules.findIndex(m => m.id === moduleId);
+            if (index !== -1) {
+                this.modules[index] = moduleData;
+                this.showToast('Module updated successfully!');
+            }
+        } else {
+            // Add new module
+            this.modules.push(moduleData);
+            this.showToast('Module added successfully!');
+        }
+
+        this.saveToStorage();
+        this.renderModules();
+        this.updateStats();
+        this.updateAnalytics();
+        this.closeAllModals();
     }
-    
-    // Save modules to localStorage
-    function saveModules() {
-        localStorage.setItem('progressModules', JSON.stringify(modules));
+
+    deleteModule() {
+        if (!this.currentEditId) return;
+
+        if (confirm('Are you sure you want to delete this module? This action cannot be undone.')) {
+            this.modules = this.modules.filter(m => m.id !== this.currentEditId);
+            this.saveToStorage();
+            this.renderModules();
+            this.updateStats();
+            this.updateAnalytics();
+            this.showToast('Module deleted successfully!');
+            this.closeAllModals();
+        }
     }
-    
-    // Render modules to the grid
-    function renderModules(modulesToRender) {
+
+    generateTopicColor(moduleColor, index) {
+        // Generate a slightly different color for each topic based on module color
+        const baseColor = moduleColor.replace('#', '');
+        const r = parseInt(baseColor.substr(0, 2), 16);
+        const g = parseInt(baseColor.substr(2, 2), 16);
+        const b = parseInt(baseColor.substr(4, 2), 16);
+        
+        // Adjust color based on index
+        const factor = (index % 5) * 20; // Vary by up to 100
+        const newR = Math.max(0, Math.min(255, r + factor));
+        const newG = Math.max(0, Math.min(255, g + factor));
+        const newB = Math.max(0, Math.min(255, b + factor));
+        
+        return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+    }
+
+    renderModules() {
+        const modulesGrid = document.getElementById('modulesGrid');
         modulesGrid.innerHTML = '';
-        
-        if (modulesToRender.length === 0) {
+
+        if (this.modules.length === 0) {
             modulesGrid.innerHTML = `
-                <article class="empty-state">
+                <div class="empty-state">
                     <i class="fas fa-book-open"></i>
                     <h3>No modules yet</h3>
-                    <p>Add your first module to start tracking your progress</p>
-                    <button class="action-btn primary" id="addFirstModule">Add Module</button>
-                </article>
+                    <p>Start by adding your first module to track your progress!</p>
+                    <button class="action-btn primary" id="addFirstModule">
+                        <i class="fas fa-plus"></i> Add Your First Module
+                    </button>
+                </div>
             `;
             
-            document.getElementById('addFirstModule').addEventListener('click', openAddModuleModal);
+            document.getElementById('addFirstModule')?.addEventListener('click', () => {
+                this.openAddModuleModal();
+            });
             return;
         }
-        
-        modulesToRender.forEach(module => {
+
+        this.modules.forEach(module => {
             const completedTopics = module.topics.filter(topic => topic.completed).length;
             const totalTopics = module.topics.length;
             const completionPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
@@ -180,164 +282,208 @@ function initProgressApp() {
             const moduleCard = document.createElement('article');
             moduleCard.className = 'module-card';
             moduleCard.innerHTML = `
-                <header class="module-header">
+                <div class="module-header" style="background-color: ${module.color}">
+                    <div class="module-actions">
+                        <button class="module-action-btn edit" data-id="${module.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="module-action-btn delete" data-id="${module.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                     <h3 class="module-title">${module.name}</h3>
                     <div class="module-meta">
-                        <span><i class="fas fa-check-circle"></i> ${completedTopics}/${totalTopics} topics</span>
-                        <span><i class="fas fa-percent"></i> ${completionPercentage}% complete</span>
+                        <span><i class="fas fa-tasks"></i> ${completedTopics}/${totalTopics} topics completed</span>
+                        <span><i class="fas fa-percentage"></i> ${completionPercentage}% complete</span>
                     </div>
-                </header>
-                <section class="module-details">
+                </div>
+                <div class="module-details">
                     <div class="topics-list">
-                        ${module.topics.map((topic, index) => `
+                        ${module.topics.map(topic => `
                             <div class="topic-item">
-                                <input type="checkbox" id="topic-${module.id}-${index}" class="topic-checkbox" ${topic.completed ? 'checked' : ''}>
-                                <label for="topic-${module.id}-${index}" class="topic-label">${topic.name}</label>
+                                <div class="topic-color-indicator" style="background-color: ${topic.color}"></div>
+                                <input type="checkbox" class="topic-checkbox" id="topic-${topic.id}" 
+                                    ${topic.completed ? 'checked' : ''} data-module="${module.id}" data-topic="${topic.id}">
+                                <label class="topic-label" for="topic-${topic.id}">${topic.name}</label>
                             </div>
                         `).join('')}
                     </div>
-                    
                     ${module.reward ? `
                         <div class="reward-section">
-                            <h4 class="reward-title"><i class="fas fa-gift"></i> Your Reward</h4>
+                            <h4 class="reward-title"><i class="fas fa-gift"></i> Reward</h4>
                             <p class="reward-description">${module.reward.description}</p>
                             <div class="reward-progress">
-                                <i class="fas fa-trophy"></i>
-                                <span class="progress-text">${totalTopics - completedTopics} steps to go!</span>
+                                <i class="fas ${completionPercentage === 100 ? 'fa-check-circle' : 'fa-hourglass-half'}"></i>
+                                <span class="progress-text">${completionPercentage === 100 ? 'Reward earned!' : `${completionPercentage}% to reward`}</span>
                             </div>
-                            <p class="motivational-quote">"${getRandomMotivationalQuote()}"</p>
+                            ${completionPercentage === 100 ? `
+                                <div class="reward-earned">
+                                    <i class="fas fa-trophy"></i>
+                                    <span>Congratulations! You've earned your reward!</span>
+                                </div>
+                            ` : `
+                                <p class="motivational-quote">Keep going! You're making great progress toward your reward.</p>
+                            `}
                         </div>
                     ` : ''}
-                </section>
+                </div>
             `;
-            
-            // Add event listeners to checkboxes
-            moduleCard.querySelectorAll('.topic-checkbox').forEach((checkbox, index) => {
-                checkbox.addEventListener('change', () => {
-                    module.topics[index].completed = checkbox.checked;
-                    saveModules();
-                    updateStats();
-                    
-                    // Check if all topics are completed to mark reward as earned
-                    if (module.reward && module.topics.every(topic => topic.completed)) {
-                        module.reward.earned = true;
-                        showToast(`Congratulations! You've earned your reward: ${module.reward.description}`, 'success');
-                    }
-                });
-            });
             
             modulesGrid.appendChild(moduleCard);
         });
-    }
-    
-    // Handle search functionality
-    function handleSearch() {
-        const searchTerm = progressSearch.value.toLowerCase().trim();
-        
-        if (searchTerm === '') {
-            renderModules(modules);
-            return;
-        }
-        
-        const filteredModules = modules.filter(module => {
-            // Search in module name
-            if (module.name.toLowerCase().includes(searchTerm)) return true;
-            
-            // Search in topics
-            if (module.topics.some(topic => topic.name.toLowerCase().includes(searchTerm))) return true;
-            
-            // Search in milestone description
-            if (module.milestone && module.milestone.description.toLowerCase().includes(searchTerm)) return true;
-            
-            return false;
+
+        // Add event listeners for edit and delete buttons
+        document.querySelectorAll('.module-action-btn.edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const moduleId = e.currentTarget.getAttribute('data-id');
+                this.openAddModuleModal(moduleId);
+            });
         });
-        
-        renderModules(filteredModules);
+
+        document.querySelectorAll('.module-action-btn.delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const moduleId = e.currentTarget.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this module?')) {
+                    this.modules = this.modules.filter(m => m.id !== moduleId);
+                    this.saveToStorage();
+                    this.renderModules();
+                    this.updateStats();
+                    this.updateAnalytics();
+                    this.showToast('Module deleted successfully!');
+                }
+            });
+        });
+
+        // Add event listeners for topic checkboxes
+        document.querySelectorAll('.topic-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const moduleId = e.target.getAttribute('data-module');
+                const topicId = e.target.getAttribute('data-topic');
+                this.toggleTopicCompletion(moduleId, topicId, e.target.checked);
+            });
+        });
     }
-    
-    // Update statistics
-    function updateStats() {
-        const totalModules = modules.length;
-        const totalTopics = modules.reduce((sum, module) => sum + module.topics.length, 0);
-        const completedTopics = modules.reduce((sum, module) => 
+
+    toggleTopicCompletion(moduleId, topicId, completed) {
+        const module = this.modules.find(m => m.id === moduleId);
+        if (!module) return;
+
+        const topic = module.topics.find(t => t.id === topicId);
+        if (!topic) return;
+
+        topic.completed = completed;
+        module.updatedAt = new Date().toISOString();
+        
+        // Check if all topics are completed to earn reward
+        if (module.reward && !module.reward.earned) {
+            const allCompleted = module.topics.every(t => t.completed);
+            if (allCompleted) {
+                module.reward.earned = true;
+                this.showToast(`Congratulations! You've earned the reward for ${module.name}`, 'success');
+            }
+        }
+
+        this.saveToStorage();
+        this.updateStats();
+        this.updateAnalytics();
+        
+        // Re-render the specific module to update the UI
+        this.renderModules();
+    }
+
+    filterModules(searchTerm) {
+        const modules = document.querySelectorAll('.module-card');
+        const term = searchTerm.toLowerCase();
+        
+        modules.forEach(module => {
+            const title = module.querySelector('.module-title').textContent.toLowerCase();
+            const topics = module.querySelectorAll('.topic-label');
+            let topicMatch = false;
+            
+            topics.forEach(topic => {
+                if (topic.textContent.toLowerCase().includes(term)) {
+                    topicMatch = true;
+                }
+            });
+            
+            if (title.includes(term) || topicMatch) {
+                module.style.display = 'block';
+            } else {
+                module.style.display = 'none';
+            }
+        });
+    }
+
+    updateStats() {
+        const totalModules = this.modules.length;
+        const totalTopics = this.modules.reduce((sum, module) => sum + module.topics.length, 0);
+        const completedTopics = this.modules.reduce((sum, module) => 
             sum + module.topics.filter(topic => topic.completed).length, 0);
-        const earnedRewards = modules.filter(module => 
+        const earnedRewards = this.modules.filter(module => 
             module.reward && module.reward.earned).length;
-        
-        // Update DOM elements
-        moduleCountEl.textContent = totalModules;
-        completedCountEl.textContent = completedTopics;
-        rewardCountEl.textContent = earnedRewards;
-        
-        // Update progress percentage
-        const overallPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-        progressPercentageEl.textContent = `${overallPercentage}% Complete`;
-        
-        // Update charts
-        updateCharts(overallPercentage, completedTopics, totalTopics);
-        
-        // Check if any milestones exist to show management advice button
-        const hasMilestones = modules.some(module => module.milestone);
-        managementAdviceBtn.style.display = hasMilestones ? 'block' : 'none';
+
+        document.getElementById('moduleCount').textContent = totalModules;
+        document.getElementById('completedCount').textContent = completedTopics;
+        document.getElementById('rewardCount').textContent = earnedRewards;
     }
-    
-    // Initialize charts
-    function initCharts() {
+
+    initializeCharts() {
+        // Progress Chart (Doughnut)
         const progressCtx = document.getElementById('progressChart').getContext('2d');
-        const timeCtx = document.getElementById('timeChart').getContext('2d');
-        
-        progressChart = new Chart(progressCtx, {
+        this.progressChart = new Chart(progressCtx, {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'Remaining'],
                 datasets: [{
                     data: [0, 100],
-                    backgroundColor: [
-                        '#10b981',
-                        '#e2e8f0'
-                    ],
+                    backgroundColor: ['#10b981', '#e5e7eb'],
                     borderWidth: 0
                 }]
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 cutout: '70%',
                 plugins: {
                     legend: {
                         display: false
                     },
                     tooltip: {
-                        enabled: false
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.parsed}%`;
+                            }
+                        }
                     }
-                },
-                animation: {
-                    animateScale: true,
-                    animateRotate: true
                 }
             }
         });
-        
-        timeChart = new Chart(timeCtx, {
+
+        // Time Management Chart (Bar)
+        const timeCtx = document.getElementById('timeChart').getContext('2d');
+        this.timeChart = new Chart(timeCtx, {
             type: 'bar',
             data: {
-                labels: ['This Week'],
+                labels: [],
                 datasets: [{
-                    label: 'Topics Completed',
-                    data: [0],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 6
+                    label: 'Completion %',
+                    data: [],
+                    backgroundColor: [],
+                    borderWidth: 0,
+                    borderRadius: 4
                 }]
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: {
-                            display: false
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
                         }
                     }
                 },
@@ -349,91 +495,136 @@ function initProgressApp() {
             }
         });
     }
-    
-    // Update charts with new data
-    function updateCharts(percentage, completed, total) {
-        if (progressChart) {
-            progressChart.data.datasets[0].data = [percentage, 100 - percentage];
-            progressChart.update();
-        }
+
+    updateAnalytics() {
+        // Update Progress Chart
+        const totalTopics = this.modules.reduce((sum, module) => sum + module.topics.length, 0);
+        const completedTopics = this.modules.reduce((sum, module) => 
+            sum + module.topics.filter(topic => topic.completed).length, 0);
         
-        if (timeChart) {
-            // For demo purposes, we'll use random data
-            const weeklyCompleted = Math.min(completed, Math.floor(Math.random() * 15) + 5);
-            timeChart.data.datasets[0].data = [weeklyCompleted];
-            timeChart.update();
+        const completionPercentage = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+        
+        this.progressChart.data.datasets[0].data = [completionPercentage, 100 - completionPercentage];
+        this.progressChart.update();
+        
+        document.getElementById('progressPercentage').textContent = `${completionPercentage}% Complete`;
+        
+        // Update Time Management Chart
+        const moduleLabels = this.modules.map(module => module.name);
+        const moduleData = this.modules.map(module => {
+            const completed = module.topics.filter(topic => topic.completed).length;
+            const total = module.topics.length;
+            return total > 0 ? Math.round((completed / total) * 100) : 0;
+        });
+        const moduleColors = this.modules.map(module => module.color);
+        
+        this.timeChart.data.labels = moduleLabels;
+        this.timeChart.data.datasets[0].data = moduleData;
+        this.timeChart.data.datasets[0].backgroundColor = moduleColors;
+        this.timeChart.update();
+        
+        // Update time remaining message
+        const onTrackModules = this.modules.filter(module => {
+            if (!module.milestone || !module.milestone.end) return true;
             
-            // Update time remaining text
-            const remaining = total - completed;
-            timeRemainingEl.textContent = `${remaining} topics remaining`;
-        }
+            const completed = module.topics.filter(topic => topic.completed).length;
+            const total = module.topics.length;
+            const progress = total > 0 ? completed / total : 0;
+            
+            // Simple heuristic: if we're more than halfway through the time but less than halfway through topics, we're behind
+            const endDate = new Date(module.milestone.end);
+            const now = new Date();
+            const totalTime = endDate - new Date(module.milestone.start || module.createdAt);
+            const timePassed = now - new Date(module.milestone.start || module.createdAt);
+            
+            return timePassed / totalTime <= progress || progress === 1;
+        }).length;
+        
+        const timeMessage = onTrackModules === this.modules.length ? 
+            'All milestones on track' : 
+            `${onTrackModules}/${this.modules.length} modules on track`;
+        
+        document.getElementById('timeRemaining').textContent = timeMessage;
+        
+        // Update color summaries
+        this.updateColorSummaries();
     }
-    
-    // Show management advice
-    function showManagementAdvice() {
-        const adviceList = document.getElementById('adviceList');
-        adviceList.innerHTML = '';
+
+    updateColorSummaries() {
+        // Completion Progress Color Summary
+        const completionSummary = document.getElementById('completionColorSummary');
+        completionSummary.innerHTML = '<h3>Module Colors</h3><div class="color-items"></div>';
         
-        const adviceItems = [
-            "Break down large topics into smaller, manageable chunks",
-            "Use the Pomodoro technique: 25 minutes focused work, 5 minutes break",
-            "Schedule specific times for studying each module",
-            "Eliminate distractions during your study sessions",
-            "Review previous topics regularly to reinforce learning",
-            "Set specific goals for each study session",
-            "Take regular breaks to maintain focus and avoid burnout"
-        ];
-        
-        adviceItems.forEach(advice => {
-            const li = document.createElement('li');
-            li.textContent = advice;
-            adviceList.appendChild(li);
+        const completionColorItems = completionSummary.querySelector('.color-items');
+        this.modules.forEach(module => {
+            const colorItem = document.createElement('div');
+            colorItem.className = 'color-item';
+            colorItem.innerHTML = `
+                <div class="color-swatch" style="background-color: ${module.color}"></div>
+                <span>${module.name}</span>
+            `;
+            completionColorItems.appendChild(colorItem);
         });
         
-        adviceModal.classList.add('active');
+        // Time Management Color Summary
+        const timeSummary = document.getElementById('timeColorSummary');
+        timeSummary.innerHTML = '<h3>Topic Colors by Module</h3><div class="color-items"></div>';
+        
+        const timeColorItems = timeSummary.querySelector('.color-items');
+        this.modules.forEach(module => {
+            // Show a sample of topic colors for this module
+            const sampleTopics = module.topics.slice(0, 3); // Show first 3 topics as sample
+            sampleTopics.forEach(topic => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                colorItem.innerHTML = `
+                    <div class="color-swatch" style="background-color: ${topic.color}"></div>
+                    <span>${module.name}: ${topic.name}</span>
+                `;
+                timeColorItems.appendChild(colorItem);
+            });
+        });
     }
-    
-    // Show toast notification
-    function showToast(message, type = 'success') {
+
+    saveToStorage() {
+        localStorage.setItem('studentModules', JSON.stringify(this.modules));
+    }
+
+    closeAllModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.classList.remove('active');
+        });
+    }
+
+    showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
         toastMessage.textContent = message;
-        toast.className = `toast-notification ${type}`;
-        toast.style.display = 'flex';
         
-        // Auto hide after 5 seconds
+        // Set icon based on type
+        const icon = toast.querySelector('i');
+        if (type === 'error') {
+            icon.className = 'fas fa-exclamation-circle';
+            toast.style.borderLeftColor = '#ef4444';
+        } else if (type === 'warning') {
+            icon.className = 'fas fa-exclamation-triangle';
+            toast.style.borderLeftColor = '#f59e0b';
+        } else {
+            icon.className = 'fas fa-check-circle';
+            toast.style.borderLeftColor = '#10b981';
+        }
+        
+        toast.classList.add('active');
+        
+        // Auto hide after 3 seconds
         setTimeout(() => {
-            toast.style.display = 'none';
-        }, 5000);
+            toast.classList.remove('active');
+        }, 3000);
     }
-    
-    // Get random motivational quote
-    function getRandomMotivationalQuote() {
-        const quotes = [
-            "The harder you work for something, the greater you'll feel when you achieve it.",
-            "Education is the most powerful weapon which you can use to change the world.",
-            "Your time is limited, don't waste it living someone else's life.",
-            "The beautiful thing about learning is that no one can take it away from you.",
-            "Success is the sum of small efforts, repeated day in and day out.",
-            "The expert in anything was once a beginner.",
-            "Don't let what you cannot do interfere with what you can do.",
-            "Learning is not attained by chance, it must be sought for with ardor and diligence.",
-            "The more that you read, the more things you will know. The more that you learn, the more places you'll go.",
-            "Believe you can and you're halfway there."
-        ];
-        
-        return quotes[Math.floor(Math.random() * quotes.length)];
-    }
-    
-    // Close modals when clicking outside
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
-            closeAllModals();
-        }
-    });
-    
-    // Close modals with Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeAllModals();
-        }
-    });
 }
+
+// Initialize the Progress Manager when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    new ProgressManager();
+});

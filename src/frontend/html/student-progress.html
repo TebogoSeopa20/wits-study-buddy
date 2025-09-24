@@ -12,7 +12,6 @@
     <meta property="og:type" content="website">
     <link rel="stylesheet" href="../css/landing.css">
     <link rel="stylesheet" href="../css/progress.css">
-    <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/profile.css">
     <link rel="stylesheet" href="../css/form-status.css">
 
@@ -141,70 +140,88 @@
 
         <!-- Progress Content -->
         <section class="progress-content">
-            <!-- Modules Grid -->
-            <section class="modules-grid" id="modulesGrid">
-                <!-- Modules will be dynamically inserted here -->
+            <!-- Modules Section -->
+            <section class="modules-section">
+                <h2 class="section-title"><i class="fas fa-cubes"></i> My Modules</h2>
+                <section class="modules-grid" id="modulesGrid">
+                    <!-- Modules will be dynamically added here -->
+                </section>
             </section>
-            
-            <!-- Progress Analytics -->
-            <section class="progress-analytics">
-                <article class="analytics-card">
-                    <header>
-                        <h2><i class="fas fa-chart-pie"></i> Progress Overview</h2>
-                    </header>
-                    <section class="analytics-content">
-                        <canvas id="progressChart"></canvas>
-                        <p class="progress-percentage" id="progressPercentage">0% Complete</p>
-                    </section>
-                </article>
-                
-                <article class="analytics-card">
-                    <header>
-                        <h2><i class="fas fa-clock"></i> Time Management</h2>
-                    </header>
-                    <section class="analytics-content">
-                        <canvas id="timeChart"></canvas>
-                        <p class="time-remaining" id="timeRemaining">No active milestones</p>
-                        <button id="managementAdviceBtn" class="action-btn outline" style="display: none;">
-                            <i class="fas fa-lightbulb"></i> Management Advice
-                        </button>
-                    </section>
-                </article>
+
+            <!-- Analytics Section -->
+            <section class="analytics-section">
+                <h2 class="section-title"><i class="fas fa-chart-pie"></i> Analytics</h2>
+                <section class="analytics-grid">
+                    <article class="analytics-card">
+                        <header>
+                            <h2><i class="fas fa-tasks"></i> Completion Progress</h2>
+                        </header>
+                        <section class="analytics-content">
+                            <canvas id="progressChart"></canvas>
+                            <p class="progress-percentage" id="progressPercentage">0% Complete</p>
+                            <section class="color-summary" id="completionColorSummary">
+                                <!-- Color summary for completion progress will be dynamically added here -->
+                            </section>
+                        </section>
+                    </article>
+                    
+                    <article class="analytics-card">
+                        <header>
+                            <h2><i class="fas fa-hourglass-half"></i> Time Management</h2>
+                        </header>
+                        <section class="analytics-content">
+                            <canvas id="timeChart"></canvas>
+                            <p class="time-remaining" id="timeRemaining">All milestones on track</p>
+                            <section class="color-summary" id="timeColorSummary">
+                                <!-- Color summary for time management will be dynamically added here -->
+                            </section>
+                        </section>
+                    </article>
+                </section>
             </section>
         </section>
     </main>
     
-    <!-- Add Module Modal -->
+    <!-- Add/Edit Module Modal -->
     <section id="addModuleModal" class="modal">
         <article class="modal-content">
             <header class="modal-header">
-                <h2>Add New Module</h2>
+                <h2 id="modalTitle">Add New Module</h2>
                 <button class="modal-close">&times;</button>
             </header>
             
             <form id="moduleForm" class="modal-form">
+                <input type="hidden" id="moduleId">
                 <article class="form-group">
-                    <label for="moduleName">Module Name</label>
-                    <input type="text" id="moduleName" required>
+                    <label for="moduleName">Module Name *</label>
+                    <input type="text" id="moduleName" required placeholder="e.g., Advanced Web Development">
+                </article>
+
+                <article class="form-group">
+                    <label for="moduleColor">Module Color</label>
+                    <div class="color-input-container">
+                        <input type="color" id="moduleColor" value="#4A90E2">
+                        <span id="moduleColorValue">#4A90E2</span>
+                    </div>
                 </article>
                 
                 <article class="form-group">
-                    <label for="moduleTopics">Topics (one per line)</label>
-                    <textarea id="moduleTopics" rows="5" placeholder="Enter each topic on a new line" required></textarea>
+                    <label for="moduleTopics">Topics (One per line) *</label>
+                    <textarea id="moduleTopics" rows="5" required placeholder="JavaScript Basics&#10;DOM Manipulation&#10;API Integration"></textarea>
                 </article>
                 
                 <article class="form-group">
                     <label class="checkbox-label">
                         <input type="checkbox" id="addMilestone">
                         <span class="checkmark"></span>
-                        Add Milestone
+                        Add a milestone for this module
                     </label>
                 </article>
                 
                 <section id="milestoneSection" class="form-section" style="display: none;">
                     <article class="form-group">
                         <label for="milestoneDescription">Milestone Description</label>
-                        <input type="text" id="milestoneDescription" placeholder="What do you want to achieve?">
+                        <input type="text" id="milestoneDescription" placeholder="e.g., Complete Module 1 by end of month">
                     </article>
                     
                     <article class="form-group">
@@ -222,20 +239,21 @@
                     <label class="checkbox-label">
                         <input type="checkbox" id="addReward">
                         <span class="checkmark"></span>
-                        Set a Reward
+                        Add a reward for completion
                     </label>
                 </article>
                 
                 <section id="rewardSection" class="form-section" style="display: none;">
                     <article class="form-group">
                         <label for="rewardDescription">Reward Description</label>
-                        <textarea id="rewardDescription" rows="3" placeholder="What will you reward yourself with?"></textarea>
+                        <input type="text" id="rewardDescription" placeholder="e.g., Watch a movie, Buy a book">
                     </article>
                 </section>
                 
                 <article class="form-actions">
                     <button type="button" class="action-btn outline" id="cancelModule">Cancel</button>
-                    <button type="submit" class="action-btn primary">Add Module</button>
+                    <button type="submit" class="action-btn primary" id="saveModuleBtn">Save Module</button>
+                    <button type="button" class="action-btn error" id="deleteModuleBtn" style="display: none;">Delete Module</button>
                 </article>
             </form>
         </article>
@@ -250,8 +268,14 @@
             </header>
             
             <section class="advice-content">
-                <p id="adviceText">Based on your progress, here are some tips to improve your time management:</p>
-                <ul id="adviceList"></ul>
+                <p>Based on your milestones, here are some tips to help you manage your time effectively:</p>
+                <ul id="adviceList">
+                    <li>Break down large modules into smaller, manageable tasks</li>
+                    <li>Set specific deadlines for each topic</li>
+                    <li>Use the Pomodoro technique (25 min focus, 5 min break)</li>
+                    <li>Prioritize topics based on difficulty and importance</li>
+                    <li>Review your progress at the end of each week</li>
+                </ul>
             </section>
             
             <article class="modal-actions">
