@@ -16,7 +16,6 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 // Create a new study group
-// Update the existing create endpoint to handle both types
 router.post('/groups/create', async (req, res) => {
   const {
     name,
@@ -27,10 +26,7 @@ router.post('/groups/create', async (req, res) => {
     is_private = false,
     faculty = null,
     course = null,
-    year_of_study = null,
-    scheduled_start = null,
-    scheduled_end = null,
-    meeting_times = []
+    year_of_study = null
   } = req.body;
 
   // Validation
@@ -40,132 +36,19 @@ router.post('/groups/create', async (req, res) => {
     });
   }
 
-  // Check if this is a scheduled group
-  const isScheduled = scheduled_start && scheduled_end;
-  
-  if (isScheduled) {
-    if (new Date(scheduled_start) >= new Date(scheduled_end)) {
-      return res.status(400).json({
-        error: 'scheduled_start must be before scheduled_end'
-      });
-    }
-
-    if (new Date(scheduled_start) <= new Date()) {
-      return res.status(400).json({
-        error: 'scheduled_start must be in the future'
-      });
-    }
-  }
-
-  try {
-    let data;
-    let error;
-    
-    if (isScheduled) {
-      // Use scheduled creation function
-      ({ data, error } = await supabase
-        .rpc('create_scheduled_study_group', {
-          group_name: name,
-          group_description: description || null,
-          group_subject: subject,
-          creator_user_id: creator_id,
-          schedule_start: scheduled_start,
-          schedule_end: scheduled_end,
-          meeting_times_json: meeting_times,
-          group_max_members: max_members,
-          group_is_private: is_private,
-          group_faculty: faculty,
-          group_course: course,
-          group_year_of_study: year_of_study
-        }));
-    } else {
-      // Use regular creation function
-      ({ data, error } = await supabase
-        .rpc('create_study_group', {
-          group_name: name,
-          group_description: description || null,
-          group_subject: subject,
-          creator_user_id: creator_id,
-          group_max_members: max_members,
-          group_is_private: is_private,
-          group_faculty: faculty,
-          group_course: course,
-          group_year_of_study: year_of_study
-        }));
-    }
-
-    if (error) throw error;
-
-    // Get the created group details
-    const { data: groupDetails, error: detailsError } = await supabase
-      .from('study_groups')
-      .select(`
-        *,
-        profiles!creator_id (name, email)
-      `)
-      .eq('id', data)
-      .single();
-
-    if (detailsError) throw detailsError;
-
-    res.status(201).json({
-      message: `Study group ${isScheduled ? 'scheduled' : 'created'} successfully`,
-      group: groupDetails
-    });
-  } catch (err) {
-    console.error('Error creating study group:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Add these new endpoints to your study-groups-api.js
-
-// Create scheduled study group
-router.post('/groups/create-scheduled', async (req, res) => {
-  const {
-    name,
-    description,
-    subject,
-    creator_id,
-    scheduled_start,
-    scheduled_end,
-    meeting_times = [],
-    max_members = 10,
-    is_private = false,
-    faculty = null,
-    course = null,
-    year_of_study = null
-  } = req.body;
-
-  // Validation
-  if (!name || !subject || !creator_id || !scheduled_start || !scheduled_end) {
+  if (max_members < 1 || max_members > 50) {
     return res.status(400).json({
-      error: 'name, subject, creator_id, scheduled_start, and scheduled_end are required'
-    });
-  }
-
-  if (new Date(scheduled_start) >= new Date(scheduled_end)) {
-    return res.status(400).json({
-      error: 'scheduled_start must be before scheduled_end'
-    });
-  }
-
-  if (new Date(scheduled_start) <= new Date()) {
-    return res.status(400).json({
-      error: 'scheduled_start must be in the future'
+      error: 'max_members must be between 1 and 50'
     });
   }
 
   try {
     const { data, error } = await supabase
-      .rpc('create_scheduled_study_group', {
+      .rpc('create_study_group', {
         group_name: name,
         group_description: description || null,
         group_subject: subject,
         creator_user_id: creator_id,
-        schedule_start: scheduled_start,
-        schedule_end: scheduled_end,
-        meeting_times_json: meeting_times,
         group_max_members: max_members,
         group_is_private: is_private,
         group_faculty: faculty,
@@ -188,135 +71,11 @@ router.post('/groups/create-scheduled', async (req, res) => {
     if (detailsError) throw detailsError;
 
     res.status(201).json({
-      message: 'Scheduled study group created successfully',
+      message: 'Study group created successfully',
       group: groupDetails
     });
   } catch (err) {
-    console.error('Error creating scheduled study group:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Get active scheduled groups for user
-router.get('/groups/user/:user_id/scheduled/active', async (req, res) => {
-  const { user_id } = req.params;
-
-  try {
-    const { data, error } = await supabase
-      .rpc('get_active_scheduled_groups', {}, {
-        headers: {
-          'Authorization': req.headers.authorization
-        }
-      });
-
-    if (error) throw error;
-
-    res.status(200).json({
-      groups: data || [],
-      count: data ? data.length : 0
-    });
-  } catch (err) {
-    console.error('Error fetching active scheduled groups:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Get upcoming scheduled groups
-router.get('/groups/scheduled/upcoming', async (req, res) => {
-  const { days_ahead = 7 } = req.query;
-
-  try {
-    const { data, error } = await supabase
-      .rpc('get_upcoming_scheduled_groups', {
-        days_ahead: parseInt(days_ahead)
-      });
-
-    if (error) throw error;
-
-    res.status(200).json({
-      groups: data || [],
-      count: data ? data.length : 0,
-      days_ahead: parseInt(days_ahead)
-    });
-  } catch (err) {
-    console.error('Error fetching upcoming scheduled groups:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Update group schedule
-router.patch('/groups/:group_id/schedule', async (req, res) => {
-  const { group_id } = req.params;
-  const { user_id, scheduled_start, scheduled_end, meeting_times } = req.body;
-
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
-  }
-
-  if (scheduled_start && scheduled_end && new Date(scheduled_start) >= new Date(scheduled_end)) {
-    return res.status(400).json({ error: 'scheduled_start must be before scheduled_end' });
-  }
-
-  try {
-    // Verify user is creator or admin
-    const { data: membership, error: memberError } = await supabase
-      .from('group_members')
-      .select('role')
-      .eq('group_id', group_id)
-      .eq('user_id', user_id)
-      .eq('status', 'active')
-      .single();
-
-    if (memberError || !membership || !['creator', 'admin'].includes(membership.role)) {
-      return res.status(403).json({ error: 'Only group creators and admins can update schedule' });
-    }
-
-    // Build update object
-    const updateFields = {};
-    if (scheduled_start !== undefined) updateFields.scheduled_start = scheduled_start;
-    if (scheduled_end !== undefined) updateFields.scheduled_end = scheduled_end;
-    if (meeting_times !== undefined) updateFields.meeting_times = meeting_times;
-    
-    // If both start and end are provided, mark as scheduled
-    if (scheduled_start && scheduled_end) {
-      updateFields.is_scheduled = true;
-      updateFields.status = 'scheduled'; // Reset to scheduled status
-    }
-
-    // Update group schedule
-    const { data, error } = await supabase
-      .from('study_groups')
-      .update(updateFields)
-      .eq('id', group_id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    res.status(200).json({
-      message: 'Group schedule updated successfully',
-      group: data
-    });
-  } catch (err) {
-    console.error('Error updating group schedule:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Manual trigger for schedule cleanup (for testing/admin purposes)
-router.post('/admin/update-group-schedules', async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .rpc('update_group_status_based_on_schedule');
-
-    if (error) throw error;
-
-    res.status(200).json({
-      message: 'Group schedules updated successfully',
-      success: true
-    });
-  } catch (err) {
-    console.error('Error updating group schedules:', err);
+    console.error('Error creating study group:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -825,6 +584,154 @@ router.get('/groups/:group_id/stats', async (req, res) => {
     res.status(200).json({ stats });
   } catch (err) {
     console.error('Error fetching group stats:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add this new route to study-groups-api.js for creating scheduled groups
+router.post('/groups/create-scheduled', async (req, res) => {
+  const {
+    name,
+    description,
+    subject,
+    creator_id,
+    schedule_start,
+    schedule_end,
+    meeting_times = [],
+    max_members = 10,
+    is_private = false,
+    faculty = null,
+    course = null,
+    year_of_study = null
+  } = req.body;
+
+  // Validation
+  if (!name || !subject || !creator_id || !schedule_start || !schedule_end) {
+    return res.status(400).json({
+      error: 'name, subject, creator_id, schedule_start, and schedule_end are required'
+    });
+  }
+
+  if (max_members < 1 || max_members > 50) {
+    return res.status(400).json({
+      error: 'max_members must be between 1 and 50'
+    });
+  }
+
+  // Validate schedule dates
+  const startDate = new Date(schedule_start);
+  const endDate = new Date(schedule_end);
+  
+  if (startDate >= endDate) {
+    return res.status(400).json({
+      error: 'Schedule start must be before schedule end'
+    });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .rpc('create_scheduled_study_group', {
+        group_name: name,
+        group_description: description || null,
+        group_subject: subject,
+        creator_user_id: creator_id,
+        schedule_start: schedule_start,
+        schedule_end: schedule_end,
+        meeting_times_json: JSON.stringify(meeting_times),
+        group_max_members: max_members,
+        group_is_private: is_private,
+        group_faculty: faculty,
+        group_course: course,
+        group_year_of_study: year_of_study
+      });
+
+    if (error) throw error;
+
+    // Get the created group details
+    const { data: groupDetails, error: detailsError } = await supabase
+      .from('study_groups')
+      .select(`
+        *,
+        profiles!creator_id (name, email)
+      `)
+      .eq('id', data)
+      .single();
+
+    if (detailsError) throw detailsError;
+
+    res.status(201).json({
+      message: 'Scheduled study group created successfully',
+      group: groupDetails
+    });
+  } catch (err) {
+    console.error('Error creating scheduled study group:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add route to update group schedule
+router.patch('/groups/:group_id/schedule', async (req, res) => {
+  const { group_id } = req.params;
+  const { 
+    user_id, 
+    schedule_start, 
+    schedule_end, 
+    meeting_times = [] 
+  } = req.body;
+
+  if (!user_id || !schedule_start || !schedule_end) {
+    return res.status(400).json({ 
+      error: 'user_id, schedule_start, and schedule_end are required' 
+    });
+  }
+
+  // Validate schedule dates
+  const startDate = new Date(schedule_start);
+  const endDate = new Date(schedule_end);
+  
+  if (startDate >= endDate) {
+    return res.status(400).json({
+      error: 'Schedule start must be before schedule end'
+    });
+  }
+
+  try {
+    // Verify user is creator or admin
+    const { data: membership, error: memberError } = await supabase
+      .from('group_members')
+      .select('role')
+      .eq('group_id', group_id)
+      .eq('user_id', user_id)
+      .eq('status', 'active')
+      .single();
+
+    if (memberError || !membership || !['creator', 'admin'].includes(membership.role)) {
+      return res.status(403).json({ 
+        error: 'Only group creators and admins can update group schedule' 
+      });
+    }
+
+    // Update group schedule
+    const { data, error } = await supabase
+      .from('study_groups')
+      .update({
+        scheduled_start: schedule_start,
+        scheduled_end: schedule_end,
+        meeting_times: meeting_times.join(', '), // Store as comma-separated string
+        status: 'scheduled'
+      })
+      .eq('id', group_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    res.status(200).json({
+      message: 'Group schedule updated successfully',
+      group: data
+    });
+  } catch (err) {
+    console.error('Error updating group schedule:', err);
     res.status(500).json({ error: err.message });
   }
 });

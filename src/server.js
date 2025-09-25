@@ -11,6 +11,7 @@ const connectionsApi = require('./backend/connections-api');
 const studyGroupsApi = require('./backend/study-groups-api');
 const notificationsApi = require('./backend/notifications-api');
 const groupsApi = require('./backend/external-groups-api');
+const chatApi = require('./backend/chat-api');
 
 // Create the Express application
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api', usersApi);
 app.use('/api', connectionsApi);
 app.use('/api', studyGroupsApi);
 app.use('/api', notificationsApi);
+app.use('/api', chatApi);
 app.use('/api/external', groupsApi);
 
 // Serve all static files from frontend directory
@@ -89,17 +91,16 @@ app.use((req, res, next) => {
 // Helper function to get dashboard URL by role
 function getDashboardUrlByRole(role) {
   const normalizedRole = role ? role.toLowerCase() : 'student';
-  const baseUrl = process.env.BASE_URL;
-  
+  const baseUrl = process.env.BASE_URL; // <--- This is the key!
+
   switch (normalizedRole) {
     case 'tutor':
       return `${baseUrl}/tutor-dash.html`;
     case 'student':
     default:
-      return `${baseUrl}/student-dash.html`;
+      return `${baseUrl}/Student-dash.html`; // <--- Note the case sensitivity
   }
 }
-
 
 // Google Auth Endpoints
 app.get('/auth/google', (req, res) => {

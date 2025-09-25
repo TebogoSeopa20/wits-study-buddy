@@ -116,35 +116,55 @@
                         <option value="Faculty of Commerce">Commerce</option>
                         <option value="Faculty of Humanities">Humanities</option>
                     </select>
+
+                    <!-- Tutor-specific filters (initially hidden) -->
+                    <select id="tutorCurriculumFilter" class="filter-select tutor-only" style="display: none;">
+                        <option value="">All Curriculums</option>
+                    </select>
+                    
+                    <select id="tutorSubjectFilter" class="filter-select tutor-only" style="display: none;">
+                        <option value="">All Subjects</option>
+                    </select>
+                    
+                    <select id="tutorGradeFilter" class="filter-select tutor-only" style="display: none;">
+                        <option value="">All Grades</option>
+                    </select>
                 </div>
             </div>
         </section>
 
         <!-- Connection Stats Section -->
-<!-- Connection Stats Section -->
-<section class="connection-stats" id="connectionStats">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-user-friends"></i>
-        </div>
-        <div class="stat-value" id="connectedCount">0</div>
-        <div class="stat-label">Connected</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-clock"></i>
-        </div>
-        <div class="stat-value" id="pendingCount">0</div>
-        <div class="stat-label">Pending Requests</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-users"></i>
-        </div>
-        <div class="stat-value" id="totalCount">0</div>
-        <div class="stat-label">Total Participants</div>
-    </div>
-</section>
+        <section class="connection-stats" id="connectionStats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <div class="stat-value" id="connectedCount">0</div>
+                <div class="stat-label">Connected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-value" id="pendingCount">0</div>
+                <div class="stat-label">Pending Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total Participants</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-value" id="tutorCount">3</div>
+                <div class="stat-label">Available External Tutors</div>
+            </div>
+        </section>
+
         <!-- View Toggle -->
         <div class="view-toggle">
             <button class="view-toggle-btn active" data-view="grid">
@@ -159,7 +179,6 @@
         <div class="connection-tabs">
             <button class="tab-btn active" data-tab="all">All Participants</button>
             <button class="tab-btn" data-tab="connections">My Connections</button>
-            <button class="tab-btn" data-tab="pending">Pending Requests</button>
             <button class="tab-btn" data-tab="sent">Sent Requests</button>
         </div>
 

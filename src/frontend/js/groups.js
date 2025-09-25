@@ -1,4 +1,4 @@
-// groups.js - Study Groups Management with Scheduling
+// groups.js - Study Groups Management
 document.addEventListener('DOMContentLoaded', function() {
     // API configuration
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -301,13 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
                 courseSelect.disabled = true;
             }
-            
-            // Reset scheduling fields
-            document.getElementById('groupIsScheduled').checked = false;
-            document.getElementById('scheduleStart').value = '';
-            document.getElementById('scheduleEnd').value = '';
-            document.getElementById('meetingTimes').value = '';
-            toggleScheduleFields(false);
         });
         
         closeDetailsBtn.addEventListener('click', () => {
@@ -352,20 +345,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteGroup(groupId);
             }
         });
-        
-        // Schedule toggle
-        document.getElementById('groupIsScheduled').addEventListener('change', function() {
-            toggleScheduleFields(this.checked);
-        });
-    }
-    
-    function toggleScheduleFields(show) {
-        const scheduleFields = document.getElementById('scheduleFields');
-        if (show) {
-            scheduleFields.style.display = 'block';
-        } else {
-            scheduleFields.style.display = 'none';
-        }
     }
     
     async function loadAllData() {
@@ -517,178 +496,91 @@ document.addEventListener('DOMContentLoaded', function() {
                 : createGroupCard(group);
         }).join('');
     }
+function createGroupCard(group) {
+    const isMember = userGroups.some(g => g.group_id === group.group_id);
+    const isCreator = isMember && group.user_role === 'creator';
+    const isAdmin = isMember && group.user_role === 'admin';
+    const progressPercentage = (group.member_count / group.max_members) * 100;
     
-    function createGroupCard(group) {
-        const isMember = userGroups.some(g => g.group_id === group.group_id);
-        const isCreator = isMember && group.user_role === 'creator';
-        const isAdmin = isMember && group.user_role === 'admin';
-        const progressPercentage = (group.member_count / group.max_members) * 100;
-        
-        // Determine group status based on scheduling
-        let statusBadge = '';
-        let statusClass = '';
-        let statusText = '';
-        
-        if (group.is_scheduled) {
-            const now = new Date();
-            const startDate = new Date(group.scheduled_start);
-            const endDate = new Date(group.scheduled_end);
+    return `
+        <div class="group-card" data-group-id="${group.group_id}">
+            <div class="group-header">
+                <h3 class="group-name">${group.group_name || 'Unnamed Group'}</h3>
+                <span class="group-subject">${group.subject || 'General'}</span>
+            </div>
             
-            if (now < startDate) {
-                statusBadge = `<span class="status-badge scheduled">Scheduled</span>`;
-                statusClass = 'scheduled';
-                statusText = 'Scheduled';
-            } else if (now >= startDate && now <= endDate) {
-                statusBadge = `<span class="status-badge active">Active</span>`;
-                statusClass = 'active';
-                statusText = 'Active';
-            } else {
-                statusBadge = `<span class="status-badge archived">Archived</span>`;
-                statusClass = 'archived';
-                statusText = 'Archived';
-            }
-        } else {
-            statusBadge = `<span class="status-badge ${group.status}">${group.status}</span>`;
-            statusClass = group.status;
-            statusText = group.status;
-        }
-        
-        // Parse meeting times if they exist
-        let meetingTimes = [];
-        if (group.meeting_times) {
-            try {
-                if (typeof group.meeting_times === 'string') {
-                    meetingTimes = JSON.parse(group.meeting_times);
-                } else if (Array.isArray(group.meeting_times)) {
-                    meetingTimes = group.meeting_times;
-                }
-            } catch (e) {
-                console.error('Error parsing meeting times:', e);
-                meetingTimes = [];
-            }
-        }
-        
-        return `
-            <div class="group-card ${statusClass}" data-group-id="${group.group_id}">
-                <div class="group-header">
-                    ${statusBadge}
-                    <h3 class="group-name">${group.group_name || 'Unnamed Group'}</h3>
-                    <span class="group-subject">${group.subject || 'General'}</span>
-                </div>
+            <div class="group-details">
+                <p class="group-description">${group.description || 'No description provided.'}</p>
                 
-                <div class="group-details">
-                    <p class="group-description">${group.description || 'No description provided.'}</p>
-                    
-                    ${group.is_scheduled ? `
-                        <div class="schedule-info">
-                            <div class="schedule-item">
-                                <i class="fas fa-calendar-day"></i>
-                                <span>Starts: ${formatDate(group.scheduled_start)}</span>
-                            </div>
-                            <div class="schedule-item">
-                                <i class="fas fa-calendar-check"></i>
-                                <span>Ends: ${formatDate(group.scheduled_end)}</span>
-                            </div>
-                            ${meetingTimes && meetingTimes.length > 0 ? `
-                                <div class="schedule-item">
-                                    <i class="fas fa-clock"></i>
-                                    <span>Meetings: ${meetingTimes.join(', ')}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                    
-                    <div class="group-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-university"></i>
-                            <span>${group.faculty || 'Not specified'}</span>
-                        </div>
-                        
-                        <div class="meta-item">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>${group.course || 'Not specified'}</span>
-                        </div>
-                        
-                        <div class="meta-item">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>${group.year_of_study || 'Not specified'}</span>
-                        </div>
+                <div class="group-meta">
+                    <div class="meta-item">
+                        <i class="fas fa-university"></i>
+                        <span>${group.faculty || 'Not specified'}</span>
                     </div>
                     
-                    <div class="members-info">
-                        <div class="members-count">${group.member_count} / ${group.max_members} members</div>
-                        <div class="members-progress">
-                            <div class="members-progress-bar" style="width: ${progressPercentage}%"></div>
-                        </div>
+                    <div class="meta-item">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>${group.course || 'Not specified'}</span>
+                    </div>
+                    
+                    <div class="meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>${group.year_of_study || 'Not specified'}</span>
                     </div>
                 </div>
                 
-                <div class="group-actions">
-                    ${isMember ? `
-                        <button class="action-btn primary view-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                        <button class="action-btn error leave-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-sign-out-alt"></i> Leave
-                        </button>
-                    ` : `
-                        <button class="action-btn primary join-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-user-plus"></i> Join
-                        </button>
-                        <button class="action-btn outline view-group-btn" data-group-id="${group.group_id}">
-                            <i class="fas fa-eye"></i> View
-                        </button>
-                    `}
+                <div class="members-info">
+                    <div class="members-count">${group.member_count} / ${group.max_members} members</div>
+                    <div class="members-progress">
+                        <div class="members-progress-bar" style="width: ${progressPercentage}%"></div>
+                    </div>
                 </div>
             </div>
-        `;
-    }
+            
+            <div class="group-actions">
+                ${isMember ? `
+                    <button class="action-btn primary view-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    ${isCreator ? `
+                        <button class="action-btn warning schedule-group-btn" data-group-id="${group.group_id}">
+                            <i class="fas fa-calendar-alt"></i> Schedule
+                        </button>
+                    ` : ''}
+                    <button class="action-btn error leave-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-sign-out-alt"></i> Leave
+                    </button>
+                ` : `
+                    <button class="action-btn primary join-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-user-plus"></i> Join
+                    </button>
+                    <button class="action-btn outline view-group-btn" data-group-id="${group.group_id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                `}
+            </div>
+        </div>
+    `;
+}
     
     function createGroupListItem(group) {
         const isMember = userGroups.some(g => g.group_id === group.group_id);
         const isCreator = isMember && group.user_role === 'creator';
         const isAdmin = isMember && group.user_role === 'admin';
         
-        // Determine group status based on scheduling
-        let statusBadge = '';
-        let statusClass = '';
-        
-        if (group.is_scheduled) {
-            const now = new Date();
-            const startDate = new Date(group.scheduled_start);
-            const endDate = new Date(group.scheduled_end);
-            
-            if (now < startDate) {
-                statusBadge = `<span class="status-badge scheduled">Scheduled</span>`;
-                statusClass = 'scheduled';
-            } else if (now >= startDate && now <= endDate) {
-                statusBadge = `<span class="status-badge active">Active</span>`;
-                statusClass = 'active';
-            } else {
-                statusBadge = `<span class="status-badge archived">Archived</span>`;
-                statusClass = 'archived';
-            }
-        } else {
-            statusBadge = `<span class="status-badge ${group.status}">${group.status}</span>`;
-            statusClass = group.status;
-        }
-        
         return `
-            <div class="group-list-item ${statusClass}" data-group-id="${group.group_id}">
+            <div class="group-list-item" data-group-id="${group.group_id}">
                 <div class="list-avatar">
                     ${getInitials(group.group_name || 'G')}
                 </div>
                 
                 <div class="list-details">
                     <h3 class="list-name">${group.group_name || 'Unnamed Group'}</h3>
-                    ${statusBadge}
                     <div class="list-meta">
                         <span><i class="fas fa-book"></i> ${group.subject || 'General'}</span>
                         <span><i class="fas fa-university"></i> ${group.faculty || 'Not specified'}</span>
                         <span><i class="fas fa-users"></i> ${group.member_count} members</span>
-                        ${group.is_scheduled ? `
-                            <span><i class="fas fa-calendar"></i> ${formatDate(group.scheduled_start)} - ${formatDate(group.scheduled_end)}</span>
-                        ` : ''}
+                        <span><i class="fas fa-calendar-alt"></i> ${group.year_of_study || 'Not specified'}</span>
                     </div>
                 </div>
                 
@@ -713,274 +605,780 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    function formatDate(dateString) {
-        if (!dateString) return 'Not scheduled';
+async function viewGroupDetails(groupId) {
+    try {
+        showLoading();
         
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        // Fetch group details
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (!groupResponse.ok) {
+            throw new Error(`HTTP error! status: ${groupResponse.status}`);
+        }
+        
+        const groupData = await groupResponse.json();
+        const group = groupData.group;
+        
+        // Fetch group members
+        const membersResponse = await fetch(`${API_BASE_URL}/groups/${groupId}/members`);
+        let members = [];
+        
+        if (membersResponse.ok) {
+            const membersData = await membersResponse.json();
+            members = membersData.members || [];
+        }
+        
+        // Populate modal with group details
+        document.getElementById('modalGroupName').textContent = group.name || 'Unnamed Group';
+        document.getElementById('modalGroupDescription').textContent = group.description || 'No description provided.';
+        document.getElementById('modalGroupSubject').textContent = group.subject || 'Not specified';
+        document.getElementById('modalGroupFaculty').textContent = group.faculty || 'Not specified';
+        document.getElementById('modalGroupCourse').textContent = group.course || 'Not specified';
+        document.getElementById('modalGroupYear').textContent = group.year_of_study || 'Not specified';
+        document.getElementById('modalGroupMembers').textContent = `${group.member_count || 0} / ${group.max_members || 10}`;
+        document.getElementById('modalGroupPrivacy').textContent = group.is_private ? 'Private' : 'Public';
+        
+        // Show invite code if user is member
+        const isMember = userGroups.some(g => g.group_id === groupId);
+        const inviteCodeContainer = document.getElementById('modalInviteCodeContainer');
+        if (isMember && group.invite_code) {
+            inviteCodeContainer.style.display = 'flex';
+            document.getElementById('modalGroupInviteCode').textContent = group.invite_code;
+        } else {
+            inviteCodeContainer.style.display = 'none';
+        }
+        
+        // Populate members list
+        const membersList = document.getElementById('modalMembersList');
+        membersList.innerHTML = members.map(member => `
+            <div class="member-item">
+                <div class="member-avatar">${getInitials(member.name || 'U')}</div>
+                <div class="member-info">
+                    <div class="member-name">${member.name || 'Unknown User'}</div>
+                    <div class="member-role">${member.role} • ${member.member_status}</div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Set up action buttons
+        const actionButtons = document.getElementById('modalActionButtons');
+        actionButtons.innerHTML = '';
+        
+        const userGroup = userGroups.find(g => g.group_id === groupId);
+        const isCreator = userGroup && userGroup.user_role === 'creator';
+        const isAdmin = userGroup && userGroup.user_role === 'admin';
+        const isMemberOfGroup = userGroup !== undefined;
+        
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'action-buttons-container';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '0.75rem';
+        buttonContainer.style.flexWrap = 'wrap';
+        
+        // Add Join Conversation button for group members only
+        if (isMemberOfGroup) {
+            const joinConversationBtn = document.createElement('button');
+            joinConversationBtn.className = 'btn btn-primary';
+            joinConversationBtn.id = 'joinConversationBtn';
+            joinConversationBtn.innerHTML = '<i class="fas fa-comments"></i> Join Conversation';
+            joinConversationBtn.addEventListener('click', function() {
+                // Redirect to chatroom with group context
+                window.location.href = `student-chatroom.html?group=${encodeURIComponent(groupId)}`;
+            });
+            buttonContainer.appendChild(joinConversationBtn);
+        }
+        
+        // Add Schedule Group button for creator only
+        if (isCreator) {
+            const scheduleGroupBtn = document.createElement('button');
+            scheduleGroupBtn.className = 'btn btn-warning';
+            scheduleGroupBtn.id = 'scheduleGroupBtn';
+            scheduleGroupBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Schedule Group';
+            scheduleGroupBtn.addEventListener('click', function() {
+                // Open scheduling functionality
+                scheduleGroup(groupId);
+            });
+            buttonContainer.appendChild(scheduleGroupBtn);
+        }
+        
+        // Add existing action buttons (Join/Leave/Edit/Delete)
+        if (isMemberOfGroup) {
+            if (isCreator) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-warning edit-group-btn';
+                editBtn.dataset.groupId = groupId;
+                editBtn.innerHTML = '<i class="fas fa-edit"></i> Edit';
+                buttonContainer.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-error delete-group-btn';
+                deleteBtn.dataset.groupId = groupId;
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                buttonContainer.appendChild(deleteBtn);
+            } else {
+                const leaveBtn = document.createElement('button');
+                leaveBtn.className = 'btn btn-error leave-group-btn';
+                leaveBtn.dataset.groupId = groupId;
+                leaveBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Leave Group';
+                buttonContainer.appendChild(leaveBtn);
+            }
+        } else {
+            const joinBtn = document.createElement('button');
+            joinBtn.className = 'btn btn-primary join-group-btn';
+            joinBtn.dataset.groupId = groupId;
+            joinBtn.innerHTML = '<i class="fas fa-user-plus"></i> Join Group';
+            buttonContainer.appendChild(joinBtn);
+        }
+        
+        actionButtons.appendChild(buttonContainer);
+        
+        // Open the modal
+        openModal(groupDetailsModal);
+        
+    } catch (error) {
+        console.error('Error loading group details:', error);
+        showError('Failed to load group details. Please try again.');
+    }
+}
+
+// Update the scheduleGroup function in groups.js
+// Update the scheduleGroup function in groups.js
+async function scheduleGroup(groupId) {
+    try {
+        // Fetch current group details
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const groupData = await response.json();
+        const group = groupData.group;
+        
+        // Show scheduling modal with current data
+        showScheduleGroupModal(groupId, group);
+        
+    } catch (error) {
+        console.error('Error scheduling group:', error);
+        showError('Failed to load group details for scheduling.');
+    }
+}
+
+// Add function to create scheduled group
+async function createScheduledGroup() {
+    const scheduleForm = document.getElementById('scheduleGroupForm');
+    const startInput = document.getElementById('scheduleStart');
+    const endInput = document.getElementById('scheduleEnd');
+    const meetingTimes = document.getElementById('meetingTimes');
+    
+    if (!startInput.value || !endInput.value) {
+        showError('Please provide both start and end dates.');
+        return;
     }
     
-    async function viewGroupDetails(groupId) {
-        try {
-            showLoading();
-            
-            // Fetch group details
-            const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
-            if (!groupResponse.ok) {
-                throw new Error(`HTTP error! status: ${groupResponse.status}`);
-            }
-            
+    // Validate dates
+    const startDate = new Date(startInput.value);
+    const endDate = new Date(endInput.value);
+    
+    if (startDate >= endDate) {
+        showError('Schedule start must be before end time.');
+        return;
+    }
+    
+    // Get group creation form data
+    const name = document.getElementById('groupName').value.trim();
+    const subject = document.getElementById('groupSubject').value.trim();
+    const faculty = document.getElementById('groupFaculty').value;
+    const course = document.getElementById('groupCourse').value;
+    
+    if (!name || !subject) {
+        showError('Group name and subject are required.');
+        return;
+    }
+    
+    try {
+        const groupData = {
+            name: name,
+            description: document.getElementById('groupDescription').value.trim(),
+            subject: subject,
+            creator_id: currentUser.id,
+            schedule_start: startInput.value,
+            schedule_end: endInput.value,
+            meeting_times: meetingTimes.value.split('\n').filter(time => time.trim()),
+            max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
+            is_private: document.getElementById('groupIsPrivate').checked,
+            faculty: faculty,
+            course: course,
+            year_of_study: document.getElementById('groupYear').value
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/groups/create-scheduled`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(groupData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        showSuccess(`Scheduled group "${result.group.name}" created successfully!`);
+        
+        // Close all modals
+        closeScheduleModal();
+        closeModal(createGroupModal);
+        createGroupForm.reset();
+        
+        // Reset faculty and course dropdowns
+        facultySelect.value = '';
+        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+        courseSelect.disabled = true;
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error creating scheduled group:', error);
+        showError('Failed to create scheduled group. Please try again.');
+    }
+}
+
+// Update the updateGroupSchedule function in groups.js
+async function updateGroupSchedule(groupId) {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) {
+        showError('Schedule modal not found. Please try again.');
+        return;
+    }
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    
+    if (!startInput || !endInput) {
+        showError('Schedule form elements not found. Please try again.');
+        return;
+    }
+    
+    if (!startInput.value || !endInput.value) {
+        showError('Please provide both start and end dates.');
+        return;
+    }
+    
+    // Validate dates
+    const startDate = new Date(startInput.value);
+    const endDate = new Date(endInput.value);
+    
+    if (startDate >= endDate) {
+        showError('Schedule start must be before end time.');
+        return;
+    }
+    
+    try {
+        const scheduleData = {
+            user_id: currentUser.id,
+            schedule_start: startInput.value,
+            schedule_end: endInput.value,
+            meeting_times: meetingTimes.value.split('\n').filter(time => time.trim())
+        };
+        
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/schedule`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(scheduleData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        showSuccess('Group schedule updated successfully!');
+        
+        // Close modal and reload group details
+        closeScheduleModal();
+        
+        // Reload data to reflect changes
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error updating group schedule:', error);
+        showError('Failed to update group schedule. Please try again.');
+    }
+}
+
+function showCreateSchedulingModal(group) {
+    // Create a scheduling modal or redirect to calendar
+    showToast('Opening scheduling interface...', 'info');
+    
+    // Redirect to calendar with group pre-selected for scheduling
+    setTimeout(() => {
+        window.location.href = `student-calendar.html?scheduleGroup=${encodeURIComponent(group.group_id)}&groupName=${encodeURIComponent(group.name)}`;
+    }, 1000);
+}
+
+function showSchedulingModal(group) {
+    // Show existing schedule and allow editing
+    const scheduleInfo = `
+        <div class="schedule-info">
+            <h4>Current Schedule</h4>
+            <p><strong>Start:</strong> ${new Date(group.scheduled_start).toLocaleString()}</p>
+            <p><strong>End:</strong> ${new Date(group.scheduled_end).toLocaleString()}</p>
+            ${group.meeting_times ? `<p><strong>Meeting Times:</strong> ${group.meeting_times}</p>` : ''}
+        </div>
+    `;
+    
+    // You can create a more sophisticated modal here for editing the schedule
+    showToast('Group is already scheduled. Redirecting to calendar for editing...', 'info');
+    
+    setTimeout(() => {
+        window.location.href = `student-calendar.html?editSchedule=${encodeURIComponent(group.group_id)}`;
+    }, 1500);
+}
+
+
+// Add this function to handle the scheduling modal
+function showScheduleGroupModal(groupId, groupData = null) {
+    // Create scheduling modal HTML
+    const modalHTML = `
+        <div class="modal active" id="scheduleGroupModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>${groupData ? 'Update Group Schedule' : 'Schedule Study Group'}</h2>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="scheduleGroupForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="scheduleStart">Start Date & Time *</label>
+                                <input type="datetime-local" id="scheduleStart" required 
+                                    value="${groupData?.scheduled_start ? formatDateTimeForInput(groupData.scheduled_start) : ''}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="scheduleEnd">End Date & Time *</label>
+                                <input type="datetime-local" id="scheduleEnd" required
+                                    value="${groupData?.scheduled_end ? formatDateTimeForInput(groupData.scheduled_end) : ''}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="meetingTimes">Regular Meeting Times</label>
+                            <textarea id="meetingTimes" placeholder="e.g., Monday 2pm-4pm, Wednesday 3pm-5pm&#10;Friday 10am-12pm" 
+                                rows="3">${groupData?.meeting_times || ''}</textarea>
+                            <small>Enter each meeting time on a new line. Include day, time, and duration.</small>
+                        </div>
+                        
+                        <div class="schedule-preview" id="schedulePreview" style="display: none;">
+                            <h4>Schedule Preview</h4>
+                            <div id="previewContent"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="cancelScheduleBtn">Cancel</button>
+                    <button class="btn btn-primary" id="confirmScheduleBtn">
+                        ${groupData ? 'Update Schedule' : 'Create Scheduled Group'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Set up event listeners
+    setupScheduleModalEvents(groupId, groupData);
+}
+
+// Helper function to format datetime for input field
+function formatDateTimeForInput(dateTimeString) {
+    const date = new Date(dateTimeString);
+    return date.toISOString().slice(0, 16);
+}
+
+function setupScheduleModalEvents(groupId, groupData) {
+    const modal = document.getElementById('scheduleGroupModal');
+    const closeBtn = modal.querySelector('.modal-close');
+    const cancelBtn = modal.querySelector('#cancelScheduleBtn');
+    const confirmBtn = modal.querySelector('#confirmScheduleBtn');
+    const scheduleForm = modal.querySelector('#scheduleGroupForm');
+    
+    // Close modal events
+    closeBtn.addEventListener('click', closeScheduleModal);
+    cancelBtn.addEventListener('click', closeScheduleModal);
+    
+    // Confirm schedule event - differentiate between create and update
+    confirmBtn.addEventListener('click', () => {
+        if (groupData) {
+            // This is an existing group - update the schedule
+            updateGroupSchedule(groupId);
+        } else {
+            // This is a new group being created - use the existing create flow
+            createScheduledGroup();
+        }
+    });
+    
+    // Real-time validation and preview
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    
+    [startInput, endInput].forEach(input => {
+        input.addEventListener('change', validateSchedule);
+        input.addEventListener('input', validateSchedule);
+    });
+    
+    // Also validate meeting times changes
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    if (meetingTimes) {
+        meetingTimes.addEventListener('input', updateSchedulePreview);
+    }
+    
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeScheduleModal();
+        }
+    });
+    
+    // Initial validation
+    setTimeout(validateSchedule, 100);
+}
+
+function validateSchedule() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) return;
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const confirmBtn = modal.querySelector('#confirmScheduleBtn');
+    
+    if (!startInput || !endInput || !confirmBtn) return;
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        if (startDate >= endDate) {
+            confirmBtn.disabled = true;
+            showToast('Schedule start must be before end time', 'error');
+        } else {
+            confirmBtn.disabled = false;
+            updateSchedulePreview();
+        }
+    } else {
+        confirmBtn.disabled = true;
+    }
+}
+
+function updateSchedulePreview() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) return;
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    const preview = modal.querySelector('#schedulePreview');
+    const previewContent = modal.querySelector('#previewContent');
+    
+    if (!startInput || !endInput || !preview || !previewContent) return;
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        const duration = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+        
+        previewContent.innerHTML = `
+            <p><strong>Duration:</strong> ${duration} days</p>
+            <p><strong>Starts:</strong> ${startDate.toLocaleString()}</p>
+            <p><strong>Ends:</strong> ${endDate.toLocaleString()}</p>
+            ${meetingTimes.value ? `<p><strong>Regular Meetings:</strong> ${meetingTimes.value.replace(/\n/g, ', ')}</p>` : ''}
+        `;
+        
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+function updateSchedulePreview() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (!modal) return;
+    
+    const startInput = modal.querySelector('#scheduleStart');
+    const endInput = modal.querySelector('#scheduleEnd');
+    const meetingTimes = modal.querySelector('#meetingTimes');
+    const preview = modal.querySelector('#schedulePreview');
+    const previewContent = modal.querySelector('#previewContent');
+    
+    if (!startInput || !endInput || !preview || !previewContent) return;
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        const duration = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+        
+        previewContent.innerHTML = `
+            <p><strong>Duration:</strong> ${duration} days</p>
+            <p><strong>Starts:</strong> ${startDate.toLocaleString()}</p>
+            <p><strong>Ends:</strong> ${endDate.toLocaleString()}</p>
+            ${meetingTimes.value ? `<p><strong>Regular Meetings:</strong> ${meetingTimes.value.replace(/\n/g, ', ')}</p>` : ''}
+        `;
+        
+        preview.style.display = 'block';
+    }
+}
+
+function updateSchedulePreview() {
+    const startInput = document.getElementById('scheduleStart');
+    const endInput = document.getElementById('scheduleEnd');
+    const meetingTimes = document.getElementById('meetingTimes');
+    const preview = document.getElementById('schedulePreview');
+    const previewContent = document.getElementById('previewContent');
+    
+    if (startInput.value && endInput.value) {
+        const startDate = new Date(startInput.value);
+        const endDate = new Date(endInput.value);
+        
+        const duration = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+        
+        previewContent.innerHTML = `
+            <p><strong>Duration:</strong> ${duration} days</p>
+            <p><strong>Starts:</strong> ${startDate.toLocaleString()}</p>
+            <p><strong>Ends:</strong> ${endDate.toLocaleString()}</p>
+            ${meetingTimes.value ? `<p><strong>Regular Meetings:</strong> ${meetingTimes.value.replace(/\n/g, ', ')}</p>` : ''}
+        `;
+        
+        preview.style.display = 'block';
+    }
+}
+
+function closeScheduleModal() {
+    const modal = document.getElementById('scheduleGroupModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+    
+// Add this function to groups.js
+async function createNotification(notificationData) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/notifications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notificationData)
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error creating notification:', error);
+        return false;
+    }
+}
+
+// Update the joinGroup function to create a notification for group admins
+async function joinGroup(groupId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: currentUser.id
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Get group details to notify admins
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (groupResponse.ok) {
             const groupData = await groupResponse.json();
             const group = groupData.group;
             
-            // Fetch group members
+            // Get group admins
             const membersResponse = await fetch(`${API_BASE_URL}/groups/${groupId}/members`);
-            let members = [];
-            
             if (membersResponse.ok) {
                 const membersData = await membersResponse.json();
-                members = membersData.members || [];
-            }
-            
-            // Populate modal with group details
-            document.getElementById('modalGroupName').textContent = group.name || 'Unnamed Group';
-            document.getElementById('modalGroupDescription').textContent = group.description || 'No description provided.';
-            document.getElementById('modalGroupSubject').textContent = group.subject || 'Not specified';
-            document.getElementById('modalGroupFaculty').textContent = group.faculty || 'Not specified';
-            document.getElementById('modalGroupCourse').textContent = group.course || 'Not specified';
-            document.getElementById('modalGroupYear').textContent = group.year_of_study || 'Not specified';
-            document.getElementById('modalGroupMembers').textContent = `${group.member_count || 0} / ${group.max_members || 10}`;
-            document.getElementById('modalGroupPrivacy').textContent = group.is_private ? 'Private' : 'Public';
-            
-            // Parse meeting times if they exist
-            let meetingTimes = [];
-            if (group.meeting_times) {
-                try {
-                    if (typeof group.meeting_times === 'string') {
-                        meetingTimes = JSON.parse(group.meeting_times);
-                    } else if (Array.isArray(group.meeting_times)) {
-                        meetingTimes = group.meeting_times;
-                    }
-                } catch (e) {
-                    console.error('Error parsing meeting times:', e);
-                    meetingTimes = [];
+                const admins = membersData.members.filter(m => m.role === 'admin' || m.role === 'creator');
+                const adminIds = admins.map(a => a.user_id).filter(id => id !== currentUser.id);
+                
+                // Notify admins about new member
+                if (adminIds.length > 0) {
+                    await fetch(`${API_BASE_URL}/notifications/group-member-joined`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sender_id: currentUser.id,
+                            group_id: groupId,
+                            group_name: group.name,
+                            admin_user_ids: adminIds
+                        })
+                    });
                 }
             }
-            
-            // Show scheduling info if available
-            const scheduleStartItem = document.getElementById('modalScheduleStart');
-            const scheduleEndItem = document.getElementById('modalScheduleEnd');
-            const meetingTimesItem = document.getElementById('modalMeetingTimes');
-            
-            if (group.is_scheduled) {
-                scheduleStartItem.style.display = 'flex';
-                scheduleEndItem.style.display = 'flex';
-                document.getElementById('modalGroupStartDate').textContent = formatDate(group.scheduled_start);
-                document.getElementById('modalGroupEndDate').textContent = formatDate(group.scheduled_end);
-                
-                if (meetingTimes && meetingTimes.length > 0) {
-                    meetingTimesItem.style.display = 'flex';
-                    document.getElementById('modalGroupMeetingTimes').textContent = meetingTimes.join(', ');
-                } else {
-                    meetingTimesItem.style.display = 'none';
-                }
-                
-                // Determine current status
-                const now = new Date();
-                const startDate = new Date(group.scheduled_start);
-                const endDate = new Date(group.scheduled_end);
-                
-                let statusText = '';
-                if (now < startDate) {
-                    statusText = 'Scheduled';
-                } else if (now >= startDate && now <= endDate) {
-                    statusText = 'Active';
-                } else {
-                    statusText = 'Archived';
-                }
-                
-                document.getElementById('modalGroupStatus').textContent = statusText;
-            } else {
-                scheduleStartItem.style.display = 'none';
-                scheduleEndItem.style.display = 'none';
-                meetingTimesItem.style.display = 'none';
-                document.getElementById('modalGroupStatus').textContent = group.status;
-            }
-            
-            // Show invite code if user is member
-            const isMember = userGroups.some(g => g.group_id === groupId);
-            const inviteCodeContainer = document.getElementById('modalInviteCodeContainer');
-            if (isMember && group.invite_code) {
-                inviteCodeContainer.style.display = 'flex';
-                document.getElementById('modalGroupInviteCode').textContent = group.invite_code;
-            } else {
-                inviteCodeContainer.style.display = 'none';
-            }
-            
-            // Populate members list
-            const membersList = document.getElementById('modalMembersList');
-            membersList.innerHTML = members.map(member => `
-                <div class="member-item">
-                    <div class="member-avatar">${getInitials(member.name || 'U')}</div>
-                    <div class="member-info">
-                        <div class="member-name">${member.name || 'Unknown User'}</div>
-                        <div class="member-role">${member.role} • ${member.member_status}</div>
-                    </div>
-                </div>
-            `).join('');
-            
-            // Set up action buttons
-            const actionButtons = document.getElementById('modalActionButtons');
-            actionButtons.innerHTML = '';
-            
-            const userGroup = userGroups.find(g => g.group_id === groupId);
-            const isCreator = userGroup && userGroup.user_role === 'creator';
-            const isAdmin = userGroup && userGroup.user_role === 'admin';
-            const isMemberOfGroup = userGroup !== undefined;
-            
-            if (isMemberOfGroup) {
-                if (isCreator) {
-                    actionButtons.innerHTML = `
-                        <button class="btn btn-warning edit-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="btn btn-error delete-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    `;
-                } else {
-                    actionButtons.innerHTML = `
-                        <button class="btn btn-error leave-group-btn" data-group-id="${groupId}">
-                            <i class="fas fa-sign-out-alt"></i> Leave Group
-                        </button>
-                    `;
-                }
-            } else {
-                actionButtons.innerHTML = `
-                    <button class="btn btn-primary join-group-btn" data-group-id="${groupId}">
-                        <i class="fas fa-user-plus"></i> Join Group
-                    </button>
-                `;
-            }
-            
-            // Open the modal
-            openModal(groupDetailsModal);
-            
-        } catch (error) {
-            console.error('Error loading group details:', error);
-            showError('Failed to load group details. Please try again.');
         }
+        
+        showSuccess(`Successfully joined the group!`);
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error joining group:', error);
+        showError('Failed to join group. Please try again.');
+    }
+}
+
+// Update the createGroup function to notify invited members
+async function createGroup() {
+    const formData = new FormData(createGroupForm);
+    const name = document.getElementById('groupName').value.trim();
+    const subject = document.getElementById('groupSubject').value.trim();
+    const faculty = document.getElementById('groupFaculty').value;
+    const course = document.getElementById('groupCourse').value;
+    
+    if (!name || !subject) {
+        showError('Group name and subject are required.');
+        return;
     }
     
-    async function createGroup() {
-        const name = document.getElementById('groupName').value.trim();
-        const subject = document.getElementById('groupSubject').value.trim();
-        const faculty = document.getElementById('groupFaculty').value;
-        const course = document.getElementById('groupCourse').value;
-        const isScheduled = document.getElementById('groupIsScheduled').checked;
+    if (faculty && !course) {
+        showError('Please select a course for the selected faculty.');
+        return;
+    }
+    
+    try {
+        const groupData = {
+            name: name,
+            description: document.getElementById('groupDescription').value.trim(),
+            subject: subject,
+            creator_id: currentUser.id,
+            max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
+            is_private: document.getElementById('groupIsPrivate').checked,
+            faculty: faculty,
+            course: course,
+            year_of_study: document.getElementById('groupYear').value
+        };
         
-        if (!name || !subject) {
-            showError('Group name and subject are required.');
-            return;
+        const response = await fetch(`${API_BASE_URL}/groups/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(groupData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        if (faculty && !course) {
-            showError('Please select a course for the selected faculty.');
-            return;
-        }
+        const result = await response.json();
         
-        if (isScheduled) {
-            const startDate = document.getElementById('scheduleStart').value;
-            const endDate = document.getElementById('scheduleEnd').value;
-            
-            if (!startDate || !endDate) {
-                showError('Start and end dates are required for scheduled groups.');
-                return;
-            }
-            
-            if (new Date(startDate) >= new Date(endDate)) {
-                showError('End date must be after start date.');
-                return;
-            }
-            
-            if (new Date(startDate) <= new Date()) {
-                showError('Start date must be in the future.');
-                return;
-            }
-        }
-        
-        try {
-            const groupData = {
-                name: name,
-                description: document.getElementById('groupDescription').value.trim(),
-                subject: subject,
-                creator_id: currentUser.id,
-                max_members: parseInt(document.getElementById('groupMaxMembers').value) || 10,
-                is_private: document.getElementById('groupIsPrivate').checked,
-                faculty: faculty,
-                course: course,
-                year_of_study: document.getElementById('groupYear').value
-            };
-            
-            // Add scheduling data if applicable
-            if (isScheduled) {
-                groupData.scheduled_start = document.getElementById('scheduleStart').value;
-                groupData.scheduled_end = document.getElementById('scheduleEnd').value;
+        // If there are invited members, send them notifications
+        const invitedMembersInput = document.getElementById('invitedMembers');
+        if (invitedMembersInput && invitedMembersInput.value) {
+            try {
+                const invitedEmails = invitedMembersInput.value.split(',').map(email => email.trim());
                 
-                const meetingTimes = document.getElementById('meetingTimes').value;
-                if (meetingTimes) {
-                    groupData.meeting_times = meetingTimes.split(',').map(time => time.trim());
+                // For each invited email, find the user and send notification
+                for (const email of invitedEmails) {
+                    const userResponse = await fetch(`${API_BASE_URL}/profiles/email/${encodeURIComponent(email)}`);
+                    if (userResponse.ok) {
+                        const userData = await userResponse.json();
+                        
+                        await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                sender_id: currentUser.id,
+                                target_user_id: userData.user_id,
+                                group_id: result.group.id,
+                                group_name: result.group.name,
+                                invite_code: result.group.invite_code
+                            })
+                        });
+                    }
                 }
+            } catch (error) {
+                console.error('Error sending invitations:', error);
+                // Continue even if invitations fail
             }
-            
-            const endpoint = isScheduled ? `${API_BASE_URL}/groups/create-scheduled` : `${API_BASE_URL}/groups/create`;
-            
-            const response = await fetch(endpoint, {
+        }
+        
+        showSuccess(`Group "${result.group.name}" created successfully!`);
+        
+        // Close modal and reset form
+        closeModal(createGroupModal);
+        createGroupForm.reset();
+        
+        // Reset faculty and course dropdowns
+        facultySelect.value = '';
+        courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
+        courseSelect.disabled = true;
+        
+        // Reload data
+        await loadAllData();
+        
+    } catch (error) {
+        console.error('Error creating group:', error);
+        showError('Failed to create group. Please try again.');
+    }
+}
+
+// Add this function to handle group invitations
+async function inviteToGroup(groupId, userIds) {
+    try {
+        const groupResponse = await fetch(`${API_BASE_URL}/groups/${groupId}`);
+        if (!groupResponse.ok) {
+            throw new Error(`HTTP error! status: ${groupResponse.status}`);
+        }
+        
+        const groupData = await groupResponse.json();
+        const group = groupData.group;
+        
+        for (const userId of userIds) {
+            await fetch(`${API_BASE_URL}/notifications/group-invitation`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(groupData)
+                body: JSON.stringify({
+                    sender_id: currentUser.id,
+                    target_user_id: userId,
+                    group_id: groupId,
+                    group_name: group.name,
+                    invite_code: group.invite_code
+                })
             });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            showSuccess(`Group "${result.group.name}" created successfully!`);
-            
-            // Close modal and reset form
-            closeModal(createGroupModal);
-            createGroupForm.reset();
-            
-            // Reset faculty and course dropdowns
-            facultySelect.value = '';
-            courseSelect.innerHTML = '<option value="">Select Faculty first</option>';
-            courseSelect.disabled = true;
-            
-            // Reset scheduling fields
-            document.getElementById('groupIsScheduled').checked = false;
-            document.getElementById('scheduleStart').value = '';
-            document.getElementById('scheduleEnd').value = '';
-            document.getElementById('meetingTimes').value = '';
-            toggleScheduleFields(false);
-            
-            // Reload data
-            await loadAllData();
-            
-        } catch (error) {
-            console.error('Error creating group:', error);
-            showError('Failed to create group. Please try again.');
         }
+        
+        return true;
+    } catch (error) {
+        console.error('Error sending group invitations:', error);
+        return false;
     }
+}
     
     async function joinGroupByCode() {
         const inviteCode = inviteCodeInput.value.trim();
@@ -1003,15 +1401,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to join group');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
+            showSuccess(`Successfully joined ${result.group_name}!`);
             
-            showSuccess(`Successfully joined group "${result.group.name}"!`);
-            
-            // Close modal and reset input
+            // Close modal and clear input
             closeModal(joinByCodeModal);
             inviteCodeInput.value = '';
             
@@ -1019,37 +1415,8 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadAllData();
             
         } catch (error) {
-            console.error('Error joining group:', error);
-            showError(error.message || 'Failed to join group. Please check the invite code and try again.');
-        }
-    }
-    
-    async function joinGroup(groupId) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user_id: currentUser.id
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            
-            showSuccess(`Successfully joined group!`);
-            
-            // Reload data
-            await loadAllData();
-            
-        } catch (error) {
-            console.error('Error joining group:', error);
-            showError('Failed to join group. Please try again.');
+            console.error('Error joining group by code:', error);
+            showError('Failed to join group. Please check the invite code and try again.');
         }
     }
     
@@ -1073,10 +1440,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            showSuccess('Successfully left the group.');
+            const result = await response.json();
+            showSuccess('You have left the group.');
             
             // Reload data
             await loadAllData();
+            
+            // Close details modal if open
+            closeModal(groupDetailsModal);
             
         } catch (error) {
             console.error('Error leaving group:', error);
@@ -1084,9 +1455,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+
+
+    
     async function editGroup(groupId) {
         // Implementation for editing a group
-        showInfo('Edit group functionality will be implemented soon.');
+        showError('Edit group functionality is not yet implemented.');
     }
     
     async function deleteGroup(groupId) {
@@ -1096,20 +1470,27 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const response = await fetch(`${API_BASE_URL}/groups/${groupId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: currentUser.id
+                })
             });
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
+            const result = await response.json();
             showSuccess('Group deleted successfully.');
-            
-            // Close modal if open
-            closeModal(groupDetailsModal);
             
             // Reload data
             await loadAllData();
+            
+            // Close details modal
+            closeModal(groupDetailsModal);
             
         } catch (error) {
             console.error('Error deleting group:', error);
@@ -1120,15 +1501,80 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateStats() {
         // Calculate stats
         const totalGroups = publicGroups.length;
-        const myGroupsCount = userGroups.length;
-        const ownedGroupsCount = userGroups.filter(g => g.user_role === 'creator').length;
+        const myGroups = userGroups.length;
+        const ownedGroups = userGroups.filter(g => g.user_role === 'creator').length;
         const totalMembers = userGroups.reduce((sum, group) => sum + group.member_count, 0);
         
         // Update DOM
-        if (totalGroupsEl) totalGroupsEl.textContent = totalGroups;
-        if (myGroupsEl) myGroupsEl.textContent = myGroupsCount;
-        if (ownedGroupsEl) ownedGroupsEl.textContent = ownedGroupsCount;
-        if (totalMembersEl) totalMembersEl.textContent = totalMembers;
+        totalGroupsEl.textContent = totalGroups;
+        myGroupsEl.textContent = myGroups;
+        ownedGroupsEl.textContent = ownedGroups;
+        totalMembersEl.textContent = totalMembers;
+        
+        // Animate the stats update
+        animateValue(totalGroupsEl, 0, totalGroups, 1000);
+        animateValue(myGroupsEl, 0, myGroups, 1000);
+        animateValue(ownedGroupsEl, 0, ownedGroups, 1000);
+        animateValue(totalMembersEl, 0, totalMembers, 1000);
+    }
+    
+    function showLoading() {
+        groupsGrid.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading groups...</p>
+            </div>
+        `;
+    }
+    
+    function showError(message) {
+        // Create a toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification error';
+        toast.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Add close button functionality
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
+        });
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+    
+    function showSuccess(message) {
+        // Create a toast notification
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification success';
+        toast.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>${message}</span>
+            <button class="toast-close">&times;</button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Add close button functionality
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.remove();
+        });
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 3000);
     }
     
     function showEmptyState() {
@@ -1136,8 +1582,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="empty-state">
                 <i class="fas fa-users"></i>
                 <h3>No groups found</h3>
-                <p>Try adjusting your search or filters, or create a new group.</p>
-                ${currentTab === 'my-groups' ? `
+                <p>${currentTab === 'my-groups' 
+                    ? 'You haven\'t joined any groups yet. Join a group or create your own to get started!' 
+                    : 'No groups match your search criteria. Try adjusting your filters.'}</p>
+                ${currentTab !== 'my-groups' ? `
                     <button class="btn btn-primary" id="createFirstGroupBtn">
                         <i class="fas fa-plus"></i> Create Your First Group
                     </button>
@@ -1145,8 +1593,10 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        if (currentTab === 'my-groups') {
-            document.getElementById('createFirstGroupBtn').addEventListener('click', () => {
+        // Add event listener to create button if it exists
+        const createBtn = document.getElementById('createFirstGroupBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', () => {
                 openModal(createGroupModal);
             });
         }
@@ -1169,122 +1619,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getInitials(name) {
+        if (!name) return 'G';
+        
         return name.split(' ')
-            .map(word => word.charAt(0))
+            .map(part => part.charAt(0))
             .join('')
             .toUpperCase()
             .substring(0, 2);
     }
     
-    function showLoading() {
-        // Implementation for showing loading state
-        groupsGrid.innerHTML = `
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <p>Loading groups...</p>
-            </div>
-        `;
+    function animateValue(element, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            element.textContent = value;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
     }
-    
-    function showError(message) {
-        // Implementation for showing error message
-        const notification = document.createElement('div');
-        notification.className = 'notification error';
-        notification.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-            <button class="notification-close">&times;</button>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
-        
-        // Close button
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        });
-    }
-    
-    function showSuccess(message) {
-        // Implementation for showing success message
-        const notification = document.createElement('div');
-        notification.className = 'notification success';
-        notification.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>${message}</span>
-            <button class="notification-close">&times;</button>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
-        
-        // Close button
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        });
-    }
-    
-    function showInfo(message) {
-        // Implementation for showing info message
-        const notification = document.createElement('div');
-        notification.className = 'notification info';
-        notification.innerHTML = `
-            <i class="fas fa-info-circle"></i>
-            <span>${message}</span>
-            <button class="notification-close">&times;</button>
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
-        
-        // Close button
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.classList.add('fade-out');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        });
-    }
-    
+    // Utility function for debouncing
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -1296,4 +1653,65 @@ document.addEventListener('DOMContentLoaded', function() {
             timeout = setTimeout(later, wait);
         };
     }
+    
+    // Add toast notification styles
+    const toastStyles = document.createElement('style');
+    toastStyles.textContent = `
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            max-width: 350px;
+        }
+        
+        .toast-notification.success {
+            border-left: 4px solid var(--study-success);
+        }
+        
+        .toast-notification.error {
+            border-left: 4px solid var(--study-error);
+        }
+        
+        .toast-notification i {
+            font-size: 1.25rem;
+        }
+        
+        .toast-notification.success i {
+            color: var(--study-success);
+        }
+        
+        .toast-notification.error i {
+            color: var(--study-error);
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-left: auto;
+            color: var(--study-muted);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(toastStyles);
 });
