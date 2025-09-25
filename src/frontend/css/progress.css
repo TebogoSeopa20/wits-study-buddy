@@ -891,3 +891,13 @@
         margin: 1rem;
     }
 }
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px; /* Optional: Adds space between items */
+}
+
+.box {
+  border: 1px solid #ccc;
+  padding: 10px;
+}
