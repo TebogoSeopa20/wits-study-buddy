@@ -457,92 +457,92 @@
             </div>
         </div>
 
-        <!-- Group Details Modal -->
-        <div class="modal" id="groupDetailsModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="modalGroupName">Group Name</h2>
-                    <button class="modal-close">&times;</button>
+<!-- Group Details Modal -->
+<div class="modal" id="groupDetailsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalGroupName">Group Name</h2>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="group-details">
+                <div class="detail-item">
+                    <label>Description:</label>
+                    <p id="modalGroupDescription">No description provided.</p>
                 </div>
-                <div class="modal-body">
-                    <div class="group-details">
-                        <div class="detail-item">
-                            <label>Description:</label>
-                            <p id="modalGroupDescription">No description provided.</p>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <label>Subject:</label>
-                            <p id="modalGroupSubject">Not specified</p>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <label>Faculty:</label>
-                            <p id="modalGroupFaculty">Not specified</p>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <label>Course:</label>
-                            <p id="modalGroupCourse">Not specified</p>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <label>Year of Study:</label>
-                            <p id="modalGroupYear">Not specified</p>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <label>Members:</label>
-                            <p id="modalGroupMembers">0 / 10</p>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <label>Privacy:</label>
-                            <p id="modalGroupPrivacy">Public</p>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <label>Status:</label>
-                            <p id="modalGroupStatus">Active</p>
-                        </div>
-                        
-                        <!-- Scheduling details -->
-                        <div class="detail-item" id="modalScheduleStart" style="display: none;">
-                            <label>Start Date:</label>
-                            <p id="modalGroupStartDate">Not scheduled</p>
-                        </div>
-                        
-                        <div class="detail-item" id="modalScheduleEnd" style="display: none;">
-                            <label>End Date:</label>
-                            <p id="modalGroupEndDate">Not scheduled</p>
-                        </div>
-                        
-                        <div class="detail-item" id="modalMeetingTimes" style="display: none;">
-                            <label>Meeting Times:</label>
-                            <p id="modalGroupMeetingTimes">Not specified</p>
-                        </div>
-                        
-                        <div class="detail-item" id="modalInviteCodeContainer">
-                            <label>Invite Code:</label>
-                            <p id="modalGroupInviteCode">Not available</p>
-                        </div>
-                    </div>
-                    
-                    <div class="members-section">
-                        <h3>Group Members</h3>
-                        <div class="members-list" id="modalMembersList">
-                            <!-- Members will be loaded here -->
-                        </div>
-                    </div>
+                
+                <div class="detail-item">
+                    <label>Subject:</label>
+                    <p id="modalGroupSubject">Not specified</p>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-outline" id="closeDetailsBtn">Close</button>
-                    <div class="action-buttons" id="modalActionButtons">
-                        <!-- Dynamic action buttons will be added here -->
-                    </div>
+                
+                <div class="detail-item">
+                    <label>Faculty:</label>
+                    <p id="modalGroupFaculty">Not specified</p>
+                </div>
+                
+                <div class="detail-item">
+                    <label>Course:</label>
+                    <p id="modalGroupCourse">Not specified</p>
+                </div>
+                
+                <div class="detail-item">
+                    <label>Year of Study:</label>
+                    <p id="modalGroupYear">Not specified</p>
+                </div>
+                
+                <div class="detail-item">
+                    <label>Members:</label>
+                    <p id="modalGroupMembers">0 / 10</p>
+                </div>
+                
+                <div class="detail-item">
+                    <label>Privacy:</label>
+                    <p id="modalGroupPrivacy">Public</p>
+                </div>
+                
+                <div class="detail-item">
+                    <label>Status:</label>
+                    <p id="modalGroupStatus">Active</p>
+                </div>
+                
+                <!-- Scheduling details -->
+                <div class="detail-item" id="modalScheduleStart" style="display: none;">
+                    <label>Start Date:</label>
+                    <p id="modalGroupStartDate">Not scheduled</p>
+                </div>
+                
+                <div class="detail-item" id="modalScheduleEnd" style="display: none;">
+                    <label>End Date:</label>
+                    <p id="modalGroupEndDate">Not scheduled</p>
+                </div>
+                
+                <div class="detail-item" id="modalMeetingTimes" style="display: none;">
+                    <label>Meeting Times:</label>
+                    <p id="modalGroupMeetingTimes">Not specified</p>
+                </div>
+                
+                <div class="detail-item" id="modalInviteCodeContainer">
+                    <label>Invite Code:</label>
+                    <p id="modalGroupInviteCode">Not available</p>
+                </div>
+            </div>
+            
+            <div class="members-section">
+                <h3>Group Members</h3>
+                <div class="members-list" id="modalMembersList">
+                    <!-- Members will be loaded here -->
                 </div>
             </div>
         </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" id="closeDetailsBtn">Close</button>
+            <div class="action-buttons" id="modalActionButtons">
+                <!-- Dynamic action buttons will be added here -->
+            </div>
+        </div>
+    </div>
+</div>
     </main>
 
     <!-- Footer -->
