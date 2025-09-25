@@ -16,3 +16,5 @@
 ### npm start
 ## How to run the tests locally
 ### npm run test
+
+### npm install multer
