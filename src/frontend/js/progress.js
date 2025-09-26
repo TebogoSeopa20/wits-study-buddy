@@ -65,6 +65,9 @@ class ProgressManager {
         // Add module button
         document.getElementById('addModuleBtn').addEventListener('click', () => this.showAddModuleModal());
         
+        // Export PDF button
+        document.getElementById('exportPdfBtn').addEventListener('click', () => this.exportToPDF());
+        
         // Search functionality
         document.getElementById('progressSearch').addEventListener('input', (e) => this.handleSearch(e.target.value));
         
@@ -628,79 +631,140 @@ class ProgressManager {
         const toastMessage = document.getElementById('toastMessage');
         
         toastMessage.textContent = message;
-        toast.classList.add('active');
+        toast.className = `toast-notification ${type}`;
+        toast.classList.add('show');
 
-        // Auto-hide after 3 seconds
         setTimeout(() => {
             this.hideToast();
         }, 3000);
     }
 
     hideToast() {
-        document.getElementById('toast').classList.remove('active');
+        document.getElementById('toast').classList.remove('show');
     }
 
     formatDate(dateString) {
-        if (!dateString) return 'No deadline';
-        
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
+        return new Date(dateString).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
         });
+    }
+
+    // NEW: PDF Export Functionality
+    async exportToPDF() {
+        try {
+            this.showToast('Preparing PDF export...', 'info');
+            
+            // Use jsPDF from window object
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add title
+            doc.setFontSize(20);
+            doc.setTextColor(33, 37, 41);
+            doc.text('Academic Progress Report', 105, 20, { align: 'center' });
+            
+            // Add date
+            doc.setFontSize(10);
+            doc.setTextColor(108, 117, 125);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+            
+            let yPosition = 50;
+            
+            // Add summary statistics
+            doc.setFontSize(16);
+            doc.setTextColor(33, 37, 41);
+            doc.text('Summary Statistics', 20, yPosition);
+            yPosition += 10;
+            
+            doc.setFontSize(12);
+            doc.setTextColor(73, 80, 87);
+            doc.text(`Total Modules: ${this.stats.totalModules || 0}`, 30, yPosition);
+            yPosition += 8;
+            doc.text(`Topics Completed: ${this.stats.completedTopics || 0}`, 30, yPosition);
+            yPosition += 8;
+            doc.text(`Rewards Earned: ${this.stats.earnedRewards || 0}`, 30, yPosition);
+            yPosition += 15;
+            
+            // Add module details
+            doc.setFontSize(16);
+            doc.setTextColor(33, 37, 41);
+            doc.text('Module Progress', 20, yPosition);
+            yPosition += 10;
+            
+            for (const module of this.modules) {
+                // Check if we need a new page
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                const completedTopics = module.topics.filter(topic => topic.completed).length;
+                const totalTopics = module.topics.length;
+                const completionPercentage = totalTopics > 0 ? 
+                    Math.round((completedTopics / totalTopics) * 100) : 0;
+                
+                // Module header
+                doc.setFontSize(14);
+                doc.setTextColor(33, 37, 41);
+                doc.text(module.name, 30, yPosition);
+                yPosition += 8;
+                
+                // Progress information
+                doc.setFontSize(10);
+                doc.setTextColor(73, 80, 87);
+                doc.text(`Progress: ${completedTopics}/${totalTopics} topics (${completionPercentage}%)`, 35, yPosition);
+                yPosition += 6;
+                
+                // Topics list
+                doc.text('Topics:', 35, yPosition);
+                yPosition += 6;
+                
+                for (const topic of module.topics) {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 20;
+                    }
+                    
+                    const status = topic.completed ? '✓' : '○';
+                    doc.text(`${status} ${topic.name}`, 40, yPosition);
+                    yPosition += 5;
+                }
+                
+                yPosition += 5; // Extra space between modules
+            }
+            
+            // Add analytics section
+            if (yPosition > 220) {
+                doc.addPage();
+                yPosition = 20;
+            }
+            
+            doc.setFontSize(16);
+            doc.setTextColor(33, 37, 41);
+            doc.text('Analytics Overview', 20, yPosition);
+            yPosition += 10;
+            
+            doc.setFontSize(12);
+            doc.setTextColor(73, 80, 87);
+            doc.text(`Overall Completion: ${this.stats.completionPercentage || 0}%`, 30, yPosition);
+            yPosition += 8;
+            
+            // Save the PDF
+            const fileName = `Academic_Progress_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+            
+            this.showToast('PDF exported successfully!');
+            
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            this.showToast('Error exporting PDF', 'error');
+        }
     }
 }
 
-// Additional CSS for loading and empty states
-const additionalStyles = `
-    .loading-spinner {
-        text-align: center;
-        padding: 3rem;
-        color: var(--study-muted);
-        font-size: 1.1rem;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: var(--study-muted);
-    }
-    
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: var(--study-border);
-    }
-    
-    .search-topic-item {
-        background: white;
-        padding: 1rem;
-        border-radius: 0.75rem;
-        margin-bottom: 0.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .topic-status.completed {
-        color: var(--study-success);
-        font-weight: 600;
-    }
-    
-    .topic-status {
-        color: var(--study-warning);
-        font-weight: 600;
-    }
-`;
-
-// Add styles to document
-const styleSheet = document.createElement('style');
-styleSheet.textContent = additionalStyles;
-document.head.appendChild(styleSheet);
-
-// Initialize Progress Manager when DOM is loaded
+// Initialize the progress manager when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     window.progressManager = new ProgressManager();
 });
