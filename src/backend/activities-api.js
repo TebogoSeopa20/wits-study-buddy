@@ -118,12 +118,8 @@ router.get('/activities/user/:user_id', async (req, res) => {
         *,
         profiles:user_id (name, email),
         study_groups:group_id (name, subject)
-      `)
-      .eq('user_id', user_id)
-      .order('activity_date', { ascending: true })
-      .order('activity_time', { ascending: true })
-      .limit(parseInt(limit))
-      .offset(parseInt(offset));
+      `, { count: 'exact' })
+      .eq('user_id', user_id);
 
     // Apply filters
     if (start_date) {
@@ -138,6 +134,12 @@ router.get('/activities/user/:user_id', async (req, res) => {
     if (is_completed !== undefined) {
       query = query.eq('is_completed', is_completed === 'true');
     }
+
+    // Apply ordering and pagination
+    query = query
+      .order('activity_date', { ascending: true })
+      .order('activity_time', { ascending: true })
+      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
     const { data, error, count } = await query;
 
