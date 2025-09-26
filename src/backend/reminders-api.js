@@ -7,8 +7,8 @@ const router = express.Router();
 // Initialize Supabase
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-// Email transporter
-const emailTransporter = nodemailer.createTransporter({
+// Email Transport
+const emailTransport = nodemailer.createTransport({
   service: process.env.EMAIL_SERVICE,
   auth: {
     user: process.env.EMAIL_USER,
@@ -167,7 +167,7 @@ router.post('/reminders/:taskId/email', async (req, res) => {
       `
     };
 
-    await emailTransporter.sendMail(mailOptions);
+    await emailTransport.sendMail(mailOptions);
 
     res.json({ message: 'Email sent successfully' });
   } catch (error) {

@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 class ReminderWorker {
   constructor() {
     this.supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-    this.transporter = nodemailer.createTransporter({
+    this.transport = nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE,
       auth: {
         user: process.env.EMAIL_USER,
@@ -113,7 +113,7 @@ class ReminderWorker {
         `
       };
 
-      await this.transporter.sendMail(mailOptions);
+      await this.transport.sendMail(mailOptions);
       console.log(`Email sent to ${user.email} for task: ${task.title}`);
     } catch (error) {
       console.error('Error sending email:', error);
