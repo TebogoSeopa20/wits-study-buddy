@@ -10,6 +10,8 @@
     <meta property="og:title" content="Wits - Progress Tracking">
     <meta property="og:description" content="Track your academic progress, achievements, and study habits.">
     <meta property="og:type" content="website">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/landing.css">
     <link rel="stylesheet" href="../css/progress.css">
     <link rel="stylesheet" href="../css/profile.css">
@@ -19,6 +21,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- html2canvas for capturing HTML elements as images -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -102,6 +108,10 @@
             <section class="progress-actions">
                 <button id="addModuleBtn" class="action-btn primary">
                     <i class="fas fa-plus"></i> Add Module
+                </button>
+                
+                <button id="exportPdfBtn" class="action-btn secondary">
+                    <i class="fas fa-file-pdf"></i> Export as PDF
                 </button>
                 
                 <article class="search-box">
