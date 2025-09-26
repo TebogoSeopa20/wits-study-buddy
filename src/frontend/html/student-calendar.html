@@ -3,21 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta name="author" content="Wits">
+    <title>Wits - Calendar</title>
+    <meta name="description" content="Manage your study schedule and activities">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="../images/icon.png" type="image/png">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/calendar.css">
-    <link rel="stylesheet" href="../css/student-dash.css">
-    <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/form-status.css">
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/calendar.css">
+    <link rel="stylesheet" href="../css/profile.css">
+
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -93,32 +89,226 @@
         </div>
     </nav>
 
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Please remove this part so you can start designing our Calendar page. <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students and organise your calendar and schedules here.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
-    
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
+    <!-- Main Content -->
+    <main class="calendar-container">
+        <section class="calendar-header">
+            <h1><i class="fa-solid fa-calendar-days"></i> Study Calendar</h1>
+            <p>Plan your study sessions, track deadlines, and manage your academic schedule</p>
+
+            <div class="calendar-controls">
+                <div class="calendar-nav">
+                    <button id="prevMonth" class="nav-btn">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 id="currentMonthYear">September 2025</h2>
+                    <button id="nextMonth" class="nav-btn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="view-controls">
+                    <button class="view-btn active" data-view="month">
+                        <i class="fas fa-calendar-alt"></i> Month
+                    </button>
+                    <button class="view-btn" data-view="week">
+                        <i class="fas fa-calendar-week"></i> Week
+                    </button>
+                    <button class="view-btn" data-view="day">
+                        <i class="fas fa-calendar-day"></i> Day
+                    </button>
+                </div>
+
+                <button id="todayBtn" class="today-btn">
+                    <i class="fas fa-calendar-check"></i> Today
+                </button>
+
+                <button id="addActivityBtn" class="add-activity-btn">
+                    <i class="fas fa-plus"></i> Add Activity
+                </button>
             </div>
         </section>
 
+        <!-- Calendar Stats -->
+        <section class="calendar-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="studySessionsCount">0</div>
+                    <div class="stat-label">Study Sessions This Month</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="upcomingDeadlines">0</div>
+                    <div class="stat-label">Upcoming Deadlines</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="groupSessions">0</div>
+                    <div class="stat-label">Group Study Sessions</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="completedActivities">0</div>
+                    <div class="stat-label">Completed This Month</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calendar View -->
+        <section class="calendar-view">
+            <!-- Month View -->
+            <div id="monthView" class="calendar-month-view active">
+                <div class="calendar-weekdays">
+                    <div class="weekday">Sun</div>
+                    <div class="weekday">Mon</div>
+                    <div class="weekday">Tue</div>
+                    <div class="weekday">Wed</div>
+                    <div class="weekday">Thu</div>
+                    <div class="weekday">Fri</div>
+                    <div class="weekday">Sat</div>
+                </div>
+                <div class="calendar-days" id="calendarDays"></div>
+            </div>
+
+            <!-- Week View -->
+            <div id="weekView" class="calendar-week-view">
+                <div class="week-header">
+                    <div class="week-nav">
+                        <button id="prevWeek" class="nav-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 id="currentWeekRange">Week of Sep 1 - Sep 7, 2025</h3>
+                        <button id="nextWeek" class="nav-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="week-grid" id="weekGrid"></div>
+            </div>
+
+            <!-- Day View -->
+            <div id="dayView" class="calendar-day-view">
+                <div class="day-header">
+                    <div class="day-nav">
+                        <button id="prevDay" class="nav-btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 id="currentDay">Monday, September 1, 2025</h3>
+                        <button id="nextDay" class="nav-btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="day-timeline" id="dayTimeline"></div>
+            </div>
+        </section>
+
+        <!-- Upcoming Activities Sidebar -->
+        <aside class="activities-sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-list"></i> Upcoming Activities</h3>
+                <button id="toggleSidebar" class="toggle-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <div class="activities-list" id="activitiesList">
+                <div class="empty-activities">
+                    <i class="fas fa-calendar-plus"></i>
+                    <p>No upcoming activities</p>
+                    <button class="btn btn-primary" onclick="openActivityModal()">Add Your First Activity</button>
+                </div>
+            </div>
+        </aside>
     </main>
-    
+
+    <!-- Activity Modal -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-plus"></i> <span id="modalTitle">Add New Activity</span></h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="activityForm" class="modal-form">
+                <input type="hidden" id="activityId">
+                <input type="hidden" id="selectedDate">
+                
+                <div class="form-group">
+                    <label for="activityTitle"><i class="fas fa-heading"></i> Title</label>
+                    <input type="text" id="activityTitle" required placeholder="Study session, assignment, exam...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="activityType"><i class="fas fa-tag"></i> Type</label>
+                    <select id="activityType" required>
+                        <option value="">Select activity type</option>
+                        <option value="study">Study Session</option>
+                        <option value="assignment">Assignment</option>
+                        <option value="exam">Exam</option>
+                        <option value="meeting">Group Meeting</option>
+                        <option value="personal">Personal</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="activityDate"><i class="fas fa-calendar"></i> Date</label>
+                        <input type="date" id="activityDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="activityTime"><i class="fas fa-clock"></i> Time</label>
+                        <input type="time" id="activityTime" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activityDuration"><i class="fas fa-hourglass"></i> Duration (hours)</label>
+                    <input type="number" id="activityDuration" min="0.5" max="8" step="0.5" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activityLocation"><i class="fas fa-map-marker-alt"></i> Location</label>
+                    <input type="text" id="activityLocation" placeholder="Library, Room 101, Online...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="activityDescription"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea id="activityDescription" placeholder="Add details about your activity..." rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="activityPriority"><i class="fas fa-flag"></i> Priority</label>
+                    <select id="activityPriority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="cancelActivity">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Activity</button>
+                    <button type="button" class="btn btn-error" id="deleteActivity" style="display: none;">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
         <article class="container">
@@ -166,11 +356,7 @@
 
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
     <script src="../js/calendar.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
-    <script src="../js/student-dash.js"></script>
     <script src="../js/notifications.js"></script>
 </body>
 </html>
