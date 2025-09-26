@@ -1,4 +1,4 @@
-// calendar.js - Optimized Calendar Functionality with Immediate Response
+// calendar.js - Optimized Calendar Functionality with Reminders
 class Calendar {
     constructor() {
         this.currentDate = new Date();
@@ -21,6 +21,7 @@ class Calendar {
     async init() {
         this.checkAuth();
         this.setupEventListeners();
+        this.setupReminderListeners();
         
         // Render immediately with available data
         this.renderCalendar();
@@ -276,6 +277,110 @@ class Calendar {
 
         // Refresh scheduled groups button
         document.getElementById('refreshGroups')?.addEventListener('click', () => this.refreshScheduledGroups());
+
+        // Reminder options toggle
+        document.getElementById('activityReminderEnabled')?.addEventListener('change', (e) => {
+            const reminderOptions = document.getElementById('reminderOptions');
+            if (reminderOptions) {
+                reminderOptions.style.display = e.target.checked ? 'block' : 'none';
+            }
+        });
+    }
+
+    // Reminder management methods
+    setupReminderListeners() {
+        // Check for reminders every minute
+        setInterval(() => this.checkReminders(), 60000);
+        
+        // Initial check
+        this.checkReminders();
+    }
+
+    async checkReminders() {
+        if (!this.currentUser?.id) return;
+
+        try {
+            const response = await fetch(`${this.API_BASE_URL}/reminders/user/${this.currentUser.id}`);
+            if (!response.ok) return;
+
+            const data = await response.json();
+            this.displayReminders(data.reminders);
+        } catch (error) {
+            console.error('Error checking reminders:', error);
+        }
+    }
+
+    displayReminders(reminders) {
+        // Remove existing reminders
+        document.querySelectorAll('.global-reminder').forEach(el => el.remove());
+
+        reminders.forEach(reminder => {
+            this.createReminderNotification(reminder);
+        });
+    }
+
+    createReminderNotification(reminder) {
+        const reminderEl = document.createElement('div');
+        reminderEl.className = 'global-reminder';
+        reminderEl.innerHTML = `
+            <div class="reminder-content">
+                <div class="reminder-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="reminder-details">
+                    <div class="reminder-title">${reminder.title}</div>
+                    <div class="reminder-time">Starts at ${new Date(reminder.date).toLocaleTimeString()}</div>
+                    <div class="reminder-actions">
+                        <button class="btn-reminder-snooze" data-task-id="${reminder.id}">Snooze 5min</button>
+                        <button class="btn-reminder-dismiss" data-task-id="${reminder.id}">Dismiss</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(reminderEl);
+
+        // Add event listeners
+        reminderEl.querySelector('.btn-reminder-snooze').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.snoozeReminder(reminder.id, 5);
+            reminderEl.remove();
+        });
+
+        reminderEl.querySelector('.btn-reminder-dismiss').addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.dismissReminder(reminder.id);
+            reminderEl.remove();
+        });
+
+        // Auto-remove after 5 minutes
+        setTimeout(() => {
+            if (reminderEl.parentNode) {
+                reminderEl.remove();
+            }
+        }, 300000);
+    }
+
+    async snoozeReminder(taskId, minutes) {
+        try {
+            await fetch(`${this.API_BASE_URL}/reminders/${taskId}/snooze`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ minutes })
+            });
+        } catch (error) {
+            console.error('Error snoozing reminder:', error);
+        }
+    }
+
+    async dismissReminder(taskId) {
+        try {
+            await fetch(`${this.API_BASE_URL}/reminders/${taskId}/sent`, {
+                method: 'POST'
+            });
+        } catch (error) {
+            console.error('Error dismissing reminder:', error);
+        }
     }
 
     async refreshScheduledGroups() {
@@ -787,7 +892,7 @@ class Calendar {
         
         const monthActivities = this.activities.filter(activity => {
             const activityDate = new Date(activity.date);
-            return activityDate >= monthStart && activityDate <= monthEnd && activity.userId === this.currentUser?.id;
+            return activityDate >= monthStart && activityDate <= monthEnd && activity.userId === this.currentUser.id;
         });
 
         const studySessions = monthActivities.filter(a => a.type === 'study').length;
@@ -829,6 +934,14 @@ class Calendar {
         document.getElementById('activityDate').value = this.formatDateForInput(defaultDate);
         document.getElementById('activityTime').value = this.formatTimeForInput(now);
         
+        // Reset reminder options
+        document.getElementById('activityReminderEnabled').checked = false;
+        document.getElementById('reminderOptions').style.display = 'none';
+        document.querySelectorAll('input[name="reminderIntervals"]').forEach(cb => {
+            cb.checked = cb.value === '15'; // Default to 15 minutes
+        });
+        document.getElementById('activityEmailNotifications').checked = false;
+        
         modal.style.display = 'block';
         this.validateDateSelection(document.getElementById('activityDate').value);
     }
@@ -848,6 +961,7 @@ class Calendar {
         deleteBtn.style.display = 'block';
         modalTitle.textContent = 'Edit Activity';
         
+        // Populate basic fields
         document.getElementById('activityId').value = activity.id;
         document.getElementById('activityTitle').value = activity.title;
         document.getElementById('activityType').value = activity.type;
@@ -857,6 +971,25 @@ class Calendar {
         document.getElementById('activityLocation').value = activity.location || '';
         document.getElementById('activityDescription').value = activity.description || '';
         document.getElementById('activityPriority').value = activity.priority || 'medium';
+        
+        // Populate reminder fields
+        document.getElementById('activityReminderEnabled').checked = activity.reminder_enabled || false;
+        
+        // Show/hide reminder options
+        const reminderOptions = document.getElementById('reminderOptions');
+        if (reminderOptions) {
+            reminderOptions.style.display = activity.reminder_enabled ? 'block' : 'none';
+        }
+        
+        // Set reminder intervals
+        if (activity.reminder_intervals) {
+            document.querySelectorAll('input[name="reminderIntervals"]').forEach(checkbox => {
+                checkbox.checked = activity.reminder_intervals.includes(parseInt(checkbox.value));
+            });
+        }
+        
+        // Set email notifications
+        document.getElementById('activityEmailNotifications').checked = activity.email_notifications || false;
         
         modal.style.display = 'block';
     }
@@ -872,6 +1005,12 @@ class Calendar {
         e.preventDefault();
         
         const activityId = document.getElementById('activityId').value;
+        const reminderEnabled = document.getElementById('activityReminderEnabled').checked;
+        const emailNotifications = document.getElementById('activityEmailNotifications').checked;
+        
+        // Get selected reminder intervals
+        const reminderIntervalCheckboxes = document.querySelectorAll('input[name="reminderIntervals"]:checked');
+        const reminderIntervals = Array.from(reminderIntervalCheckboxes).map(cb => parseInt(cb.value));
         
         const activity = {
             id: activityId || this.generateId(),
@@ -883,6 +1022,9 @@ class Calendar {
             location: document.getElementById('activityLocation').value,
             description: document.getElementById('activityDescription').value,
             priority: document.getElementById('activityPriority').value,
+            reminder_enabled: reminderEnabled,
+            reminder_intervals: reminderIntervals.length > 0 ? reminderIntervals : [15], // Default to 15 min
+            email_notifications: emailNotifications,
             userId: this.currentUser.id,
             createdAt: activityId ? this.activities.find(a => a.id === activityId)?.createdAt || new Date().toISOString() : new Date().toISOString(),
             updatedAt: new Date().toISOString()
@@ -913,6 +1055,39 @@ class Calendar {
         this.closeModal();
         
         this.showNotification('Activity saved successfully!', 'success');
+        
+        // Save to database with reminders
+        this.saveActivityToDatabase(activity);
+    }
+
+    async saveActivityToDatabase(activity) {
+        try {
+            const taskData = {
+                title: activity.title,
+                date: new Date(`${activity.date}T${activity.time}`).toISOString(),
+                user_id: this.currentUser.id,
+                description: activity.description,
+                category: activity.type,
+                priority: activity.priority,
+                duration: activity.duration,
+                location: activity.location,
+                reminder_enabled: activity.reminder_enabled,
+                reminder_intervals: activity.reminder_intervals,
+                email_notifications: activity.email_notifications
+            };
+
+            const response = await fetch(`${this.API_BASE_URL}/tasks`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(taskData)
+            });
+
+            if (response.ok) {
+                console.log('Activity saved to database with reminders');
+            }
+        } catch (error) {
+            console.error('Error saving activity to database:', error);
+        }
     }
 
     deleteActivity() {
@@ -1017,7 +1192,7 @@ class Calendar {
     }
 }
 
-// Add optimized CSS for loading states
+// Add optimized CSS for loading states and reminders
 const optimizedStyles = document.createElement('style');
 optimizedStyles.textContent = `
     .calendar-loading {
@@ -1044,11 +1219,6 @@ optimizedStyles.textContent = `
         animation: spin 1s linear infinite;
     }
     
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
     .more-badge {
         font-size: 0.8em;
         padding: 2px 4px;
@@ -1056,6 +1226,139 @@ optimizedStyles.textContent = `
     
     .calendar-day {
         transition: opacity 0.2s ease;
+    }
+    
+    /* Global Reminder Styles */
+    .global-reminder {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        border-left: 4px solid var(--study-warning);
+        z-index: 10000;
+        animation: slideInRight 0.3s ease-out;
+        max-width: 350px;
+    }
+
+    .reminder-content {
+        display: flex;
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .reminder-icon {
+        color: var(--study-warning);
+        font-size: 1.5rem;
+    }
+
+    .reminder-details {
+        flex: 1;
+    }
+
+    .reminder-title {
+        font-weight: 600;
+        color: var(--study-dark);
+        margin-bottom: 5px;
+    }
+
+    .reminder-time {
+        color: var(--study-muted);
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+
+    .reminder-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-reminder-snooze,
+    .btn-reminder-dismiss {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reminder-snooze {
+        background: var(--study-blue-lighter);
+        color: var(--study-blue);
+    }
+
+    .btn-reminder-dismiss {
+        background: var(--study-border);
+        color: var(--study-muted);
+    }
+
+    .btn-reminder-snooze:hover {
+        background: var(--study-blue-light);
+        color: white;
+    }
+
+    .btn-reminder-dismiss:hover {
+        background: var(--study-muted);
+        color: white;
+    }
+
+    /* Reminder Options in Modal */
+    .reminder-intervals {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 5px;
+        transition: background 0.3s ease;
+    }
+
+    .checkbox-label:hover {
+        background: var(--study-blue-lighter);
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        margin: 0;
+        width: auto;
+    }
+
+    /* Animations */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .global-reminder {
+            left: 20px;
+            right: 20px;
+            max-width: none;
+        }
+        
+        .reminder-intervals {
+            grid-template-columns: 1fr;
+        }
     }
 `;
 document.head.appendChild(optimizedStyles);

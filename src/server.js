@@ -13,6 +13,8 @@ const notificationsApi = require('./backend/notifications-api');
 const groupsApi = require('./backend/external-groups-api');
 const chatApi = require('./backend/chat-api');
 const progressApi = require('./backend/progress-api');
+const remindersApi = require('./backend/reminders-api');
+const ReminderWorker = require('./backend/reminder-worker');
 
 // Create the Express application
 const app = express();
@@ -57,7 +59,7 @@ app.use('/api', notificationsApi);
 app.use('/api', chatApi);
 app.use('/api/progress', progressApi);
 app.use('/api/external', groupsApi);
-
+app.use('/api', remindersApi);
 // Serve all static files from frontend directory
 app.use(express.static(path.join(__dirname, 'frontend')));
 // Specifically serve HTML files from the html subdirectory
@@ -578,7 +580,10 @@ app.get('/login', (req, res) => {
 app.get('/signup', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'html', 'signup.html'));
 });
+const reminderWorker = new ReminderWorker();
+reminderWorker.start();
 
+console.log('Reminder worker initialized');
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

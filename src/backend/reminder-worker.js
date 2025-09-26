@@ -1,0 +1,124 @@
+const { createClient } = require('@supabase/supabase-js');
+const nodemailer = require('nodemailer');
+
+class ReminderWorker {
+  constructor() {
+    this.supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    this.transporter = nodemailer.createTransporter({
+      service: process.env.EMAIL_SERVICE,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+      }
+    });
+    this.isRunning = false;
+  }
+
+  async start() {
+    if (this.isRunning) return;
+    
+    this.isRunning = true;
+    console.log('Reminder worker started');
+    
+    // Check every minute
+    setInterval(() => this.checkReminders(), 60000);
+    
+    // Initial check
+    await this.checkReminders();
+  }
+
+  async checkReminders() {
+    try {
+      const now = new Date();
+      const fiveMinutesFromNow = new Date(now.getTime() + 300000);
+
+      // Get tasks with due reminders
+      const { data: tasks, error } = await this.supabase
+        .from('tasks')
+        .select('*, profiles(email, name)')
+        .eq('reminder_enabled', true)
+        .eq('reminders_sent', false)
+        .lte('date', fiveMinutesFromNow.toISOString())
+        .gte('date', now.toISOString())
+        .is('snoozed_until', null);
+
+      if (error) throw error;
+
+      for (const task of tasks) {
+        await this.processReminder(task);
+      }
+    } catch (error) {
+      console.error('Error checking reminders:', error);
+    }
+  }
+
+  async processReminder(task) {
+    try {
+      const taskTime = new Date(task.date);
+      const now = new Date();
+      
+      // Check if any reminder interval is due
+      const dueInterval = task.reminder_intervals.find(interval => {
+        const reminderTime = new Date(taskTime.getTime() - interval * 60000);
+        return reminderTime <= now && reminderTime > new Date(now.getTime() - 60000); // Within last minute
+      });
+
+      if (dueInterval) {
+        console.log(`Sending reminder for task: ${task.title}`);
+        
+        // Send email if enabled
+        if (task.email_notifications && task.profiles && task.profiles.email) {
+          await this.sendEmailReminder(task, task.profiles);
+        }
+
+        // Mark as sent
+        await this.supabase
+          .from('tasks')
+          .update({
+            reminders_sent: true,
+            last_reminder_sent: new Date().toISOString()
+          })
+          .eq('id', task.id);
+      }
+    } catch (error) {
+      console.error('Error processing reminder:', error);
+    }
+  }
+
+  async sendEmailReminder(task, user) {
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: `🔔 Reminder: ${task.title}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1e40af;">Study Session Reminder</h2>
+            <p>Hello ${user.name},</p>
+            <p>This is a reminder for your upcoming study session:</p>
+            <div style="background: #f8fafc; padding: 20px; border-radius: 10px; border-left: 4px solid #1e40af;">
+              <h3 style="margin: 0 0 10px 0; color: #1e293b;">${task.title}</h3>
+              <p style="margin: 5px 0;"><strong>📅 Date:</strong> ${new Date(task.date).toLocaleDateString()}</p>
+              <p style="margin: 5px 0;"><strong>⏰ Time:</strong> ${new Date(task.date).toLocaleTimeString()}</p>
+              <p style="margin: 5px 0;"><strong>⏱️ Duration:</strong> ${task.duration} hours</p>
+              ${task.location ? `<p style="margin: 5px 0;"><strong>📍 Location:</strong> ${task.location}</p>` : ''}
+              ${task.description ? `<p style="margin: 5px 0;"><strong>📝 Description:</strong> ${task.description}</p>` : ''}
+            </div>
+            <p style="color: #64748b; font-size: 14px; margin-top: 20px;">
+              Don't forget to prepare for your session! You can view this in your calendar at Wits Study Buddy.
+            </p>
+            <br>
+            <p>Best regards,<br><strong>Wits Study Buddy Team</strong></p>
+          </div>
+        `
+      };
+
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Email sent to ${user.email} for task: ${task.title}`);
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  }
+}
+
+module.exports = ReminderWorker;
