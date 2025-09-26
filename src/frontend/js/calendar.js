@@ -1,4 +1,4 @@
-// calendar.js - Calendar with Full API Integration - FIXED TIMEZONE ISSUES
+// calendar.js - Optimized Calendar Functionality with API Integration
 class Calendar {
     constructor() {
         this.currentDate = new Date();
@@ -7,7 +7,8 @@ class Calendar {
         this.scheduledGroups = [];
         this.currentUser = null;
         this.isLoadingGroups = false;
-        this.groupsCache = null;
+        this.isLoadingActivities = false;
+        this.groupsCache = this.loadCachedGroups();
         
         // API configuration
         this.isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -15,8 +16,6 @@ class Calendar {
             ? 'http://localhost:3000/api' 
             : 'https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/api';
         
-        // Initialize with empty UI first for immediate display
-        this.initUI();
         this.init();
     }
 
@@ -24,25 +23,16 @@ class Calendar {
         this.checkAuth();
         this.setupEventListeners();
         
-        // Render empty calendar immediately
-        this.renderCalendar();
-        this.renderActivitiesList();
-        this.updateStats();
+        // Load activities and groups in parallel
+        await Promise.all([
+            this.loadActivities(),
+            this.loadScheduledGroupsBackground()
+        ]);
         
-        // Load data in background
-        await this.loadInitialData();
-        
-        // Update with real data once loaded
+        // Render with loaded data
         this.renderCalendar();
         this.updateStats();
         this.renderActivitiesList();
-    }
-
-    initUI() {
-        // Set up initial UI structure immediately
-        this.renderMonthViewSkeleton();
-        this.renderActivitiesListSkeleton();
-        this.updateStatsSkeleton();
     }
 
     checkAuth() {
@@ -61,51 +51,37 @@ class Calendar {
         }
     }
 
-    async loadInitialData() {
-        try {
-            // Load activities and groups in parallel
-            await Promise.all([
-                this.loadActivities(),
-                this.loadScheduledGroups()
-            ]);
-        } catch (error) {
-            console.error('Error loading initial data:', error);
-            this.showNotification('Error loading calendar data', 'error');
-        }
-    }
-
     async loadActivities() {
-        if (!this.currentUser || !this.currentUser.id) {
-            console.error('No user ID available');
-            return;
-        }
-
+        if (this.isLoadingActivities || !this.currentUser?.id) return;
+        
+        this.isLoadingActivities = true;
+        
         try {
-            const response = await fetch(
-                `${this.API_BASE_URL}/activities/user/${this.currentUser.id}`,
-                {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+            const response = await fetch(`${this.API_BASE_URL}/activities/user/${this.currentUser.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
                 }
-            );
-
+            });
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-
+            
             const data = await response.json();
-            this.activities = (data.activities || []).map(activity => this.fixActivityDates(activity));
-            console.log('Loaded activities:', this.activities.length);
+            this.activities = data.activities || [];
+            console.log('Loaded activities from API:', this.activities.length);
+            
         } catch (error) {
             console.error('Error loading activities:', error);
             this.activities = [];
-            throw error;
+            this.showNotification('Error loading activities', 'error');
+        } finally {
+            this.isLoadingActivities = false;
         }
     }
 
-    async loadScheduledGroups() {
+    async loadScheduledGroupsBackground() {
         if (this.isLoadingGroups) return;
         
         if (!this.currentUser || !this.currentUser.id) {
@@ -116,9 +92,59 @@ class Calendar {
         this.isLoadingGroups = true;
         
         try {
-            // Get user's groups
+            // Use cached data immediately if available and fresh (less than 5 minutes old)
+            if (this.groupsCache && this.isCacheFresh(this.groupsCache.timestamp)) {
+                this.scheduledGroups = this.groupsCache.groups || [];
+                console.log('Using cached scheduled groups');
+            } else {
+                // Show loading state
+                this.showLoadingState(true);
+            }
+
+            // Fetch fresh data in background
+            const freshGroups = await this.fetchScheduledGroupsWithTimeout();
+            this.scheduledGroups = freshGroups;
+            
+            // Cache the fresh data
+            this.cacheGroups(freshGroups);
+            
+        } catch (error) {
+            console.error('Error loading scheduled groups:', error);
+            // Keep using cached data if available
+            if (!this.scheduledGroups.length && this.groupsCache) {
+                this.scheduledGroups = this.groupsCache.groups || [];
+            }
+        } finally {
+            this.isLoadingGroups = false;
+            this.showLoadingState(false);
+        }
+    }
+
+    async fetchScheduledGroupsWithTimeout() {
+        return new Promise(async (resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Request timeout'));
+            }, 8000); // 8 second timeout
+
+            try {
+                const groups = await this.fetchScheduledGroups();
+                clearTimeout(timeout);
+                resolve(groups);
+            } catch (error) {
+                clearTimeout(timeout);
+                reject(error);
+            }
+        });
+    }
+
+    async fetchScheduledGroups() {
+        try {
+            // Get user's groups with abort controller for cleanup
+            const controller = new AbortController();
+            
             const userGroupsResponse = await fetch(
-                `${this.API_BASE_URL}/groups/user/${this.currentUser.id}?status=active`
+                `${this.API_BASE_URL}/groups/user/${this.currentUser.id}?status=active`,
+                { signal: controller.signal }
             );
             
             if (!userGroupsResponse.ok) {
@@ -129,8 +155,7 @@ class Calendar {
             const userGroupIds = userGroupsData.groups?.map(group => group.group_id) || [];
 
             if (userGroupIds.length === 0) {
-                this.scheduledGroups = [];
-                return;
+                return [];
             }
 
             // Fetch group details in parallel with concurrency limit
@@ -149,93 +174,15 @@ class Calendar {
                 scheduledGroups.push(...validGroups);
             }
 
-            this.scheduledGroups = scheduledGroups.map(group => this.fixGroupDates(group));
-            console.log('Loaded scheduled groups:', this.scheduledGroups.length);
+            console.log('Loaded scheduled groups:', scheduledGroups);
+            return scheduledGroups;
 
         } catch (error) {
-            console.error('Error loading scheduled groups:', error);
-            this.scheduledGroups = [];
-        } finally {
-            this.isLoadingGroups = false;
+            if (error.name === 'AbortError') {
+                console.warn('Request aborted');
+            }
+            throw error;
         }
-    }
-
-    // FIXED: Proper timezone handling for activities
-    fixActivityDates(activity) {
-        if (activity.activity_date) {
-            // Parse the date string as UTC and convert to local timezone correctly
-            const utcDate = new Date(activity.activity_date + 'T00:00:00Z'); // Force UTC
-            
-            // Get local date components
-            const localYear = utcDate.getFullYear();
-            const localMonth = utcDate.getMonth();
-            const localDate = utcDate.getDate();
-            
-            // Create a new date in local timezone
-            const localDateObj = new Date(localYear, localMonth, localDate);
-            
-            // Store the fixed date string for comparison (YYYY-MM-DD format)
-            activity.activity_date_fixed = localDateObj.toISOString().split('T')[0];
-            
-            // Also store the original date for reference
-            activity.activity_date_utc = activity.activity_date;
-            
-            console.log('Activity date conversion:', {
-                original: activity.activity_date,
-                utc: utcDate.toISOString(),
-                local: activity.activity_date_fixed
-            });
-        }
-        return activity;
-    }
-
-    // FIXED: Proper timezone handling for groups
-    fixGroupDates(group) {
-        if (group.date) {
-            // Parse the date string as UTC and convert to local timezone correctly
-            const utcDate = new Date(group.date + 'T00:00:00Z'); // Force UTC
-            
-            // Get local date components
-            const localYear = utcDate.getFullYear();
-            const localMonth = utcDate.getMonth();
-            const localDate = utcDate.getDate();
-            
-            // Create a new date in local timezone
-            const localDateObj = new Date(localYear, localMonth, localDate);
-            
-            group.date_fixed = localDateObj.toISOString().split('T')[0];
-            group.date_utc = utcDate.toISOString().split('T')[0];
-            
-            console.log('Group date conversion:', {
-                original: group.date,
-                utc: utcDate.toISOString(),
-                local: group.date_fixed
-            });
-        }
-        
-        // Fix scheduled_start and scheduled_end for proper display
-        if (group.scheduled_start) {
-            const startDate = new Date(group.scheduled_start);
-            group.scheduled_start_fixed = this.formatDateTimeLocal(startDate);
-        }
-        if (group.scheduled_end) {
-            const endDate = new Date(group.scheduled_end);
-            group.scheduled_end_fixed = this.formatDateTimeLocal(endDate);
-        }
-        
-        return group;
-    }
-
-    // Helper method to format datetime in local timezone
-    formatDateTimeLocal(date) {
-        return date.toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZoneName: 'short'
-        });
     }
 
     async fetchGroupDetails(groupId) {
@@ -247,34 +194,13 @@ class Calendar {
             const group = groupData.group;
             
             if (group.is_scheduled && group.scheduled_start && group.scheduled_end) {
-                // Parse UTC dates and convert to local dates correctly
-                const startDate = new Date(group.scheduled_start);
-                const endDate = new Date(group.scheduled_end);
-                
-                // Get local date components from UTC dates
-                const localStartDate = new Date(
-                    startDate.getUTCFullYear(),
-                    startDate.getUTCMonth(),
-                    startDate.getUTCDate(),
-                    startDate.getUTCHours(),
-                    startDate.getUTCMinutes()
-                );
-                
-                const localEndDate = new Date(
-                    endDate.getUTCFullYear(),
-                    endDate.getUTCMonth(),
-                    endDate.getUTCDate(),
-                    endDate.getUTCHours(),
-                    endDate.getUTCMinutes()
-                );
-                
                 return {
                     id: group.id,
                     title: group.name,
                     description: group.description,
                     type: 'study_group',
-                    date: localStartDate.toISOString().split('T')[0], // Store as local date
-                    time: this.formatTime(localStartDate),
+                    date: new Date(group.scheduled_start).toISOString().split('T')[0],
+                    time: new Date(group.scheduled_start).toTimeString().slice(0, 5),
                     duration: this.calculateDuration(group.scheduled_start, group.scheduled_end),
                     location: 'Study Group Session',
                     subject: group.subject,
@@ -294,8 +220,38 @@ class Calendar {
         }
     }
 
-    formatTime(date) {
-        return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    // Cache management methods
+    loadCachedGroups() {
+        try {
+            const cached = localStorage.getItem('scheduledGroupsCache');
+            if (!cached) return null;
+            
+            const cacheData = JSON.parse(cached);
+            // Only return cache for same user
+            if (cacheData.userId === this.currentUser?.id) {
+                return cacheData;
+            }
+        } catch (error) {
+            console.error('Error loading cached groups:', error);
+        }
+        return null;
+    }
+
+    cacheGroups(groups) {
+        try {
+            const cacheData = {
+                groups: groups,
+                timestamp: Date.now(),
+                userId: this.currentUser.id
+            };
+            localStorage.setItem('scheduledGroupsCache', JSON.stringify(cacheData));
+        } catch (error) {
+            console.error('Error caching groups:', error);
+        }
+    }
+
+    isCacheFresh(timestamp) {
+        return Date.now() - timestamp < 300000; // 5 minutes
     }
 
     calculateDuration(start, end) {
@@ -347,35 +303,20 @@ class Calendar {
             this.validateDateSelection(e.target.value);
         });
 
-        // Refresh button
-        const refreshBtn = document.createElement('button');
-        refreshBtn.id = 'refreshData';
-        refreshBtn.className = 'refresh-btn';
-        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-        refreshBtn.addEventListener('click', () => this.refreshData());
-        
-        const calendarControls = document.querySelector('.calendar-controls');
-        if (calendarControls) {
-            calendarControls.appendChild(refreshBtn);
-        }
+        // Refresh scheduled groups button
+        document.getElementById('refreshGroups')?.addEventListener('click', () => this.refreshScheduledGroups());
     }
 
-    async refreshData() {
-        this.showNotification('Refreshing calendar data...', 'info');
-        try {
-            await Promise.all([
-                this.loadActivities(),
-                this.loadScheduledGroups()
-            ]);
-            
-            this.renderCalendar();
-            this.updateStats();
-            this.renderActivitiesList();
-            this.showNotification('Calendar data updated!', 'success');
-        } catch (error) {
-            console.error('Error refreshing data:', error);
-            this.showNotification('Error refreshing data', 'error');
-        }
+    async refreshScheduledGroups() {
+        this.showNotification('Refreshing scheduled groups...', 'info');
+        // Clear cache to force fresh load
+        localStorage.removeItem('scheduledGroupsCache');
+        this.groupsCache = null;
+        await this.loadScheduledGroupsBackground();
+        this.renderCalendar();
+        this.updateStats();
+        this.renderActivitiesList();
+        this.showNotification('Scheduled groups updated!', 'success');
     }
 
     changeMonth(direction) {
@@ -429,26 +370,24 @@ class Calendar {
         });
     }
 
-    renderMonthViewSkeleton() {
-        const monthYear = this.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-        const monthYearElement = document.getElementById('currentMonthYear');
-        if (monthYearElement) monthYearElement.textContent = monthYear;
-
-        const calendarDays = document.getElementById('calendarDays');
-        if (!calendarDays) return;
+    showLoadingState(show) {
+        const loadingIndicator = document.getElementById('calendarLoading');
         
-        // Create skeleton loading state
-        calendarDays.innerHTML = '';
-        for (let i = 0; i < 42; i++) { // 6 weeks
-            const dayElement = document.createElement('div');
-            dayElement.className = 'calendar-day loading';
-            dayElement.innerHTML = `
-                <div class="day-number">${i % 30 + 1}</div>
-                <div class="day-activities">
-                    <div class="activity-badge skeleton"></div>
-                </div>
-            `;
-            calendarDays.appendChild(dayElement);
+        if (show) {
+            if (!loadingIndicator) {
+                const indicator = document.createElement('div');
+                indicator.id = 'calendarLoading';
+                indicator.className = 'calendar-loading';
+                indicator.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <span>Loading activities...</span>
+                `;
+                document.querySelector('.calendar-container')?.prepend(indicator);
+            }
+        } else {
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
         }
     }
 
@@ -533,7 +472,7 @@ class Calendar {
         dayNumber.textContent = day;
         dayElement.appendChild(dayNumber);
 
-        // Add activities and study groups for this day - use fixed dates
+        // Add activities and study groups for this day
         const dayActivities = this.getActivitiesForDate(dayDate);
         const dayStudyGroups = this.getStudyGroupsForDate(dayDate);
         const allDayEvents = [...dayActivities, ...dayStudyGroups];
@@ -547,17 +486,13 @@ class Calendar {
             // Limit to 2 events for better performance
             allDayEvents.slice(0, 2).forEach(event => {
                 const activityBadge = document.createElement('div');
-                activityBadge.className = `activity-badge ${event.activity_type || event.type}`;
+                activityBadge.className = `activity-badge ${event.type}`;
                 activityBadge.textContent = event.title.substring(0, 12) + (event.title.length > 12 ? '...' : '');
-                
-                // Use fixed dates for display
-                const displayDate = event.activity_date_fixed || event.date_fixed || event.activity_date || event.date;
-                const displayTime = event.activity_time || event.time;
-                activityBadge.title = `${event.title} - ${displayTime}`;
+                activityBadge.title = `${event.title} - ${event.time}`;
                 
                 if (event.is_scheduled) {
                     activityBadge.classList.add('study-group');
-                    activityBadge.title = `Study Group: ${event.title}\nSubject: ${event.subject}\nTime: ${displayTime}`;
+                    activityBadge.title = `Study Group: ${event.title}\nSubject: ${event.subject}\nTime: ${event.time}`;
                 }
                 
                 activityBadge.addEventListener('click', (e) => {
@@ -629,7 +564,7 @@ class Calendar {
             const dayEvents = document.createElement('div');
             dayEvents.className = 'week-day-events';
             
-            // Add events for this day using fixed dates
+            // Add events for this day
             const dayActivities = this.getActivitiesForDate(dayDate);
             const dayStudyGroups = this.getStudyGroupsForDate(dayDate);
             const allDayEvents = [...dayActivities, ...dayStudyGroups];
@@ -679,8 +614,7 @@ class Calendar {
             
             // Add events for this hour
             const hourEvents = allDayEvents.filter(event => {
-                const eventTime = event.activity_time || event.time;
-                const eventHour = parseInt(eventTime.split(':')[0]);
+                const eventHour = parseInt(event.time.split(':')[0]);
                 return eventHour === hour;
             });
             
@@ -699,20 +633,19 @@ class Calendar {
 
     createWeekEventElement(event) {
         const eventElement = document.createElement('div');
-        eventElement.className = `week-event ${event.activity_type || event.type}`;
+        eventElement.className = `week-event ${event.type}`;
         
         if (event.is_scheduled) {
             eventElement.classList.add('study-group');
         }
         
-        const eventTime = event.activity_time || event.time;
-        const startHour = parseInt(eventTime.split(':')[0]);
-        const duration = event.duration_hours || event.duration || 1;
+        const startHour = parseInt(event.time.split(':')[0]);
+        const duration = event.duration || 1;
         
         eventElement.style.top = `${startHour * 60}px`;
         eventElement.style.height = `${duration * 60}px`;
         eventElement.innerHTML = `
-            <strong>${eventTime}</strong> - ${event.title}
+            <strong>${event.time}</strong> - ${event.title}
             ${event.is_scheduled ? '<br><small>👥 Study Group</small>' : ''}
         `;
         
@@ -729,20 +662,19 @@ class Calendar {
 
     createDayEventElement(event) {
         const eventElement = document.createElement('div');
-        eventElement.className = `day-event ${event.activity_type || event.type}`;
+        eventElement.className = `day-event ${event.type}`;
         
         if (event.is_scheduled) {
             eventElement.classList.add('study-group');
         }
         
-        const eventTime = event.activity_time || event.time;
-        const startMinutes = parseInt(eventTime.split(':')[1]);
-        const duration = event.duration_hours || event.duration || 1;
+        const startMinutes = parseInt(event.time.split(':')[1]);
+        const duration = event.duration || 1;
         
         eventElement.style.top = `${startMinutes}px`;
         eventElement.style.height = `${duration * 60}px`;
         eventElement.innerHTML = `
-            <strong>${eventTime}</strong> - ${event.title}
+            <strong>${event.time}</strong> - ${event.title}
             ${event.location ? `<br><small>📍 ${event.location}</small>` : ''}
             ${event.is_scheduled ? `<br><small>👥 ${event.subject} Study Group</small>` : ''}
         `;
@@ -770,8 +702,8 @@ class Calendar {
                         <div class="study-group-details">
                             <h3>${studyGroup.title}</h3>
                             <p><strong>Subject:</strong> ${studyGroup.subject || 'Not specified'}</p>
-                            <p><strong>Date & Time:</strong> ${this.formatDisplayDate(studyGroup.date_fixed || studyGroup.date)} at ${studyGroup.time}</p>
-                            <p><strong>Duration:</strong> ${studyGroup.duration_hours || studyGroup.duration} hour(s)</p>
+                            <p><strong>Date & Time:</strong> ${this.formatDisplayDate(studyGroup.date)} at ${studyGroup.time}</p>
+                            <p><strong>Duration:</strong> ${studyGroup.duration} hour(s)</p>
                             <p><strong>Faculty:</strong> ${studyGroup.faculty || 'Not specified'}</p>
                             ${studyGroup.description ? `<p><strong>Description:</strong> ${studyGroup.description}</p>` : ''}
                             ${studyGroup.meeting_times ? `<p><strong>Regular Meetings:</strong> ${studyGroup.meeting_times}</p>` : ''}
@@ -806,106 +738,36 @@ class Calendar {
         modal.addEventListener('click', (e) => e.target === modal && closeModal());
     }
 
-    // FIXED: Proper date comparison using fixed dates
     getActivitiesForDate(date) {
         const dateString = this.formatDateForInput(date);
-        console.log('Looking for activities on:', dateString);
-        
-        const activities = this.activities.filter(activity => {
-            // Always use the fixed date which has been converted to local timezone
-            const activityDate = activity.activity_date_fixed;
-            const matches = activityDate === dateString && 
-                   activity.user_id === this.currentUser?.id &&
-                   !activity.is_completed;
-            
-            if (matches) {
-                console.log('Found activity:', activity.title, 'on', activityDate);
-            }
-            
-            return matches;
-        }).sort((a, b) => a.activity_time.localeCompare(b.activity_time));
-        
-        console.log(`Found ${activities.length} activities for ${dateString}`);
-        return activities;
+        return this.activities.filter(activity => 
+            activity.activity_date === dateString && activity.user_id === this.currentUser?.id
+        ).sort((a, b) => a.activity_time.localeCompare(b.activity_time));
     }
 
-    // FIXED: Proper date comparison using fixed dates
     getStudyGroupsForDate(date) {
         const dateString = this.formatDateForInput(date);
-        console.log('Looking for study groups on:', dateString);
-        
-        const groups = this.scheduledGroups.filter(group => {
-            // Always use the fixed date which has been converted to local timezone
-            const groupDate = group.date_fixed;
-            const matches = groupDate === dateString;
-            
-            if (matches) {
-                console.log('Found study group:', group.title, 'on', groupDate);
-            }
-            
-            return matches;
-        }).sort((a, b) => (a.activity_time || a.time).localeCompare(b.activity_time || b.time));
-        
-        console.log(`Found ${groups.length} study groups for ${dateString}`);
-        return groups;
+        return this.scheduledGroups.filter(group => 
+            group.date === dateString
+        ).sort((a, b) => a.time.localeCompare(b.time));
     }
 
     getAllUpcomingEvents() {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
+        const today = new Date().toISOString().split('T')[0];
         const activities = this.activities
-            .filter(activity => {
-                const activityDate = new Date(activity.activity_date_fixed || activity.activity_date);
-                activityDate.setHours(0, 0, 0, 0);
-                return activityDate >= today && 
-                       activity.user_id === this.currentUser?.id &&
-                       !activity.is_completed;
-            });
+            .filter(activity => activity.activity_date >= today && activity.user_id === this.currentUser?.id);
         
         const studyGroups = this.scheduledGroups
-            .filter(group => {
-                const groupDate = new Date(group.date_fixed || group.date);
-                groupDate.setHours(0, 0, 0, 0);
-                return groupDate >= today;
-            });
+            .filter(group => group.date >= today);
         
         return [...activities, ...studyGroups]
             .sort((a, b) => {
-                const aDate = new Date(a.activity_date_fixed || a.date_fixed || a.activity_date || a.date);
-                const bDate = new Date(b.activity_date_fixed || b.date_fixed || b.activity_date || b.date);
-                
-                if (aDate.getTime() === bDate.getTime()) {
-                    const aTime = a.activity_time || a.time;
-                    const bTime = b.activity_time || b.time;
-                    return aTime.localeCompare(bTime);
+                if (a.activity_date === b.activity_date || a.date === b.date) {
+                    return (a.activity_time || a.time).localeCompare(b.activity_time || b.time);
                 }
-                return aDate - bDate;
+                return (a.activity_date || a.date).localeCompare(b.activity_date || b.date);
             })
             .slice(0, 8);
-    }
-
-    renderActivitiesListSkeleton() {
-        const activitiesList = document.getElementById('activitiesList');
-        if (!activitiesList) return;
-        
-        activitiesList.innerHTML = `
-            <div class="activity-item skeleton">
-                <div class="activity-time skeleton-text"></div>
-                <div class="activity-title skeleton-text"></div>
-                <div class="activity-meta skeleton-text"></div>
-            </div>
-            <div class="activity-item skeleton">
-                <div class="activity-time skeleton-text"></div>
-                <div class="activity-title skeleton-text"></div>
-                <div class="activity-meta skeleton-text"></div>
-            </div>
-            <div class="activity-item skeleton">
-                <div class="activity-time skeleton-text"></div>
-                <div class="activity-title skeleton-text"></div>
-                <div class="activity-meta skeleton-text"></div>
-            </div>
-        `;
     }
 
     renderActivitiesList() {
@@ -932,19 +794,20 @@ class Calendar {
                 ? `calendar.viewStudyGroupDetails(${JSON.stringify(event).replace(/"/g, '&quot;')})`
                 : `calendar.editActivity('${event.id}')`;
             
-            // Use fixed dates for display
-            const displayDate = event.activity_date_fixed || event.date_fixed || event.activity_date || event.date;
+            const eventDate = event.activity_date || event.date;
+            const eventTime = event.activity_time || event.time;
+            const eventType = event.is_scheduled ? 'Study Group' : (event.activity_type || event.type);
             
             html += `
-                <div class="activity-item ${event.activity_type || event.type} ${event.is_scheduled ? 'study-group' : ''}" 
+                <div class="activity-item ${eventType} ${event.is_scheduled ? 'study-group' : ''}" 
                      onclick="${onClick}">
                     <div class="activity-time">
                         <i class="fas ${event.is_scheduled ? 'fa-users' : 'fa-clock'}"></i>
-                        ${this.formatDisplayDate(displayDate)} at ${event.activity_time || event.time}
+                        ${this.formatDisplayDate(eventDate)} at ${eventTime}
                     </div>
                     <div class="activity-title">${event.title}</div>
                     <div class="activity-meta">
-                        <span><i class="fas fa-tag"></i> ${event.is_scheduled ? 'Study Group' : (event.activity_type || event.type)}</span>
+                        <span><i class="fas fa-tag"></i> ${eventType}</span>
                         ${event.location ? `<span><i class="fas fa-map-marker-alt"></i> ${event.location}</span>` : ''}
                         ${event.is_scheduled && event.subject ? `<span><i class="fas fa-book"></i> ${event.subject}</span>` : ''}
                     </div>
@@ -955,36 +818,20 @@ class Calendar {
         activitiesList.innerHTML = html;
     }
 
-    updateStatsSkeleton() {
-        // Set initial skeleton values
-        requestAnimationFrame(() => {
-            document.getElementById('studySessionsCount').textContent = '0';
-            document.getElementById('upcomingDeadlines').textContent = '0';
-            document.getElementById('groupSessions').textContent = '0';
-            document.getElementById('completedActivities').textContent = '0';
-        });
-    }
-
     updateStats() {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
         const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
         const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         
         const monthActivities = this.activities.filter(activity => {
-            const activityDate = new Date(activity.activity_date_fixed || activity.activity_date);
-            activityDate.setHours(0, 0, 0, 0);
-            return activityDate >= monthStart && 
-                   activityDate <= monthEnd && 
-                   activity.user_id === this.currentUser?.id;
+            const activityDate = new Date(activity.activity_date);
+            return activityDate >= monthStart && activityDate <= monthEnd && activity.user_id === this.currentUser?.id;
         });
 
-        const studySessions = monthActivities.filter(a => a.activity_type === 'study' && !a.is_completed).length;
+        const studySessions = monthActivities.filter(a => a.activity_type === 'study').length;
         const upcomingDeadlines = this.getAllUpcomingEvents().length;
         const groupSessions = this.scheduledGroups.filter(group => {
-            const groupDate = new Date(group.date_fixed || group.date);
-            groupDate.setHours(0, 0, 0, 0);
+            const groupDate = new Date(group.date);
             return groupDate >= monthStart && groupDate <= monthEnd;
         }).length;
         const completedActivities = monthActivities.filter(a => a.is_completed).length;
@@ -998,88 +845,87 @@ class Calendar {
         });
     }
 
-    openActivityModal(date = null) {
+    openActivityModal(prefilledDate = null) {
         const modal = document.getElementById('activityModal');
+        if (!modal) return;
+        
         const form = document.getElementById('activityForm');
         const modalTitle = document.getElementById('modalTitle');
         const deleteBtn = document.getElementById('deleteActivity');
         
-        // Reset form
         form.reset();
-        form.dataset.editId = '';
-        modalTitle.textContent = 'Add New Activity';
         deleteBtn.style.display = 'none';
+        modalTitle.textContent = 'Add New Activity';
         
-        // Set default date if provided
-        if (date) {
-            document.getElementById('activityDate').value = this.formatDateForInput(date);
-        } else {
-            document.getElementById('activityDate').value = this.formatDateForInput(new Date());
-        }
+        const now = new Date();
+        const defaultDate = prefilledDate || now;
         
-        // Set default time to next hour
-        const nextHour = new Date();
-        nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-        document.getElementById('activityTime').value = this.formatTimeForInput(nextHour);
+        document.getElementById('selectedDate').value = this.formatDateForInput(defaultDate);
+        document.getElementById('activityDate').value = this.formatDateForInput(defaultDate);
+        document.getElementById('activityTime').value = this.formatTimeForInput(now);
         
-        // Show modal
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        modal.style.display = 'block';
+        this.validateDateSelection(document.getElementById('activityDate').value);
+    }
+
+    editActivity(activityId) {
+        const activity = this.activities.find(a => a.id === activityId);
+        if (!activity) return;
+
+        const modal = document.getElementById('activityModal');
+        if (!modal) return;
+        
+        const form = document.getElementById('activityForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const deleteBtn = document.getElementById('deleteActivity');
+        
+        form.reset();
+        deleteBtn.style.display = 'block';
+        modalTitle.textContent = 'Edit Activity';
+        
+        document.getElementById('activityId').value = activity.id;
+        document.getElementById('activityTitle').value = activity.title;
+        document.getElementById('activityType').value = activity.activity_type;
+        document.getElementById('activityDate').value = activity.activity_date;
+        document.getElementById('activityTime').value = activity.activity_time;
+        document.getElementById('activityDuration').value = activity.duration_hours || 1;
+        document.getElementById('activityLocation').value = activity.location || '';
+        document.getElementById('activityDescription').value = activity.description || '';
+        document.getElementById('activityPriority').value = activity.priority || 'medium';
+        
+        modal.style.display = 'block';
     }
 
     closeModal() {
         const modal = document.getElementById('activityModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-        
-        // Reset form
-        document.getElementById('activityForm').reset();
-        document.getElementById('activityForm').dataset.editId = '';
-        document.getElementById('deleteActivity').style.display = 'none';
-    }
-
-    validateDateSelection(selectedDate) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        const selected = new Date(selectedDate);
-        selected.setHours(0, 0, 0, 0);
-        
-        if (selected < today) {
-            this.showNotification('Cannot add activities for past dates', 'warning');
-            document.getElementById('activityDate').value = this.formatDateForInput(today);
+        if (modal) {
+            modal.style.display = 'none';
         }
     }
 
-    async saveActivity(event) {
-        event.preventDefault();
+    async saveActivity(e) {
+        e.preventDefault();
         
-        const form = event.target;
-        const formData = new FormData(form);
-        const activityId = form.dataset.editId;
+        const activityId = document.getElementById('activityId').value;
         
-        // Convert form data to object
         const activityData = {
-            title: formData.get('title'),
-            description: formData.get('description'),
-            activity_date: formData.get('date'),
-            activity_time: formData.get('time'),
-            duration_hours: parseInt(formData.get('duration')) || 1,
-            activity_type: formData.get('type'),
-            location: formData.get('location'),
-            priority: formData.get('priority'),
-            user_id: this.currentUser.id
+            user_id: this.currentUser.id,
+            title: document.getElementById('activityTitle').value,
+            activity_type: document.getElementById('activityType').value,
+            activity_date: document.getElementById('activityDate').value,
+            activity_time: document.getElementById('activityTime').value,
+            duration_hours: parseFloat(document.getElementById('activityDuration').value),
+            location: document.getElementById('activityLocation').value,
+            description: document.getElementById('activityDescription').value,
+            priority: document.getElementById('activityPriority').value
         };
 
-        // Validate date is not in the past
+        const activityDate = new Date(activityData.activity_date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
-        const activityDate = new Date(activityData.activity_date);
-        activityDate.setHours(0, 0, 0, 0);
-        
         if (activityDate < today) {
-            this.showNotification('Cannot add activities for past dates', 'error');
+            alert('Cannot create activities for past dates. Please select a present or future date.');
             return;
         }
 
@@ -1089,94 +935,52 @@ class Calendar {
             if (activityId) {
                 // Update existing activity
                 response = await fetch(`${this.API_BASE_URL}/activities/${activityId}`, {
-                    method: 'PUT',
+                    method: 'PATCH',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(activityData)
+                    body: JSON.stringify({
+                        user_id: this.currentUser.id,
+                        ...activityData
+                    })
                 });
             } else {
                 // Create new activity
-                response = await fetch(`${this.API_BASE_URL}/activities`, {
+                response = await fetch(`${this.API_BASE_URL}/activities/create`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(activityData)
                 });
             }
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
             
-            this.showNotification(
-                activityId ? 'Activity updated successfully!' : 'Activity added successfully!', 
-                'success'
-            );
-            
-            // Reload activities and update UI
+            // Reload activities from API to get the latest data
             await this.loadActivities();
+            
+            // Update UI
             this.renderCalendar();
-            this.renderActivitiesList();
             this.updateStats();
+            this.renderActivitiesList();
             this.closeModal();
+            
+            this.showNotification(`Activity ${activityId ? 'updated' : 'created'} successfully!`, 'success');
             
         } catch (error) {
             console.error('Error saving activity:', error);
-            this.showNotification('Error saving activity. Please try again.', 'error');
-        }
-    }
-
-    async editActivity(activityId) {
-        try {
-            const response = await fetch(`${this.API_BASE_URL}/activities/${activityId}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            const activity = data.activity;
-            
-            if (!activity) {
-                throw new Error('Activity not found');
-            }
-
-            // Populate form with activity data
-            const form = document.getElementById('activityForm');
-            form.dataset.editId = activityId;
-            
-            document.getElementById('modalTitle').textContent = 'Edit Activity';
-            document.getElementById('activityTitle').value = activity.title;
-            document.getElementById('activityDescription').value = activity.description || '';
-            document.getElementById('activityDate').value = activity.activity_date;
-            document.getElementById('activityTime').value = activity.activity_time;
-            document.getElementById('activityDuration').value = activity.duration_hours || 1;
-            document.getElementById('activityType').value = activity.activity_type;
-            document.getElementById('activityLocation').value = activity.location || '';
-            document.getElementById('activityPriority').value = activity.priority || 'medium';
-            
-            // Show delete button
-            document.getElementById('deleteActivity').style.display = 'block';
-            
-            // Show modal
-            document.getElementById('activityModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            
-        } catch (error) {
-            console.error('Error loading activity for edit:', error);
-            this.showNotification('Error loading activity details', 'error');
+            this.showNotification(`Error saving activity: ${error.message}`, 'error');
         }
     }
 
     async deleteActivity() {
-        const form = document.getElementById('activityForm');
-        const activityId = form.dataset.editId;
-        
-        if (!activityId) return;
+        const activityId = document.getElementById('activityId').value;
         
         if (!confirm('Are you sure you want to delete this activity?')) {
             return;
@@ -1184,65 +988,54 @@ class Calendar {
 
         try {
             const response = await fetch(`${this.API_BASE_URL}/activities/${activityId}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: this.currentUser.id
+                })
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
-            this.showNotification('Activity deleted successfully!', 'success');
-            
-            // Reload activities and update UI
+            // Reload activities from API
             await this.loadActivities();
+            
+            // Update UI
             this.renderCalendar();
-            this.renderActivitiesList();
             this.updateStats();
+            this.renderActivitiesList();
             this.closeModal();
+            
+            this.showNotification('Activity deleted successfully!', 'success');
             
         } catch (error) {
             console.error('Error deleting activity:', error);
-            this.showNotification('Error deleting activity. Please try again.', 'error');
+            this.showNotification(`Error deleting activity: ${error.message}`, 'error');
         }
     }
 
     toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('mainContent');
+        const sidebar = document.querySelector('.activities-sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
         
-        sidebar.classList.toggle('collapsed');
-        mainContent.classList.toggle('sidebar-collapsed');
-    }
-
-    showNotification(message, type = 'info') {
-        // Remove existing notifications
-        const existingNotifications = document.querySelectorAll('.notification');
-        existingNotifications.forEach(notification => notification.remove());
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <span class="notification-message">${message}</span>
-            <button class="notification-close">&times;</button>
-        `;
-
-        document.body.appendChild(notification);
-
-        // Add close event
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            notification.remove();
-        });
-
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
+        if (sidebar && toggleBtn) {
+            sidebar.classList.toggle('collapsed');
+            const icon = toggleBtn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-chevron-left');
+                icon.classList.toggle('fa-chevron-right');
             }
-        }, 5000);
+        }
     }
 
-    // Helper methods for date formatting
+    // Utility methods
     formatDateForInput(date) {
+        if (!(date instanceof Date)) date = new Date(date);
         return date.toISOString().split('T')[0];
     }
 
@@ -1251,12 +1044,59 @@ class Calendar {
     }
 
     formatDisplayDate(dateString) {
-        const date = new Date(dateString + 'T00:00:00'); // Parse as local date
-        return date.toLocaleDateString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric' 
-        });
+        const date = new Date(dateString);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        if (date.toDateString() === today.toDateString()) {
+            return 'Today';
+        } else if (date.toDateString() === tomorrow.toDateString()) {
+            return 'Tomorrow';
+        } else {
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+    }
+
+    validateDateSelection(selectedDate) {
+        const selected = new Date(selectedDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const dateInput = document.getElementById('activityDate');
+        const submitBtn = document.querySelector('#activityForm button[type="submit"]');
+        
+        if (selected < today) {
+            dateInput.style.borderColor = '#ff6b6b';
+            submitBtn.disabled = true;
+            submitBtn.title = 'Cannot create activities for past dates';
+        } else {
+            dateInput.style.borderColor = '';
+            submitBtn.disabled = false;
+            submitBtn.title = '';
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        // Remove existing notifications
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(notification => notification.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()">&times;</button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
     }
 }
 
@@ -1265,5 +1105,79 @@ document.addEventListener('DOMContentLoaded', () => {
     window.calendar = new Calendar();
 });
 
-// Export for global access
-window.Calendar = Calendar;
+// Add CSS for notifications
+const notificationStyles = `
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 4px;
+        color: white;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        justify-content: between;
+        animation: slideInRight 0.3s ease;
+    }
+    
+    .notification.success {
+        background: #28a745;
+    }
+    
+    .notification.error {
+        background: #dc3545;
+    }
+    
+    .notification.info {
+        background: #17a2b8;
+    }
+    
+    .notification button {
+        background: none;
+        border: none;
+        color: white;
+        margin-left: 10px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .calendar-loading {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+    }
+    
+    .loading-spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+
+// Inject styles
+const styleSheet = document.createElement('style');
+styleSheet.textContent = notificationStyles;
+document.head.appendChild(styleSheet);
