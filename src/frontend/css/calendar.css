@@ -617,6 +617,8 @@ body {
     opacity: 0.5;
 }
 
+/* calendar.css - Updated Modal Styles */
+
 /* Modal Styles */
 .modal {
     display: none;
@@ -628,16 +630,21 @@ body {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
+    overflow: auto; /* Enable scrolling for the entire modal background */
 }
 
 .modal-content {
     background-color: white;
-    margin: 5% auto;
+    margin: 2% auto; /* Reduced from 5% to give more space */
     border-radius: 1rem;
     width: 90%;
     max-width: 600px;
+    max-height: 90vh; /* Limit height to 90% of viewport */
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     animation: modalSlideIn 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent content from overflowing the rounded corners */
 }
 
 .modal-header {
@@ -648,6 +655,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .modal-header h3 {
@@ -670,6 +678,7 @@ body {
     align-items: center;
     justify-content: center;
     transition: background 0.3s ease;
+    flex-shrink: 0; /* Prevent close button from shrinking */
 }
 
 .close-modal:hover {
@@ -678,10 +687,15 @@ body {
 
 .modal-form {
     padding: 2rem;
+    overflow-y: auto; /* Make form content scrollable */
+    flex: 1; /* Allow form to take remaining space */
+    display: flex;
+    flex-direction: column;
 }
 
 .form-group {
     margin-bottom: 1.5rem;
+    flex-shrink: 0; /* Prevent form groups from shrinking */
 }
 
 .form-row {
@@ -708,6 +722,7 @@ input, select, textarea {
     font-size: 1rem;
     transition: all 0.3s ease;
     background: white;
+    box-sizing: border-box; /* Include padding in width calculation */
 }
 
 input:focus, select:focus, textarea:focus {
@@ -720,7 +735,10 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
-    margin-top: 2rem;
+    margin-top: auto; /* Push actions to bottom */
+    padding-top: 1rem;
+    flex-shrink: 0; /* Prevent actions from shrinking */
+    border-top: 1px solid var(--study-border);
 }
 
 .btn {
@@ -733,6 +751,7 @@ input:focus, select:focus, textarea:focus {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
 .btn-primary {
@@ -764,6 +783,72 @@ input:focus, select:focus, textarea:focus {
     background: #dc2626;
 }
 
+/* Custom scrollbar for modal form */
+.modal-form::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-form::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.modal-form::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.modal-form::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 1% auto;
+        width: 95%;
+        max-height: 95vh; /* More height on mobile */
+    }
+    
+    .modal-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal-form {
+        padding: 1.5rem;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column-reverse; /* Stack buttons on mobile */
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        margin: 0;
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .modal-header {
+        border-radius: 0;
+    }
+    
+    .modal-form {
+        padding: 1rem;
+    }
+}
+
 /* Animations */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -773,54 +858,4 @@ input:focus, select:focus, textarea:focus {
 @keyframes modalSlideIn {
     from { opacity: 0; transform: translateY(-50px) scale(0.9); }
     to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .calendar-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .activities-sidebar {
-        order: -1;
-        margin-bottom: 2rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .calendar-controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .calendar-nav {
-        justify-content: center;
-    }
-    
-    .view-controls {
-        justify-content: center;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .calendar-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 480px) {
-    .calendar-stats {
-        grid-template-columns: 1fr;
-    }
-    
-    .calendar-header h1 {
-        font-size: 2rem;
-    }
-    
-    .stat-card {
-        flex-direction: column;
-        text-align: center;
-    }
 }

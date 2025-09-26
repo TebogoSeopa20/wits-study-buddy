@@ -12,6 +12,7 @@ const studyGroupsApi = require('./backend/study-groups-api');
 const notificationsApi = require('./backend/notifications-api');
 const groupsApi = require('./backend/external-groups-api');
 const chatApi = require('./backend/chat-api');
+const activitiesApi = require('./backend/activities-api');
 const progressApi = require('./backend/progress-api');
 
 // Create the Express application
@@ -55,6 +56,7 @@ app.use('/api', connectionsApi);
 app.use('/api', studyGroupsApi);
 app.use('/api', notificationsApi);
 app.use('/api', chatApi);
+app.use('/api', activitiesApi);
 app.use('/api/progress', progressApi);
 app.use('/api/external', groupsApi);
 
