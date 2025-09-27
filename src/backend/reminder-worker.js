@@ -4,8 +4,8 @@ const nodemailer = require('nodemailer');
 class ReminderWorker {
   constructor() {
     this.supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-    this.transporter = nodemailer.createTransporter({
-      service: process.env.EMAIL_SERVICE,
+    this.Transport = nodemailer.createTransport({
+      service: process.env.EMAIL_SERVICE || 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
@@ -32,17 +32,20 @@ class ReminderWorker {
       const now = new Date();
       const fiveMinutesFromNow = new Date(now.getTime() + 300000);
 
-      // Get tasks with due reminders
+      // Get tasks with due reminders (without joining profiles)
       const { data: tasks, error } = await this.supabase
         .from('tasks')
-        .select('*, profiles(email, name)')
+        .select('*')
         .eq('reminder_enabled', true)
         .eq('reminders_sent', false)
         .lte('date', fiveMinutesFromNow.toISOString())
         .gte('date', now.toISOString())
         .is('snoozed_until', null);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching tasks for reminders:', error);
+        return;
+      }
 
       for (const task of tasks) {
         await this.processReminder(task);
@@ -67,8 +70,8 @@ class ReminderWorker {
         console.log(`Sending reminder for task: ${task.title}`);
         
         // Send email if enabled
-        if (task.email_notifications && task.profiles && task.profiles.email) {
-          await this.sendEmailReminder(task, task.profiles);
+        if (task.email_notifications) {
+          await this.sendEmailReminder(task);
         }
 
         // Mark as sent
@@ -85,16 +88,28 @@ class ReminderWorker {
     }
   }
 
-  async sendEmailReminder(task, user) {
+  async sendEmailReminder(task) {
     try {
+      // Get user profile for email
+      const { data: profile, error } = await this.supabase
+        .from('profiles')
+        .select('email, name')
+        .eq('user_id', task.user_id)
+        .single();
+
+      if (error || !profile || !profile.email) {
+        console.error('Error fetching user profile for email:', error);
+        return;
+      }
+
       const mailOptions = {
         from: process.env.EMAIL_USER,
-        to: user.email,
+        to: profile.email,
         subject: `🔔 Reminder: ${task.title}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #1e40af;">Study Session Reminder</h2>
-            <p>Hello ${user.name},</p>
+            <p>Hello ${profile.name},</p>
             <p>This is a reminder for your upcoming study session:</p>
             <div style="background: #f8fafc; padding: 20px; border-radius: 10px; border-left: 4px solid #1e40af;">
               <h3 style="margin: 0 0 10px 0; color: #1e293b;">${task.title}</h3>
@@ -113,8 +128,8 @@ class ReminderWorker {
         `
       };
 
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Email sent to ${user.email} for task: ${task.title}`);
+      await this.Transport.sendMail(mailOptions);
+      console.log(`Email sent to ${profile.email} for task: ${task.title}`);
     } catch (error) {
       console.error('Error sending email:', error);
     }

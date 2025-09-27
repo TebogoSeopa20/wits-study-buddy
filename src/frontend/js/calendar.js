@@ -48,6 +48,65 @@ class Calendar {
         }
     }
 
+    async loadActivitiesFromDatabase() {
+    if (!this.currentUser?.id) return [];
+
+    try {
+        const response = await fetch(`${this.API_BASE_URL}/tasks/user/${this.currentUser.id}`, {
+            headers: {
+                'Authorization': `Bearer ${this.currentUser.session?.access_token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data.tasks.map(task => ({
+                id: task.id,
+                title: task.title,
+                type: task.category,
+                date: new Date(task.date).toISOString().split('T')[0],
+                time: new Date(task.date).toTimeString().slice(0, 5),
+                duration: task.duration,
+                location: task.location,
+                description: task.description,
+                priority: task.priority,
+                reminder_enabled: task.reminder_enabled,
+                reminder_intervals: task.reminder_intervals,
+                email_notifications: task.email_notifications,
+                userId: task.user_id,
+                createdAt: task.created_at,
+                updatedAt: task.updated_at,
+                fromDatabase: true
+            }));
+        }
+    } catch (error) {
+        console.error('Error loading activities from database:', error);
+    }
+
+    return [];
+}
+
+// Update the init method to load from database
+async init() {
+    this.checkAuth();
+    this.setupEventListeners();
+    this.setupReminderListeners();
+    
+    // Load activities from database first, then fallback to local storage
+    const dbActivities = await this.loadActivitiesFromDatabase();
+    if (dbActivities.length > 0) {
+        this.activities = dbActivities;
+    } else {
+        this.activities = this.loadActivities();
+    }
+    
+    this.renderCalendar();
+    this.updateStats();
+    this.renderActivitiesList();
+    
+    this.loadScheduledGroupsBackground();
+}
+
     async loadScheduledGroupsBackground() {
         if (this.isLoadingGroups) return;
         
@@ -1060,35 +1119,50 @@ class Calendar {
         this.saveActivityToDatabase(activity);
     }
 
-    async saveActivityToDatabase(activity) {
-        try {
-            const taskData = {
-                title: activity.title,
-                date: new Date(`${activity.date}T${activity.time}`).toISOString(),
-                user_id: this.currentUser.id,
-                description: activity.description,
-                category: activity.type,
-                priority: activity.priority,
-                duration: activity.duration,
-                location: activity.location,
-                reminder_enabled: activity.reminder_enabled,
-                reminder_intervals: activity.reminder_intervals,
-                email_notifications: activity.email_notifications
-            };
+   async saveActivityToDatabase(activity) {
+    try {
+        const taskData = {
+            title: activity.title,
+            date: new Date(`${activity.date}T${activity.time}`).toISOString(),
+            user_id: this.currentUser.id,
+            description: activity.description,
+            category: activity.type,
+            priority: activity.priority,
+            duration: activity.duration,
+            location: activity.location,
+            reminder_enabled: activity.reminder_enabled,
+            reminder_intervals: activity.reminder_intervals || [15],
+            email_notifications: activity.email_notifications || false
+        };
 
-            const response = await fetch(`${this.API_BASE_URL}/tasks`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(taskData)
-            });
+        console.log('Saving task to database:', taskData);
 
-            if (response.ok) {
-                console.log('Activity saved to database with reminders');
-            }
-        } catch (error) {
-            console.error('Error saving activity to database:', error);
+        const response = await fetch(`${this.API_BASE_URL}/tasks`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.currentUser.session?.access_token}`
+            },
+            body: JSON.stringify(taskData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
+
+        const result = await response.json();
+        console.log('Activity saved to database:', result);
+        
+        // Update the activity with the database ID
+        activity.db_id = result.task.id;
+        this.saveActivities(); // Update local storage
+        
+    } catch (error) {
+        console.error('Error saving activity to database:', error);
+        this.showNotification('Failed to save activity to cloud. Using local storage only.', 'error');
     }
+}
 
     deleteActivity() {
         const activityId = document.getElementById('activityId').value;
