@@ -4,8 +4,8 @@ const nodemailer = require('nodemailer');
 class ReminderWorker {
   constructor() {
     this.supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-    this.Transport = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
+    this.transporter = nodemailer.createTransporter({
+      service: process.env.EMAIL_SERVICE,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD
@@ -128,8 +128,8 @@ class ReminderWorker {
         `
       };
 
-      await this.Transport.sendMail(mailOptions);
-      console.log(`Email sent to ${profile.email} for task: ${task.title}`);
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Email sent to ${user.email} for task: ${task.title}`);
     } catch (error) {
       console.error('Error sending email:', error);
     }
