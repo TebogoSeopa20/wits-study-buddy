@@ -23,7 +23,6 @@ class ProgressManager {
 
         this.setupEventListeners();
         this.loadProgressData();
-        this.setupCharts();
     }
 
     isAuthenticated() {
@@ -83,7 +82,6 @@ class ProgressManager {
         const closeBtn = modal.querySelector('.modal-close');
         const cancelBtn = document.getElementById('cancelModule');
         const deleteBtn = document.getElementById('deleteModuleBtn');
-        const adviceCloseBtn = document.getElementById('closeAdvice');
         const toastCloseBtn = document.querySelector('.toast-close');
 
         // Close modal events
@@ -93,9 +91,6 @@ class ProgressManager {
 
         // Delete module
         deleteBtn.addEventListener('click', () => this.handleDeleteModule());
-
-        // Advice modal
-        adviceCloseBtn.addEventListener('click', () => this.closeAdviceModal());
 
         // Toast close
         toastCloseBtn.addEventListener('click', () => this.hideToast());
@@ -138,7 +133,7 @@ class ProgressManager {
 
             this.renderModules();
             this.updateStats();
-            this.updateCharts();
+            this.setupCharts();
             this.showLoading(false);
 
         } catch (error) {
@@ -304,16 +299,17 @@ class ProgressManager {
         document.getElementById('moduleCount').textContent = this.stats.totalModules || 0;
         document.getElementById('completedCount').textContent = this.stats.completedTopics || 0;
         document.getElementById('rewardCount').textContent = this.stats.earnedRewards || 0;
+        document.getElementById('completionPercentage').textContent = `${this.stats.completionPercentage || 0}%`;
     }
 
     setupCharts() {
-        // Progress chart
+        // Overall Progress Chart (Doughnut)
         this.progressChart = new Chart(document.getElementById('progressChart'), {
             type: 'doughnut',
             data: {
                 labels: ['Completed', 'Remaining'],
                 datasets: [{
-                    data: [0, 100],
+                    data: [this.stats.completionPercentage || 0, 100 - (this.stats.completionPercentage || 0)],
                     backgroundColor: ['#10b981', '#e5e7eb'],
                     borderWidth: 0
                 }]
@@ -324,7 +320,14 @@ class ProgressManager {
                 cutout: '70%',
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -337,13 +340,17 @@ class ProgressManager {
             }
         });
 
-        // Time management chart
+        // Time Management Chart (Doughnut)
+        const timeManagement = this.analytics.timeManagement || { onTrack: 0, total: 0 };
+        const onTrackPercentage = timeManagement.total > 0 ? 
+            Math.round((timeManagement.onTrack / timeManagement.total) * 100) : 100;
+        
         this.timeChart = new Chart(document.getElementById('timeChart'), {
             type: 'doughnut',
             data: {
                 labels: ['On Track', 'Needs Attention'],
                 datasets: [{
-                    data: [100, 0],
+                    data: [onTrackPercentage, 100 - onTrackPercentage],
                     backgroundColor: ['#3b82f6', '#f59e0b'],
                     borderWidth: 0
                 }]
@@ -354,68 +361,114 @@ class ProgressManager {
                 cutout: '70%',
                 plugins: {
                     legend: {
-                        display: false
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 12
+                            }
+                        }
                     }
                 }
             }
         });
-    }
 
-    updateCharts() {
-        // Update progress chart
-        const completionPercentage = this.stats.completionPercentage || 0;
-        this.progressChart.data.datasets[0].data = [completionPercentage, 100 - completionPercentage];
-        this.progressChart.update();
+        // Module Completion Chart (Bar)
+        const moduleCompletion = this.analytics.moduleCompletion || [];
+        const moduleNames = moduleCompletion.map(m => m.moduleName);
+        const completionPercentages = moduleCompletion.map(m => m.completion);
+        const moduleColors = moduleCompletion.map(m => m.color);
 
-        document.getElementById('progressPercentage').textContent = `${completionPercentage}% Complete`;
+        this.moduleChart = new Chart(document.getElementById('moduleChart'), {
+            type: 'bar',
+            data: {
+                labels: moduleNames,
+                datasets: [{
+                    label: 'Completion %',
+                    data: completionPercentages,
+                    backgroundColor: moduleColors,
+                    borderWidth: 0,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
 
-        // Update time management chart
-        const timeManagement = this.analytics.timeManagement || { onTrack: 0, total: 0 };
-        const onTrackPercentage = timeManagement.total > 0 ? 
-            Math.round((timeManagement.onTrack / timeManagement.total) * 100) : 100;
+        // Weekly Progress Chart (Line)
+        // Generate sample weekly data (in a real app, this would come from the API)
+        const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Current'];
+        const weeklyProgress = [10, 25, 45, 70, this.stats.completionPercentage || 0];
         
-        this.timeChart.data.datasets[0].data = [onTrackPercentage, 100 - onTrackPercentage];
-        this.timeChart.update();
+        this.weeklyChart = new Chart(document.getElementById('weeklyChart'), {
+            type: 'line',
+            data: {
+                labels: weeks,
+                datasets: [{
+                    label: 'Progress %',
+                    data: weeklyProgress,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
 
+        // Update text elements
+        document.getElementById('progressPercentage').textContent = `${this.stats.completionPercentage || 0}% Complete`;
         document.getElementById('timeRemaining').textContent = 
             onTrackPercentage === 100 ? 'All milestones on track' : `${100 - onTrackPercentage}% need attention`;
-
-        // Update color summaries
-        this.updateColorSummaries();
-    }
-
-    updateColorSummaries() {
-        const completionSummary = document.getElementById('completionColorSummary');
-        const timeSummary = document.getElementById('timeColorSummary');
-
-        // Completion color summary
-        const moduleCompletion = this.analytics.moduleCompletion || [];
-        completionSummary.innerHTML = `
-            <h3>Module Progress</h3>
-            <div class="color-items">
-                ${moduleCompletion.map(module => `
-                    <div class="color-item">
-                        <div class="color-swatch" style="background-color: ${module.color}"></div>
-                        <span>${module.moduleName}: ${module.completion}%</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-
-        // Time management color summary
-        timeSummary.innerHTML = `
-            <h3>Milestone Status</h3>
-            <div class="color-items">
-                <div class="color-item">
-                    <div class="color-swatch" style="background-color: #3b82f6"></div>
-                    <span>On Track</span>
-                </div>
-                <div class="color-item">
-                    <div class="color-swatch" style="background-color: #f59e0b"></div>
-                    <span>Needs Attention</span>
-                </div>
-            </div>
-        `;
     }
 
     showAddModuleModal(module = null) {
@@ -470,10 +523,6 @@ class ProgressManager {
     closeModal() {
         document.getElementById('addModuleModal').classList.remove('active');
         document.getElementById('moduleForm').reset();
-    }
-
-    closeAdviceModal() {
-        document.getElementById('adviceModal').classList.remove('active');
     }
 
     async handleModuleSubmit(e) {
@@ -614,10 +663,7 @@ class ProgressManager {
             html += results.topics.map(topic => `
                 <div class="search-topic-item">
                     <span class="topic-name">${topic.name}</span>
-                    <span class="module-name">in ${topic.module.name}</span>
-                    <span class="topic-status ${topic.completed ? 'completed' : ''}">
-                        ${topic.completed ? 'Completed' : 'In Progress'}
-                    </span>
+                    <span class="module-name">in ${topic.moduleName}</span>
                 </div>
             `).join('');
         }
@@ -626,75 +672,39 @@ class ProgressManager {
         this.attachTopicEventListeners();
     }
 
-    showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-        
-        toastMessage.textContent = message;
-        toast.className = `toast-notification ${type}`;
-        toast.classList.add('show');
-
-        setTimeout(() => {
-            this.hideToast();
-        }, 3000);
-    }
-
-    hideToast() {
-        document.getElementById('toast').classList.remove('show');
-    }
-
-    formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    }
-
-    // NEW: PDF Export Functionality
     async exportToPDF() {
         try {
-            this.showToast('Preparing PDF export...', 'info');
+            this.showToast('Generating PDF report...', 'info');
             
-            // Use jsPDF from window object
+            // Use jsPDF to create PDF
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
             // Add title
             doc.setFontSize(20);
-            doc.setTextColor(33, 37, 41);
-            doc.text('Academic Progress Report', 105, 20, { align: 'center' });
+            doc.text('Academic Progress Report', 20, 30);
             
             // Add date
-            doc.setFontSize(10);
-            doc.setTextColor(108, 117, 125);
-            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 30, { align: 'center' });
+            doc.setFontSize(12);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 45);
             
-            let yPosition = 50;
-            
-            // Add summary statistics
+            // Add stats
             doc.setFontSize(16);
-            doc.setTextColor(33, 37, 41);
-            doc.text('Summary Statistics', 20, yPosition);
-            yPosition += 10;
+            doc.text('Progress Summary', 20, 65);
             
             doc.setFontSize(12);
-            doc.setTextColor(73, 80, 87);
-            doc.text(`Total Modules: ${this.stats.totalModules || 0}`, 30, yPosition);
-            yPosition += 8;
-            doc.text(`Topics Completed: ${this.stats.completedTopics || 0}`, 30, yPosition);
-            yPosition += 8;
-            doc.text(`Rewards Earned: ${this.stats.earnedRewards || 0}`, 30, yPosition);
-            yPosition += 15;
+            doc.text(`Total Modules: ${this.stats.totalModules || 0}`, 20, 80);
+            doc.text(`Completed Topics: ${this.stats.completedTopics || 0}`, 20, 90);
+            doc.text(`Rewards Earned: ${this.stats.earnedRewards || 0}`, 20, 100);
+            doc.text(`Overall Completion: ${this.stats.completionPercentage || 0}%`, 20, 110);
             
             // Add module details
+            let yPosition = 130;
             doc.setFontSize(16);
-            doc.setTextColor(33, 37, 41);
-            doc.text('Module Progress', 20, yPosition);
-            yPosition += 10;
+            doc.text('Module Details', 20, yPosition);
+            yPosition += 15;
             
-            for (const module of this.modules) {
-                // Check if we need a new page
+            this.modules.forEach((module, index) => {
                 if (yPosition > 250) {
                     doc.addPage();
                     yPosition = 20;
@@ -705,66 +715,51 @@ class ProgressManager {
                 const completionPercentage = totalTopics > 0 ? 
                     Math.round((completedTopics / totalTopics) * 100) : 0;
                 
-                // Module header
-                doc.setFontSize(14);
-                doc.setTextColor(33, 37, 41);
-                doc.text(module.name, 30, yPosition);
-                yPosition += 8;
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 128);
+                doc.text(`${module.name} (${completionPercentage}% complete)`, 20, yPosition);
+                yPosition += 7;
                 
-                // Progress information
-                doc.setFontSize(10);
-                doc.setTextColor(73, 80, 87);
-                doc.text(`Progress: ${completedTopics}/${totalTopics} topics (${completionPercentage}%)`, 35, yPosition);
-                yPosition += 6;
-                
-                // Topics list
-                doc.text('Topics:', 35, yPosition);
-                yPosition += 6;
-                
-                for (const topic of module.topics) {
-                    if (yPosition > 270) {
-                        doc.addPage();
-                        yPosition = 20;
-                    }
-                    
-                    const status = topic.completed ? '✓' : '○';
-                    doc.text(`${status} ${topic.name}`, 40, yPosition);
-                    yPosition += 5;
-                }
-                
-                yPosition += 5; // Extra space between modules
-            }
-            
-            // Add analytics section
-            if (yPosition > 220) {
-                doc.addPage();
-                yPosition = 20;
-            }
-            
-            doc.setFontSize(16);
-            doc.setTextColor(33, 37, 41);
-            doc.text('Analytics Overview', 20, yPosition);
-            yPosition += 10;
-            
-            doc.setFontSize(12);
-            doc.setTextColor(73, 80, 87);
-            doc.text(`Overall Completion: ${this.stats.completionPercentage || 0}%`, 30, yPosition);
-            yPosition += 8;
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Topics: ${completedTopics}/${totalTopics} completed`, 25, yPosition);
+                yPosition += 15;
+            });
             
             // Save the PDF
-            const fileName = `Academic_Progress_${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-            
-            this.showToast('PDF exported successfully!');
+            doc.save('wits-progress-report.pdf');
+            this.showToast('PDF report downloaded successfully');
             
         } catch (error) {
-            console.error('Error exporting PDF:', error);
-            this.showToast('Error exporting PDF', 'error');
+            console.error('Error generating PDF:', error);
+            this.showToast('Error generating PDF report', 'error');
         }
+    }
+
+    showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const messageEl = document.getElementById('toastMessage');
+        
+        messageEl.textContent = message;
+        toast.className = `toast-notification ${type}`;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            this.hideToast();
+        }, 4000);
+    }
+
+    hideToast() {
+        document.getElementById('toast').classList.remove('show');
+    }
+
+    formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 }
 
-// Initialize the progress manager when the page loads
+// Initialize Progress Manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.progressManager = new ProgressManager();
 });

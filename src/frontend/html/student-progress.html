@@ -146,46 +146,53 @@
                 <div class="stat-value" id="rewardCount">0</div>
                 <div class="stat-label">Rewards Earned</div>
             </article>
+            
+            <article class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-value" id="completionPercentage">0%</div>
+                <div class="stat-label">Overall Done</div>
+            </article>
         </section>
-
-        <!-- Progress Content -->
+                <!-- Progress Content -->
         <section class="progress-content">
-            <!-- Modules Section -->
+                       <!-- Modules Section -->
             <section class="modules-section">
                 <h2 class="section-title"><i class="fas fa-cubes"></i> My Modules</h2>
                 <section class="modules-grid" id="modulesGrid">
                     <!-- Modules will be dynamically added here -->
                 </section>
             </section>
-            
-
             <!-- Analytics Section -->
             <section class="analytics-section">
-                <h2 class="section-title"><i class="fas fa-chart-pie"></i> Analytics</h2>
+                <h2 class="section-title"><i class="fas fa-chart-pie"></i> Analytics Dashboard</h2>
                 <section class="analytics-grid">
                     <article class="analytics-card">
                         <header>
-                            <h2><i class="fas fa-tasks"></i> Completion Progress</h2>
+                            <h2><i class="fas fa-tasks"></i> Overall Progress</h2>
                         </header>
                         <section class="analytics-content">
                             <canvas id="progressChart"></canvas>
                             <p class="progress-percentage" id="progressPercentage">0% Complete</p>
-                            <section class="color-summary" id="completionColorSummary">
-                                <!-- Color summary for completion progress will be dynamically added here -->
-                            </section>
                         </section>
                     </article>
                     
                     <article class="analytics-card">
                         <header>
-                            <h2><i class="fas fa-hourglass-half"></i> Time Management</h2>
+                            <h2><i class="fas fa-chart-bar"></i> Module Completion</h2>
                         </header>
                         <section class="analytics-content">
-                            <canvas id="timeChart"></canvas>
-                            <p class="time-remaining" id="timeRemaining">All milestones on track</p>
-                            <section class="color-summary" id="timeColorSummary">
-                                <!-- Color summary for time management will be dynamically added here -->
-                            </section>
+                            <canvas id="moduleChart"></canvas>
+                        </section>
+                    </article>
+                    
+                    <article class="analytics-card">
+                        <header>
+                            <h2><i class="fas fa-calendar-alt"></i> Weekly Progress</h2>
+                        </header>
+                        <section class="analytics-content">
+                            <canvas id="weeklyChart"></canvas>
                         </section>
                     </article>
                 </section>
@@ -270,31 +277,6 @@
         </article>
     </section>
 
-    <!-- Management Advice Modal -->
-    <section id="adviceModal" class="modal">
-        <article class="modal-content">
-            <header class="modal-header">
-                <h2>Time Management Advice</h2>
-                <button class="modal-close">&times;</button>
-            </header>
-            
-            <section class="advice-content">
-                <p>Based on your milestones, here are some tips to help you manage your time effectively:</p>
-                <ul id="adviceList">
-                    <li>Break down large modules into smaller, manageable tasks</li>
-                    <li>Set specific deadlines for each topic</li>
-                    <li>Use the Pomodoro technique (25 min focus, 5 min break)</li>
-                    <li>Prioritize topics based on difficulty and importance</li>
-                    <li>Review your progress at the end of each week</li>
-                </ul>
-            </section>
-            
-            <article class="modal-actions">
-                <button class="action-btn primary" id="closeAdvice">Got it!</button>
-            </article>
-        </article>
-    </section>
-
     <!-- Toast Notification -->
     <section id="toast" class="toast-notification">
         <i class="fas fa-check-circle"></i>
@@ -350,6 +332,7 @@
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
     <script src="../js/main.js"></script>
+    <script src="../js/notifications.js"></script>
     <script src="../js/progress.js"></script>
 </body>
 </html>
