@@ -19,16 +19,22 @@ module.exports = {
   collectCoverage: true,
   collectCoverageFrom: [
     'src/frontend/test_utils/participantsUtils.js',
+    'src/frontend/test_utils/remindersUtils.js',
+    'src/frontend/test_utils/progressUtils.js',
     'src/frontend/test_utils/mainUtils.js',
     'src/frontend/test_utils/groupsUtils.js',
     'src/frontend/test_utils/weatherUtils.js',
     'src/frontend/test_utils/mapUtils.js',
     'src/frontend/test_utils/mapUtils.js',
     'src/frontend/test_utils/loginUtils.js',
+    'src/frontend/test_utils/calendarUtils.js',
     'src/frontend/test_utils/notificationUtils.js',
     'src/backend/test_utils/signupUtils.js',
     'src/backend/test_utils/connectionsUtils.js',
     'src/backend/test_utils/studyGroupsUtils.js',
+    'src/backend/test_utils/activitiesUtils.js',
+    'src/backend/test_utils/remindersUtils.js',
+    'src/backend/test_utils/progressUtils.js',
     'src/backend/test_utils/externalGroupsUtils.js',
     
 

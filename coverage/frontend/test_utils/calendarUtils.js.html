@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for backend/test_utils/studyGroupsUtils.js</title>
+    <title>Code coverage report for frontend/test_utils/calendarUtils.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">backend/test_utils</a> studyGroupsUtils.js</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">frontend/test_utils</a> calendarUtils.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.78% </span>
+                <span class="strong">94.73% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>150/188</span>
+                <span class='fraction'>234/247</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">73.22% </span>
+                <span class="strong">77.41% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>186/254</span>
+                <span class='fraction'>192/248</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">94.28% </span>
+                <span class="strong">91.3% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>33/35</span>
+                <span class='fraction'>42/46</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.12% </span>
+                <span class="strong">95.31% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>144/182</span>
+                <span class='fraction'>224/235</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -635,7 +635,122 @@
 <a name='L570'></a><a href='#L570'>570</a>
 <a name='L571'></a><a href='#L571'>571</a>
 <a name='L572'></a><a href='#L572'>572</a>
-<a name='L573'></a><a href='#L573'>573</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L573'></a><a href='#L573'>573</a>
+<a name='L574'></a><a href='#L574'>574</a>
+<a name='L575'></a><a href='#L575'>575</a>
+<a name='L576'></a><a href='#L576'>576</a>
+<a name='L577'></a><a href='#L577'>577</a>
+<a name='L578'></a><a href='#L578'>578</a>
+<a name='L579'></a><a href='#L579'>579</a>
+<a name='L580'></a><a href='#L580'>580</a>
+<a name='L581'></a><a href='#L581'>581</a>
+<a name='L582'></a><a href='#L582'>582</a>
+<a name='L583'></a><a href='#L583'>583</a>
+<a name='L584'></a><a href='#L584'>584</a>
+<a name='L585'></a><a href='#L585'>585</a>
+<a name='L586'></a><a href='#L586'>586</a>
+<a name='L587'></a><a href='#L587'>587</a>
+<a name='L588'></a><a href='#L588'>588</a>
+<a name='L589'></a><a href='#L589'>589</a>
+<a name='L590'></a><a href='#L590'>590</a>
+<a name='L591'></a><a href='#L591'>591</a>
+<a name='L592'></a><a href='#L592'>592</a>
+<a name='L593'></a><a href='#L593'>593</a>
+<a name='L594'></a><a href='#L594'>594</a>
+<a name='L595'></a><a href='#L595'>595</a>
+<a name='L596'></a><a href='#L596'>596</a>
+<a name='L597'></a><a href='#L597'>597</a>
+<a name='L598'></a><a href='#L598'>598</a>
+<a name='L599'></a><a href='#L599'>599</a>
+<a name='L600'></a><a href='#L600'>600</a>
+<a name='L601'></a><a href='#L601'>601</a>
+<a name='L602'></a><a href='#L602'>602</a>
+<a name='L603'></a><a href='#L603'>603</a>
+<a name='L604'></a><a href='#L604'>604</a>
+<a name='L605'></a><a href='#L605'>605</a>
+<a name='L606'></a><a href='#L606'>606</a>
+<a name='L607'></a><a href='#L607'>607</a>
+<a name='L608'></a><a href='#L608'>608</a>
+<a name='L609'></a><a href='#L609'>609</a>
+<a name='L610'></a><a href='#L610'>610</a>
+<a name='L611'></a><a href='#L611'>611</a>
+<a name='L612'></a><a href='#L612'>612</a>
+<a name='L613'></a><a href='#L613'>613</a>
+<a name='L614'></a><a href='#L614'>614</a>
+<a name='L615'></a><a href='#L615'>615</a>
+<a name='L616'></a><a href='#L616'>616</a>
+<a name='L617'></a><a href='#L617'>617</a>
+<a name='L618'></a><a href='#L618'>618</a>
+<a name='L619'></a><a href='#L619'>619</a>
+<a name='L620'></a><a href='#L620'>620</a>
+<a name='L621'></a><a href='#L621'>621</a>
+<a name='L622'></a><a href='#L622'>622</a>
+<a name='L623'></a><a href='#L623'>623</a>
+<a name='L624'></a><a href='#L624'>624</a>
+<a name='L625'></a><a href='#L625'>625</a>
+<a name='L626'></a><a href='#L626'>626</a>
+<a name='L627'></a><a href='#L627'>627</a>
+<a name='L628'></a><a href='#L628'>628</a>
+<a name='L629'></a><a href='#L629'>629</a>
+<a name='L630'></a><a href='#L630'>630</a>
+<a name='L631'></a><a href='#L631'>631</a>
+<a name='L632'></a><a href='#L632'>632</a>
+<a name='L633'></a><a href='#L633'>633</a>
+<a name='L634'></a><a href='#L634'>634</a>
+<a name='L635'></a><a href='#L635'>635</a>
+<a name='L636'></a><a href='#L636'>636</a>
+<a name='L637'></a><a href='#L637'>637</a>
+<a name='L638'></a><a href='#L638'>638</a>
+<a name='L639'></a><a href='#L639'>639</a>
+<a name='L640'></a><a href='#L640'>640</a>
+<a name='L641'></a><a href='#L641'>641</a>
+<a name='L642'></a><a href='#L642'>642</a>
+<a name='L643'></a><a href='#L643'>643</a>
+<a name='L644'></a><a href='#L644'>644</a>
+<a name='L645'></a><a href='#L645'>645</a>
+<a name='L646'></a><a href='#L646'>646</a>
+<a name='L647'></a><a href='#L647'>647</a>
+<a name='L648'></a><a href='#L648'>648</a>
+<a name='L649'></a><a href='#L649'>649</a>
+<a name='L650'></a><a href='#L650'>650</a>
+<a name='L651'></a><a href='#L651'>651</a>
+<a name='L652'></a><a href='#L652'>652</a>
+<a name='L653'></a><a href='#L653'>653</a>
+<a name='L654'></a><a href='#L654'>654</a>
+<a name='L655'></a><a href='#L655'>655</a>
+<a name='L656'></a><a href='#L656'>656</a>
+<a name='L657'></a><a href='#L657'>657</a>
+<a name='L658'></a><a href='#L658'>658</a>
+<a name='L659'></a><a href='#L659'>659</a>
+<a name='L660'></a><a href='#L660'>660</a>
+<a name='L661'></a><a href='#L661'>661</a>
+<a name='L662'></a><a href='#L662'>662</a>
+<a name='L663'></a><a href='#L663'>663</a>
+<a name='L664'></a><a href='#L664'>664</a>
+<a name='L665'></a><a href='#L665'>665</a>
+<a name='L666'></a><a href='#L666'>666</a>
+<a name='L667'></a><a href='#L667'>667</a>
+<a name='L668'></a><a href='#L668'>668</a>
+<a name='L669'></a><a href='#L669'>669</a>
+<a name='L670'></a><a href='#L670'>670</a>
+<a name='L671'></a><a href='#L671'>671</a>
+<a name='L672'></a><a href='#L672'>672</a>
+<a name='L673'></a><a href='#L673'>673</a>
+<a name='L674'></a><a href='#L674'>674</a>
+<a name='L675'></a><a href='#L675'>675</a>
+<a name='L676'></a><a href='#L676'>676</a>
+<a name='L677'></a><a href='#L677'>677</a>
+<a name='L678'></a><a href='#L678'>678</a>
+<a name='L679'></a><a href='#L679'>679</a>
+<a name='L680'></a><a href='#L680'>680</a>
+<a name='L681'></a><a href='#L681'>681</a>
+<a name='L682'></a><a href='#L682'>682</a>
+<a name='L683'></a><a href='#L683'>683</a>
+<a name='L684'></a><a href='#L684'>684</a>
+<a name='L685'></a><a href='#L685'>685</a>
+<a name='L686'></a><a href='#L686'>686</a>
+<a name='L687'></a><a href='#L687'>687</a>
+<a name='L688'></a><a href='#L688'>688</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -645,13 +760,106 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-yes">48x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -661,19 +869,176 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">23x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -681,9 +1046,191 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">95x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">94x</span>
+<span class="cline-any cline-yes">94x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -691,239 +1238,168 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">92x</span>
+<span class="cline-any cline-yes">92x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">31x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -936,37 +1412,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -975,811 +1437,694 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">16x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// studyGroupsUtils.js - Utility functions for study group management
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&nbsp;
 &nbsp;
-// Study group constants
-const GROUP_STATUS = {
-    ACTIVE: 'active',
-    INACTIVE: 'inactive',
-    ARCHIVED: 'archived',
-    DELETED: 'deleted'
+// Activity types with icons and colors
+const activityTypes = {
+    'study': {
+        name: 'Study Session',
+        icon: 'fa-book',
+        color: '#3498db',
+        bgColor: '#ebf5fb'
+    },
+    'assignment': {
+        name: 'Assignment',
+        icon: 'fa-tasks',
+        color: '#e74c3c',
+        bgColor: '#fdedec'
+    },
+    'exam': {
+        name: 'Exam',
+        icon: 'fa-file-alt',
+        color: '#9b59b6',
+        bgColor: '#f4ecf7'
+    },
+    'meeting': {
+        name: 'Meeting',
+        icon: 'fa-users',
+        color: '#2ecc71',
+        bgColor: '#eafaf1'
+    },
+    'personal': {
+        name: 'Personal',
+        icon: 'fa-user',
+        color: '#f39c12',
+        bgColor: '#fef9e7'
+    },
+    'break': {
+        name: 'Break',
+        icon: 'fa-coffee',
+        color: '#95a5a6',
+        bgColor: '#f4f6f6'
+    },
+    'exercise': {
+        name: 'Exercise',
+        icon: 'fa-running',
+        color: '#1abc9c',
+        bgColor: '#e8f8f5'
+    }
 };
 &nbsp;
-const MEMBER_ROLES = {
-    CREATOR: 'creator',
-    ADMIN: 'admin',
-    MEMBER: 'member'
+// Priority levels
+const priorityLevels = {
+    'low': {
+        name: 'Low',
+        color: '#27ae60',
+        weight: 1
+    },
+    'medium': {
+        name: 'Medium',
+        color: '#f39c12',
+        weight: 2
+    },
+    'high': {
+        name: 'High',
+        color: '#e74c3c',
+        weight: 3
+    },
+    'urgent': {
+        name: 'Urgent',
+        color: '#c0392b',
+        weight: 4
+    }
 };
 &nbsp;
-const MEMBER_STATUS = {
-    ACTIVE: 'active',
-    LEFT: 'left',
-    REMOVED: 'removed',
-    PENDING: 'pending'
-};
+// Default activity duration options (in hours)
+const durationOptions = [
+    { value: 0.5, label: '30 minutes' },
+    { value: 1, label: '1 hour' },
+    { value: 1.5, label: '1.5 hours' },
+    { value: 2, label: '2 hours' },
+    { value: 3, label: '3 hours' },
+    { value: 4, label: '4 hours' },
+    { value: 6, label: '6 hours' },
+    { value: 8, label: '8 hours' }
+];
 &nbsp;
-// Validation functions
-function validateStudyGroupData(groupData) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!groupData || typeof groupData !== 'object') {
-<span class="cstat-no" title="statement not covered" >        return { isValid: false, error: 'Group data must be an object' };</span>
-    }
+// Time slots for scheduling
+const timeSlots = Array.from({ length: 48 }, (_, i) =&gt; {
+    const hour = Math.floor(i / 2);
+    const minute = i % 2 === 0 ? '00' : '30';
+    const period = hour &gt;= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour &gt; 12 ? hour - 12 : hour;
+    return {
+        value: `${hour.toString().padStart(2, '0')}:${minute}`,
+        label: `${displayHour}:${minute} ${period}`
+    };
+});
 &nbsp;
-    const { name, subject, creator_id, max_members, is_private } = groupData;
+// Recurrence options
+const recurrenceOptions = [
+    { value: 'none', label: 'No recurrence' },
+    { value: 'daily', label: 'Daily' },
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'biweekly', label: 'Bi-weekly' },
+    { value: 'monthly', label: 'Monthly' }
+];
 &nbsp;
-    // Validate required fields
-    if (!name || !subject || !creator_id) {
-        return { isValid: false, error: 'name, subject, and creator_id are required' };
-    }
+// Day of week options
+const dayOfWeekOptions = [
+    { value: 0, label: 'Sunday', short: 'Sun' },
+    { value: 1, label: 'Monday', short: 'Mon' },
+    { value: 2, label: 'Monday', short: 'Tue' },
+    { value: 3, label: 'Wednesday', short: 'Wed' },
+    { value: 4, label: 'Thursday', short: 'Thu' },
+    { value: 5, label: 'Friday', short: 'Fri' },
+    { value: 6, label: 'Saturday', short: 'Sat' }
+];
 &nbsp;
-    // Validate name length
-    if (name.length &lt; 3 || name.length &gt; 100) {
-        return { isValid: false, error: 'Group name must be between 3 and 100 characters' };
-    }
+// Fix activity dates for timezone handling
+function fixActivityDates(activity) {
+    if (!activity) return activity;
 &nbsp;
-    // Validate subject length
-    if (subject.length &lt; 2 || subject.length &gt; 50) {
-        return { isValid: false, error: 'Subject must be between 2 and 50 characters' };
-    }
-&nbsp;
-    // Validate max_members
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (max_members &amp;&amp; (max_members &lt; 1 || max_members &gt; 50)) {
-<span class="cstat-no" title="statement not covered" >        return { isValid: false, error: 'max_members must be between 1 and 50' };</span>
-    }
-&nbsp;
-    // Validate UUID format for creator_id
-    if (!isValidUUID(creator_id)) {
-        return { isValid: false, error: 'Invalid UUID format for creator_id' };
-    }
-&nbsp;
-    return { isValid: true, error: null };
-}
-&nbsp;
-function validateGroupUpdateData(updateData) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!updateData || typeof updateData !== 'object') {
-<span class="cstat-no" title="statement not covered" >        return { isValid: false, error: 'Update data must be an object' };</span>
-    }
-&nbsp;
-    const allowedFields = ['name', 'description', 'subject', 'max_members', 'is_private', 'status'];
-    const providedFields = Object.keys(updateData);
+    const activityCopy = { ...activity };
     
-    const invalidFields = providedFields.filter(field =&gt; !allowedFields.includes(field));
-    if (invalidFields.length &gt; 0) {
-        return { isValid: false, error: `Invalid fields: ${invalidFields.join(', ')}` };
-    }
-&nbsp;
-    // Validate name if provided
-    if (updateData.name &amp;&amp; (updateData.name.length &lt; 3 || updateData.name.length &gt; 100)) {
-        return { isValid: false, error: 'Group name must be between 3 and 100 characters' };
-    }
-&nbsp;
-    // Validate subject if provided
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (updateData.subject &amp;&amp; (<span class="branch-1 cbranch-no" title="branch not covered" >updateData.subject.length &lt; 2 </span>|| <span class="branch-2 cbranch-no" title="branch not covered" >updateData.subject.length &gt; 50)</span>) {
-<span class="cstat-no" title="statement not covered" >        return { isValid: false, error: 'Subject must be between 2 and 50 characters' };</span>
-    }
-&nbsp;
-    // Validate max_members if provided
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (updateData.max_members &amp;&amp; (updateData.max_members &lt; 1 || updateData.max_members &gt; 50)) {
-<span class="cstat-no" title="statement not covered" >        return { isValid: false, error: 'max_members must be between 1 and 50' };</span>
-    }
-&nbsp;
-    // Validate status if provided
-    if (updateData.status &amp;&amp; !Object.values(GROUP_STATUS).includes(updateData.status)) {
-        return { isValid: false, error: 'Invalid group status' };
-    }
-&nbsp;
-    return { isValid: true, error: null };
-}
-&nbsp;
-function validateMemberRole(role) {
-    return Object.values(MEMBER_ROLES).includes(role);
-}
-&nbsp;
-function validateMemberStatus(status) {
-    return Object.values(MEMBER_STATUS).includes(status);
-}
-&nbsp;
-function isValidUUID(uuid) {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid);
-}
-&nbsp;
-// Group filtering and sorting
-function filterGroupsByStatus(groups, status) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(groups)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Groups must be an array');</span>
-    }
-&nbsp;
-    if (!Object.values(GROUP_STATUS).includes(status)) {
-        throw new Error(`Invalid status. Must be one of: ${Object.values(GROUP_STATUS).join(', ')}`);
-    }
-&nbsp;
-    return groups.filter(group =&gt; group.status === status);
-}
-&nbsp;
-function filterGroupsByPrivacy(groups, isPrivate) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(groups)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Groups must be an array');</span>
-    }
-&nbsp;
-    return groups.filter(group =&gt; group.is_private === isPrivate);
-}
-&nbsp;
-function sortGroups(groups, field = <span class="branch-0 cbranch-no" title="branch not covered" >'created_at',</span> direction = <span class="branch-0 cbranch-no" title="branch not covered" >'desc')</span> {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(groups)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Groups must be an array');</span>
-    }
-&nbsp;
-    const validFields = ['name', 'subject', 'created_at', 'member_count', 'max_members'];
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!validFields.includes(field)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error(`Invalid sort field. Must be one of: ${validFields.join(', ')}`);</span>
-    }
-&nbsp;
-    const validDirections = ['asc', 'desc'];
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!validDirections.includes(direction)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Sort direction must be "asc" or "desc"');</span>
-    }
-&nbsp;
-    return [...groups].sort((a, b) =&gt; {
-        let valueA = a[field];
-        let valueB = b[field];
-&nbsp;
-        // Handle numeric fields
-        if (field === 'member_count' || field === 'max_members') {
-            valueA = Number(valueA) || <span class="branch-1 cbranch-no" title="branch not covered" >0;</span>
-            valueB = Number(valueB) || <span class="branch-1 cbranch-no" title="branch not covered" >0;</span>
-        }
-        // Handle timestamp fields
-        else <span class="missing-if-branch" title="if path not taken" >I</span>if (field === 'created_at') {
-<span class="cstat-no" title="statement not covered" >            valueA = new Date(valueA).getTime();</span>
-<span class="cstat-no" title="statement not covered" >            valueB = new Date(valueB).getTime();</span>
-        }
-        // Handle string fields (case insensitive)
-        else {
-            valueA = String(valueA || <span class="branch-1 cbranch-no" title="branch not covered" >'')</span>.toLowerCase();
-            valueB = String(valueB || <span class="branch-1 cbranch-no" title="branch not covered" >'')</span>.toLowerCase();
-        }
-&nbsp;
-        if (valueA &lt; valueB) {
-            return direction === 'asc' ? -1 : 1;
-        }
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (valueA &gt; valueB) {
-            return direction === 'asc' ? 1 : -1;
-        }
-<span class="cstat-no" title="statement not covered" >        return 0;</span>
-    });
-}
-&nbsp;
-function searchGroups(groups, query) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(groups)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Groups must be an array');</span>
-    }
-&nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof query !== 'string' || query.trim() === '') {
-<span class="cstat-no" title="statement not covered" >        return groups;</span>
-    }
-&nbsp;
-    const searchTerm = query.toLowerCase().trim();
-    
-    return groups.filter(group =&gt; {
-        const nameMatch = group.name &amp;&amp; group.name.toLowerCase().includes(searchTerm);
-        const subjectMatch = group.subject &amp;&amp; group.subject.toLowerCase().includes(searchTerm);
-        const descriptionMatch = group.description &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >group.description.toLowerCase().includes(searchTerm);</span>
+    if (activityCopy.activity_date) {
+        // Parse the date string as UTC and convert to local timezone correctly
+        const utcDate = new Date(activityCopy.activity_date + 'T00:00:00Z');
         
-        return nameMatch || subjectMatch || descriptionMatch;
+        // Get local date components
+        const localYear = utcDate.getFullYear();
+        const localMonth = utcDate.getMonth();
+        const localDate = utcDate.getDate();
+        
+        // Create a new date in local timezone
+        const localDateObj = new Date(localYear, localMonth, localDate);
+        
+        // Store the fixed date string for comparison (YYYY-MM-DD format)
+        activityCopy.activity_date_fixed = localDateObj.toISOString().split('T')[0];
+        activityCopy.activity_date_utc = activityCopy.activity_date;
+    }
+&nbsp;
+    // Fix scheduled_start and scheduled_end if they exist
+    if (activityCopy.scheduled_start) {
+        const startDate = new Date(activityCopy.scheduled_start);
+        activityCopy.scheduled_start_fixed = formatDateTimeLocal(startDate);
+    }
+    
+    if (activityCopy.scheduled_end) {
+        const endDate = new Date(activityCopy.scheduled_end);
+        activityCopy.scheduled_end_fixed = formatDateTimeLocal(endDate);
+    }
+    
+    return activityCopy;
+}
+&nbsp;
+// Fix group dates for timezone handling
+function fixGroupDates(group) {
+    if (!group) return group;
+&nbsp;
+    const groupCopy = { ...group };
+    
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (groupCopy.date) {
+        // Parse the date string as UTC and convert to local timezone correctly
+        const utcDate = new Date(groupCopy.date + 'T00:00:00Z');
+        
+        // Get local date components
+        const localYear = utcDate.getFullYear();
+        const localMonth = utcDate.getMonth();
+        const localDate = utcDate.getDate();
+        
+        // Create a new date in local timezone
+        const localDateObj = new Date(localYear, localMonth, localDate);
+        
+        groupCopy.date_fixed = localDateObj.toISOString().split('T')[0];
+        groupCopy.date_utc = utcDate.toISOString().split('T')[0];
+    }
+    
+    // Fix scheduled_start and scheduled_end for proper display
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (groupCopy.scheduled_start) {
+        const startDate = new Date(groupCopy.scheduled_start);
+        groupCopy.scheduled_start_fixed = formatDateTimeLocal(startDate);
+    }
+    
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (groupCopy.scheduled_end) {
+        const endDate = new Date(groupCopy.scheduled_end);
+        groupCopy.scheduled_end_fixed = formatDateTimeLocal(endDate);
+    }
+    
+    return groupCopy;
+}
+&nbsp;
+// Helper method to format datetime in local timezone
+function formatDateTimeLocal(date) {
+    if (!(date instanceof Date) || isNaN(date)) {
+        return '';
+    }
+    
+    return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
     });
 }
 &nbsp;
-// Member management utilities
-function filterMembersByRole(members, role) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(members)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Members must be an array');</span>
+// Format time for display
+function formatTime(date) {
+    if (!(date instanceof Date) || isNaN(date)) {
+        return '';
     }
-&nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!validateMemberRole(role)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error(`Invalid role. Must be one of: ${Object.values(MEMBER_ROLES).join(', ')}`);</span>
-    }
-&nbsp;
-    return members.filter(member =&gt; member.role === role);
+    
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 &nbsp;
-function filterMembersByStatus(members, status) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(members)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Members must be an array');</span>
+// Calculate duration between two dates in hours
+function calculateDuration(start, end) {
+    if (!start || !end) return 1;
+    
+    try {
+        const startTime = new Date(start);
+        const endTime = new Date(end);
+        
+        if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+            return 1;
+        }
+        
+        const durationHours = (endTime - startTime) / (1000 * 60 * 60);
+        return Math.max(0.5, Math.ceil(durationHours * 2) / 2); // Round to nearest 0.5 hours
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >        console.error('Error calculating duration:', error);</span>
+<span class="cstat-no" title="statement not covered" >        return 1;</span>
     }
-&nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!validateMemberStatus(status)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error(`Invalid status. Must be one of: ${Object.values(MEMBER_STATUS).join(', ')}`);</span>
-    }
-&nbsp;
-    return members.filter(member =&gt; member.status === status);
 }
 &nbsp;
-function sortMembers(members, field = <span class="branch-0 cbranch-no" title="branch not covered" >'joined_at',</span> direction = <span class="branch-0 cbranch-no" title="branch not covered" >'desc')</span> {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(members)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Members must be an array');</span>
+// Format date for input fields (YYYY-MM-DD)
+function formatDateForInput(date) {
+    if (!(date instanceof Date) || isNaN(date)) {
+        return '';
     }
-&nbsp;
-    const validFields = ['name', 'email', 'role', 'joined_at', 'status'];
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!validFields.includes(field)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error(`Invalid sort field. Must be one of: ${validFields.join(', ')}`);</span>
-    }
-&nbsp;
-    const validDirections = ['asc', 'desc'];
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!validDirections.includes(direction)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Sort direction must be "asc" or "desc"');</span>
-    }
-&nbsp;
-    return [...members].sort((a, b) =&gt; {
-        let valueA = a[field];
-        let valueB = b[field];
-&nbsp;
-        // Handle timestamp fields
-        if (field === 'joined_at') {
-            valueA = new Date(valueA).getTime();
-            valueB = new Date(valueB).getTime();
-        }
-        // Handle string fields (case insensitive)
-        else <span class="missing-if-branch" title="else path not taken" >E</span>{
-<span class="cstat-no" title="statement not covered" >            valueA = String(valueA || '').toLowerCase();</span>
-<span class="cstat-no" title="statement not covered" >            valueB = String(valueB || '').toLowerCase();</span>
-        }
-&nbsp;
-        if (valueA &lt; valueB) {
-            return direction === 'asc' ? <span class="branch-0 cbranch-no" title="branch not covered" >-1 </span>: 1;
-        }
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (valueA &gt; valueB) {
-            return direction === 'asc' ? <span class="branch-0 cbranch-no" title="branch not covered" >1 </span>: -1;
-        }
-<span class="cstat-no" title="statement not covered" >        return 0;</span>
-    });
+    
+    return date.toISOString().split('T')[0];
 }
 &nbsp;
-// Pagination utilities
-function paginateItems(items, page = <span class="branch-0 cbranch-no" title="branch not covered" >1,</span> limit = <span class="branch-0 cbranch-no" title="branch not covered" >10)</span> {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(items)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Items must be an array');</span>
+// Format time for input fields (HH:MM)
+function formatTimeForInput(date) {
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (!(date instanceof Date) || isNaN(date)) {
+        return '00:00';
     }
-&nbsp;
-    page = Math.max(1, parseInt(page));
-    limit = Math.max(1, parseInt(limit));
-&nbsp;
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const totalPages = Math.ceil(items.length / limit);
-&nbsp;
-    return {
-        data: items.slice(startIndex, endIndex),
-        pagination: {
-            currentPage: page,
-            totalPages: totalPages,
-            totalItems: items.length,
-            hasNext: page &lt; totalPages,
-            hasPrev: page &gt; 1,
-            limit: limit
-        }
-    };
+    
+<span class="cstat-no" title="statement not covered" >    return date.toTimeString().slice(0, 5);</span>
 }
 &nbsp;
-// Statistics calculation
-function calculateGroupStats(groups) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!Array.isArray(groups)) {
-<span class="cstat-no" title="statement not covered" >        throw new Error('Groups must be an array');</span>
+// Format date for display
+function formatDisplayDate(dateString) {
+    if (!dateString) return '';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        
+        return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >        console.error('Error formatting display date:', error);</span>
+<span class="cstat-no" title="statement not covered" >        return dateString;</span>
     }
+}
 &nbsp;
-    const stats = {
-        total: groups.length,
-        active: 0,
-        inactive: 0,
-        archived: 0,
-        private: 0,
-        public: 0,
-        by_subject: {}
-    };
+// Get activities for a specific date
+function getActivitiesForDate(activities, date, userId = null) {
+    if (!activities || !Array.isArray(activities) || !date) {
+        return [];
+    }
+    
+    const dateString = formatDateForInput(date);
+    
+    return activities.filter(activity =&gt; {
+        // Always use the fixed date which has been converted to local timezone
+        const activityDate = activity.activity_date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >activity.activity_date;</span>
+        const matchesDate = activityDate === dateString;
+        const matchesUser = !userId || activity.user_id === userId;
+        const notCompleted = !activity.is_completed;
+        
+        return matchesDate &amp;&amp; matchesUser &amp;&amp; notCompleted;
+    }).sort(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >(a.activity_time || '').localeCompare(b.activity_time || ''))</span>;
+}
 &nbsp;
-    groups.forEach(group =&gt; {
-        // Count by status
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (stats[group.status] !== undefined) {
-            stats[group.status]++;
-        }
+// Get study groups for a specific date
+function getStudyGroupsForDate(studyGroups, date) {
+    if (!studyGroups || !Array.isArray(studyGroups) || !date) {
+        return [];
+    }
+    
+    const dateString = formatDateForInput(date);
+    
+    return studyGroups.filter(group =&gt; {
+        // Always use the fixed date which has been converted to local timezone
+        const groupDate = group.date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >group.date;</span>
+        return groupDate === dateString;
+    }).sort(<span class="fstat-no" title="function not covered" >(a</span>, b) =&gt; <span class="cstat-no" title="statement not covered" >(a.activity_time || a.time || '').localeCompare(b.activity_time || b.time || ''))</span>;
+}
 &nbsp;
-        // Count by privacy
-        if (group.is_private) {
-            stats.private++;
-        } else {
-            stats.public++;
-        }
-&nbsp;
-        // Count by subject
-        <span class="missing-if-branch" title="else path not taken" >E</span>if (group.subject) {
-            if (!stats.by_subject[group.subject]) {
-                stats.by_subject[group.subject] = 0;
+// Get all upcoming events (activities + study groups)
+function getAllUpcomingEvents(activities, studyGroups, userId = null, limit = 8) {
+    if ((!activities || !Array.isArray(activities)) &amp;&amp; (!studyGroups || <span class="branch-3 cbranch-no" title="branch not covered" >!Array.isArray(studyGroups))</span>) {
+        return [];
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const filteredActivities = (activities || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>
+        .filter(activity =&gt; {
+            const activityDate = new Date(activity.activity_date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >activity.activity_date)</span>;
+            activityDate.setHours(0, 0, 0, 0);
+            return activityDate &gt;= today &amp;&amp; 
+                   (!userId || activity.user_id === userId) &amp;&amp;
+                   !activity.is_completed;
+        });
+    
+    const filteredStudyGroups = (studyGroups || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>
+        .filter(group =&gt; {
+            const groupDate = new Date(group.date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >group.date)</span>;
+            groupDate.setHours(0, 0, 0, 0);
+            return groupDate &gt;= today;
+        });
+    
+    return [...filteredActivities, ...filteredStudyGroups]
+        .sort((a, b) =&gt; {
+            const aDate = new Date(a.activity_date_fixed || a.date_fixed || <span class="branch-2 cbranch-no" title="branch not covered" >a.activity_date </span>|| <span class="branch-3 cbranch-no" title="branch not covered" >a.date)</span>;
+            const bDate = new Date(b.activity_date_fixed || b.date_fixed || <span class="branch-2 cbranch-no" title="branch not covered" >b.activity_date </span>|| <span class="branch-3 cbranch-no" title="branch not covered" >b.date)</span>;
+            
+            <span class="missing-if-branch" title="else path not taken" >E</span>if (aDate.getTime() === bDate.getTime()) {
+                const aTime = a.activity_time || a.time || <span class="branch-2 cbranch-no" title="branch not covered" >'00:00';</span>
+                const bTime = b.activity_time || b.time || <span class="branch-2 cbranch-no" title="branch not covered" >'00:00';</span>
+                return aTime.localeCompare(bTime);
             }
-            stats.by_subject[group.subject]++;
-        }
+<span class="cstat-no" title="statement not covered" >            return aDate - bDate;</span>
+        })
+        .slice(0, limit);
+}
+&nbsp;
+// Calculate calendar statistics
+function calculateCalendarStats(activities, studyGroups, userId = <span class="branch-0 cbranch-no" title="branch not covered" >null)</span> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    const monthActivities = (activities || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>.filter(activity =&gt; {
+        const activityDate = new Date(activity.activity_date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >activity.activity_date)</span>;
+        activityDate.setHours(0, 0, 0, 0);
+        return activityDate &gt;= monthStart &amp;&amp; 
+<span class="branch-1 cbranch-no" title="branch not covered" >               activityDate &lt;= monthEnd </span>&amp;&amp; 
+               (<span class="branch-2 cbranch-no" title="branch not covered" >!userId </span>|| <span class="branch-3 cbranch-no" title="branch not covered" >activity.user_id === userId)</span>;
     });
 &nbsp;
-    return stats;
+    const studySessions = monthActivities.filter(<span class="fstat-no" title="function not covered" >a </span>=&gt; <span class="cstat-no" title="statement not covered" >a.activity_type === 'study' &amp;&amp; !a.is_completed)</span>.length;
+    const upcomingDeadlines = getAllUpcomingEvents(activities, studyGroups, userId).length;
+    const groupSessions = (studyGroups || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>.filter(group =&gt; {
+        const groupDate = new Date(group.date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >group.date)</span>;
+        groupDate.setHours(0, 0, 0, 0);
+        return groupDate &gt;= monthStart &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >groupDate &lt;= monthEnd;</span>
+    }).length;
+    const completedActivities = monthActivities.filter(<span class="fstat-no" title="function not covered" >a </span>=&gt; <span class="cstat-no" title="statement not covered" >a.is_completed)</span>.length;
+&nbsp;
+    return {
+        studySessions,
+        upcomingDeadlines,
+        groupSessions,
+        completedActivities
+    };
 }
 &nbsp;
-function <span class="fstat-no" title="function not covered" >calculateMemberStats(</span>members) {
-<span class="cstat-no" title="statement not covered" >    if (!Array.isArray(members)) {</span>
-<span class="cstat-no" title="statement not covered" >        throw new Error('Members must be an array');</span>
+// Validate activity form data
+function validateActivityForm(formData) {
+    const errors = [];
+    
+    if (!formData.title || formData.title.trim().length === 0) {
+        errors.push('Activity title is required');
     }
-&nbsp;
-    const stats = <span class="cstat-no" title="statement not covered" >{</span>
-        total: members.length,
-        creators: 0,
-        admins: 0,
-        members: 0,
-        active: 0,
-        left: 0,
-        removed: 0,
-        pending: 0
-    };
-&nbsp;
-<span class="cstat-no" title="statement not covered" >    members.forEach(<span class="fstat-no" title="function not covered" >me</span>mber =&gt; {</span>
-        // Count by role
-<span class="cstat-no" title="statement not covered" >        if (stats[member.role] !== undefined) {</span>
-<span class="cstat-no" title="statement not covered" >            stats[member.role]++;</span>
+    
+    if (!formData.activity_date) {
+        errors.push('Activity date is required');
+    } else {
+        const selectedDate = new Date(formData.activity_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (selectedDate &lt; today) {
+            errors.push('Cannot add activities for past dates');
         }
-&nbsp;
-        // Count by status
-<span class="cstat-no" title="statement not covered" >        if (stats[member.status] !== undefined) {</span>
-<span class="cstat-no" title="statement not covered" >            stats[member.status]++;</span>
-        }
-    });
-&nbsp;
-<span class="cstat-no" title="statement not covered" >    return stats;</span>
+    }
+    
+    if (!formData.activity_time) {
+        errors.push('Activity time is required');
+    }
+    
+    if (!formData.activity_type || !activityTypes[formData.activity_type]) {
+        errors.push('Valid activity type is required');
+    }
+    
+    const duration = parseInt(formData.duration_hours) || 1;
+    if (duration &lt; 0.5 || duration &gt; 24) {
+        errors.push('Duration must be between 0.5 and 24 hours');
+    }
+    
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (formData.priority &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >!priorityLevels[formData.priority])</span> {
+<span class="cstat-no" title="statement not covered" >        errors.push('Invalid priority level');</span>
+    }
+    
+    return errors;
 }
 &nbsp;
-// Formatting utilities
-function formatGroupResponse(group) {
-    const {
-        id,
-        name,
-        description,
-        subject,
-        creator_id,
-        max_members,
-        is_private,
-        faculty,
-        course,
-        year_of_study,
-        status,
-        created_at,
-        updated_at,
-        invite_code,
-        // Joined fields
-        member_count,
-        creator_details
-    } = group;
-&nbsp;
-    const response = {
-        id,
-        name,
-        description: description || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
-        subject,
-        creator_id,
-        max_members: max_members || <span class="branch-1 cbranch-no" title="branch not covered" >10,</span>
-        is_private: is_private || false,
-        faculty: faculty || null,
-        course: course || null,
-        year_of_study: year_of_study || null,
-        status: status || <span class="branch-1 cbranch-no" title="branch not covered" >GROUP_STATUS.ACTIVE,</span>
-        created_at: new Date(created_at).toISOString(),
-        updated_at: updated_at ? new Date(updated_at).toISOString() : <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
-        invite_code: invite_code || null
+// Format activity data for API request
+function formatActivityData(formData, userId) {
+    if (!formData || !userId) {
+        throw new Error('Form data and user ID are required');
+    }
+    
+    return {
+        user_id: userId,
+        title: (formData.title || <span class="branch-1 cbranch-no" title="branch not covered" >'')</span>.trim(),
+        activity_type: formData.activity_type || <span class="branch-1 cbranch-no" title="branch not covered" >'study',</span>
+        description: (formData.description || <span class="branch-1 cbranch-no" title="branch not covered" >'')</span>.trim(),
+        activity_date: formData.activity_date,
+        activity_time: formData.activity_time,
+        duration_hours: parseFloat(formData.duration_hours) || <span class="branch-1 cbranch-no" title="branch not covered" >1,</span>
+        location: (formData.location || <span class="branch-1 cbranch-no" title="branch not covered" >'')</span>.trim(),
+        priority: formData.priority || <span class="branch-1 cbranch-no" title="branch not covered" >'medium',</span>
+        is_completed: Boolean(formData.is_completed),
+        recurrence: formData.recurrence || <span class="branch-1 cbranch-no" title="branch not covered" >'none',</span>
+        recurrence_end_date: formData.recurrence_end_date || null
     };
-&nbsp;
-    // Add computed fields
-    <span class="missing-if-branch" title="else path not taken" >E</span>if (member_count !== undefined) {
-        response.member_count = member_count;
-    }
-&nbsp;
-    // Add creator details if available
-    <span class="missing-if-branch" title="else path not taken" >E</span>if (creator_details) {
-        response.creator = creator_details;
-    }
-&nbsp;
-    return response;
 }
 &nbsp;
-function formatMemberResponse(member) {
-    const {
-        id,
-        group_id,
-        user_id,
-        role,
-        status,
-        joined_at,
-        left_at,
-        // Joined fields
-        name,
-        email,
-        avatar_url,
-        faculty,
-        course
-    } = member;
+// Check if date is today
+function isToday(date) {
+    if (!(date instanceof Date) || isNaN(date)) {
+        return false;
+    }
+    
+    const today = new Date();
+    return date.getDate() === today.getDate() &amp;&amp;
+           date.getMonth() === today.getMonth() &amp;&amp;
+           date.getFullYear() === today.getFullYear();
+}
 &nbsp;
-    const response = {
-        id,
-        group_id,
-        user_id,
-        role: role || <span class="branch-1 cbranch-no" title="branch not covered" >MEMBER_ROLES.MEMBER,</span>
-        status: status || <span class="branch-1 cbranch-no" title="branch not covered" >MEMBER_STATUS.ACTIVE,</span>
-        joined_at: new Date(joined_at).toISOString(),
-        left_at: left_at ? <span class="branch-0 cbranch-no" title="branch not covered" >new Date(left_at).toISOString() </span>: null
+// Check if date is in the past
+function isPastDate(date) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!(date instanceof Date) || isNaN(date)) {
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    return checkDate &lt; today;
+}
+&nbsp;
+// Check if date is in the future
+function isFutureDate(date) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!(date instanceof Date) || isNaN(date)) {
+<span class="cstat-no" title="statement not covered" >        return false;</span>
+    }
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    return checkDate &gt; today;
+}
+&nbsp;
+// Get week range for a given date
+function getWeekRange(date) {
+    if (!(date instanceof Date) || isNaN(date)) {
+        date = new Date();
+    }
+    
+    const weekStart = new Date(date);
+    weekStart.setDate(date.getDate() - date.getDay());
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    
+    return {
+        start: weekStart,
+        end: weekEnd
     };
+}
 &nbsp;
-    // Add user details if available
-    <span class="missing-if-branch" title="else path not taken" >E</span>if (name || <span class="branch-1 cbranch-no" title="branch not covered" >email)</span> {
-        response.user_details = {
-            name: name || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
-            email: email || <span class="branch-1 cbranch-no" title="branch not covered" >null,</span>
-            avatar_url: avatar_url || null,
-            faculty: faculty || null,
-            course: course || null
+// Get month range for a given date
+function getMonthRange(date) {
+    if (!(date instanceof Date) || isNaN(date)) {
+        date = new Date();
+    }
+    
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    
+    return {
+        start: monthStart,
+        end: monthEnd
+    };
+}
+&nbsp;
+// Generate calendar days for month view
+function generateMonthDays(year, month) {
+    if (typeof year !== 'number' || typeof month !== 'number') {
+        const now = new Date();
+        year = now.getFullYear();
+        month = now.getMonth();
+    }
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const firstDayOfWeek = firstDay.getDay();
+    
+    const days = [];
+    
+    // Previous month days
+    for (let i = firstDayOfWeek - 1; i &gt;= 0; i--) {
+        const day = prevMonthLastDay - i;
+        days.push({
+            day,
+            isOtherMonth: true,
+            date: new Date(year, month - 1, day),
+            isPast: isPastDate(new Date(year, month - 1, day))
+        });
+    }
+    
+    // Current month days
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (let day = 1; day &lt;= lastDay.getDate(); day++) {
+        const dayDate = new Date(year, month, day);
+        days.push({
+            day,
+            isOtherMonth: false,
+            date: dayDate,
+            isPast: dayDate &lt; today,
+            isToday: isToday(dayDate)
+        });
+    }
+    
+    // Next month days
+    const totalCells = 42; // 6 weeks
+    const daysSoFar = firstDayOfWeek + lastDay.getDate();
+    const nextMonthDays = totalCells - daysSoFar;
+    
+    for (let day = 1; day &lt;= nextMonthDays; day++) {
+        days.push({
+            day,
+            isOtherMonth: true,
+            date: new Date(year, month + 1, day),
+            isPast: isPastDate(new Date(year, month + 1, day))
+        });
+    }
+    
+    return days;
+}
+&nbsp;
+// Debounce function for performance optimization
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () =&gt; {
+            clearTimeout(timeout);
+            func(...args);
         };
-    }
-&nbsp;
-    return response;
-}
-&nbsp;
-// Mock data generation
-function generateMockGroup(overrides = {}) {
-    const timestamp = new Date().toISOString();
-    
-    return {
-        id: overrides.id || `group_${Math.random().toString(36).substr(2, 9)}`,
-        name: overrides.name || `Study Group ${Math.floor(Math.random() * 1000)}`,
-        description: overrides.description || 'A study group for collaborative learning',
-        subject: overrides.subject || 'Mathematics',
-        creator_id: overrides.creator_id || '123e4567-e89b-12d3-a456-426614174000',
-        max_members: overrides.max_members || 10,
-        is_private: overrides.is_private || false,
-        faculty: overrides.faculty || 'Science',
-        course: overrides.course || 'BSc Mathematics',
-        year_of_study: overrides.year_of_study || 2,
-        status: overrides.status || GROUP_STATUS.ACTIVE,
-        created_at: overrides.created_at || timestamp,
-        updated_at: overrides.updated_at || timestamp,
-        invite_code: overrides.invite_code || generateInviteCode(),
-        ...overrides
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
     };
 }
 &nbsp;
-function generateMockMember(overrides = {}) {
-    const timestamp = new Date().toISOString();
-    
-    return {
-        id: overrides.id || `member_${Math.random().toString(36).substr(2, 9)}`,
-        group_id: overrides.group_id || `group_${Math.random().toString(36).substr(2, 9)}`,
-        user_id: overrides.user_id || '123e4567-e89b-12d3-a456-426614174000',
-        role: overrides.role || MEMBER_ROLES.MEMBER,
-        status: overrides.status || MEMBER_STATUS.ACTIVE,
-        joined_at: overrides.joined_at || timestamp,
-        left_at: overrides.left_at || null,
-        ...overrides
+// Throttle function for performance optimization
+function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() =&gt; inThrottle = false, limit);
+        }
     };
 }
 &nbsp;
-function generateInviteCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i &lt; 8; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
+// Get activity type info
+function getActivityTypeInfo(type) {
+    return activityTypes[type] || activityTypes.study;
 }
 &nbsp;
-// Permission checking
-function canUpdateGroup(userRole) {
-    return ['creator', 'admin'].includes(userRole);
+// Get priority info
+function getPriorityInfo(priority) {
+    return priorityLevels[priority] || priorityLevels.medium;
 }
 &nbsp;
-function canDeleteGroup(userRole) {
-    return userRole === 'creator';
+// Filter activities by type
+function filterActivitiesByType(activities, type) {
+    if (!activities || !Array.isArray(activities)) {
+        return [];
+    }
+    
+    return activities.filter(activity =&gt; activity.activity_type === type);
 }
 &nbsp;
-function canRemoveMember(userRole, targetRole) {
-    if (userRole === 'creator') {
-        return targetRole !== 'creator'; // Creator can remove anyone except themselves
+// Sort activities by date and time
+function sortActivitiesByDateTime(activities, ascending = true) {
+    if (!activities || !Array.isArray(activities)) {
+        return [];
     }
-    if (userRole === 'admin') {
-        return targetRole === 'member'; // Admins can only remove regular members
-    }
-    return false;
+    
+    return [...activities].sort((a, b) =&gt; {
+        const aDate = new Date(a.activity_date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >a.activity_date)</span>;
+        const bDate = new Date(b.activity_date_fixed || <span class="branch-1 cbranch-no" title="branch not covered" >b.activity_date)</span>;
+        
+        if (aDate.getTime() === bDate.getTime()) {
+            const aTime = a.activity_time || <span class="branch-1 cbranch-no" title="branch not covered" >'00:00';</span>
+            const bTime = b.activity_time || <span class="branch-1 cbranch-no" title="branch not covered" >'00:00';</span>
+            return ascending ? aTime.localeCompare(bTime) : bTime.localeCompare(aTime);
+        }
+        
+        return ascending ? aDate - bDate : bDate - aDate;
+    });
 }
 &nbsp;
-function canChangeRole(userRole, targetRole, newRole) {
-    if (userRole !== 'creator') {
-        return false; // Only creator can change roles
+// Search activities by title or description
+function searchActivities(activities, searchTerm) {
+    if (!activities || !Array.isArray(activities) || !searchTerm) {
+        return activities || [];
     }
-    if (targetRole === 'creator') {
-        return false; // Cannot change creator's role
-    }
-    return ['admin', 'member'].includes(newRole);
-}
-&nbsp;
-// Validation for Supabase responses
-function validateSupabaseResponse(response) {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!response || typeof response !== 'object') {
-<span class="cstat-no" title="statement not covered" >        return { isValid: false, error: 'Invalid response object' };</span>
-    }
-&nbsp;
-    if (response.error) {
-        return { isValid: false, error: response.error.message || <span class="branch-1 cbranch-no" title="branch not covered" >'Supabase error occurred' </span>};
-    }
-&nbsp;
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (response.data === undefined) {
-<span class="cstat-no" title="statement not covered" >        return { isValid: false, error: 'No data in response' };</span>
-    }
-&nbsp;
-    return { isValid: true, error: null, data: response.data };
+    
+    const term = searchTerm.toLowerCase();
+    return activities.filter(activity =&gt; 
+        (activity.title &amp;&amp; activity.title.toLowerCase().includes(term)) ||
+        (activity.description &amp;&amp; activity.description.toLowerCase().includes(term)) ||
+        (activity.location &amp;&amp; <span class="branch-5 cbranch-no" title="branch not covered" >activity.location.toLowerCase().includes(term))</span>
+    );
 }
 &nbsp;
 module.exports = {
-    GROUP_STATUS,
-    MEMBER_ROLES,
-    MEMBER_STATUS,
-    validateStudyGroupData,
-    validateGroupUpdateData,
-    validateMemberRole,
-    validateMemberStatus,
-    isValidUUID,
-    filterGroupsByStatus,
-    filterGroupsByPrivacy,
-    sortGroups,
-    searchGroups,
-    filterMembersByRole,
-    filterMembersByStatus,
-    sortMembers,
-    paginateItems,
-    calculateGroupStats,
-    calculateMemberStats,
-    formatGroupResponse,
-    formatMemberResponse,
-    generateMockGroup,
-    generateMockMember,
-    generateInviteCode,
-    canUpdateGroup,
-    canDeleteGroup,
-    canRemoveMember,
-    canChangeRole,
-    validateSupabaseResponse
-};</pre></td></tr></table></pre>
+    activityTypes,
+    priorityLevels,
+    durationOptions,
+    timeSlots,
+    recurrenceOptions,
+    dayOfWeekOptions,
+    fixActivityDates,
+    fixGroupDates,
+    formatDateTimeLocal,
+    formatTime,
+    calculateDuration,
+    formatDateForInput,
+    formatTimeForInput,
+    formatDisplayDate,
+    getActivitiesForDate,
+    getStudyGroupsForDate,
+    getAllUpcomingEvents,
+    calculateCalendarStats,
+    validateActivityForm,
+    formatActivityData,
+    isToday,
+    isPastDate,
+    isFutureDate,
+    getWeekRange,
+    getMonthRange,
+    generateMonthDays,
+    debounce,
+    throttle,
+    getActivityTypeInfo,
+    getPriorityInfo,
+    filterActivitiesByType,
+    sortActivitiesByDateTime,
+    searchActivities
+};
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
