@@ -58,6 +58,8 @@ jobs:
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
           echo "GOOGLE_CALLBACK_URL=https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/auth/google/callback" >> .env
           echo "BASE_URL=https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net" >> .env
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env
+          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
           echo "PORT=3000" >> .env
           echo "NODE_ENV=production" >> .env
 
@@ -116,5 +118,6 @@ jobs:
             * Deployed to Azure Web App - wits-buddy
           draft: false
           prerelease: false
+
 
 
