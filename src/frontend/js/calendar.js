@@ -339,7 +339,6 @@ class Calendar {
         const refreshBtn = document.createElement('button');
         refreshBtn.id = 'refreshData';
         refreshBtn.className = 'refresh-btn';
-        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
         refreshBtn.addEventListener('click', () => this.refreshData());
         
         const calendarControls = document.querySelector('.calendar-controls');
