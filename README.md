@@ -13,9 +13,9 @@
 ### Add  the name of the buildings to get your trajectory when viewing the map 
 
 ## How to run the App locally
+### npm install multer
 ### npm start
 ## How to run the tests locally
-### npm install multer
 ### npm run test
 
 
