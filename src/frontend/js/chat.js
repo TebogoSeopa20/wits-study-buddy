@@ -1,4 +1,4 @@
-// chat.js - Study Group Chat Functionality
+// chat.js - Study Group Chat Functionality (UPDATED FOR DATABASE STORAGE)
 document.addEventListener('DOMContentLoaded', function() {
     // API configuration
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentChat = null;
     let messages = [];
     let typingUsers = new Set();
+    let messagePollingInterval = null;
     
     // DOM elements
     const groupsList = document.getElementById('groupsList');
@@ -172,7 +173,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             userGroups = data.groups || [];
             
-            displayGroups(userGroups);
+            // Load chats for each group
+            await loadGroupChats();
             
         } catch (error) {
             console.error('Error loading user groups:', error);
@@ -180,33 +182,70 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-function displayGroups(groups) {
-    if (groups.length === 0) {
-        showNoGroups();
-        return;
+    async function loadGroupChats() {
+        try {
+            // Load chats for each group in parallel
+            const groupChatsPromises = userGroups.map(async (group) => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/groups/${group.group_id}/chats?user_id=${currentUser.id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        return {
+                            ...group,
+                            chats: data.chats || [],
+                            total_chats: data.count || 0
+                        };
+                    }
+                } catch (error) {
+                    console.error(`Error loading chats for group ${group.group_id}:`, error);
+                }
+                return { ...group, chats: [], total_chats: 0 };
+            });
+            
+            const groupsWithChats = await Promise.all(groupChatsPromises);
+            userGroups = groupsWithChats;
+            
+            displayGroups(userGroups);
+            
+        } catch (error) {
+            console.error('Error loading group chats:', error);
+            displayGroups(userGroups); // Fallback to display without chats
+        }
     }
     
-    groupsList.innerHTML = groups.map(group => createGroupItem(group)).join('');
-    
-    // Add limited groups class if more than 2 groups
-    if (groups.length > 2) {
-        groupsList.classList.add('has-many-groups');
-    } else {
-        groupsList.classList.remove('has-many-groups');
-    }
-    
-    // Add click event listeners to group items
-    document.querySelectorAll('.group-item').forEach(item => {
-        item.addEventListener('click', async () => {
-            const groupId = item.dataset.groupId;
-            await joinGroupChat(groupId);
+    function displayGroups(groups) {
+        if (groups.length === 0) {
+            showNoGroups();
+            return;
+        }
+        
+        groupsList.innerHTML = groups.map(group => createGroupItem(group)).join('');
+        
+        // Add limited groups class if more than 2 groups
+        if (groups.length > 2) {
+            groupsList.classList.add('has-many-groups');
+        } else {
+            groupsList.classList.remove('has-many-groups');
+        }
+        
+        // Add click event listeners to group items
+        document.querySelectorAll('.group-item').forEach(item => {
+            item.addEventListener('click', async () => {
+                const groupId = item.dataset.groupId;
+                await joinGroupChat(groupId);
+            });
         });
-    });
-}
+    }
     
     function createGroupItem(group) {
         const initials = getInitials(group.group_name || 'G');
-        const isActive = currentGroup && currentGroup.id === group.group_id;
+        const isActive = currentGroup && currentGroup.group_id === group.group_id;
+        
+        // Find the general chat or first chat
+        const generalChat = group.chats?.find(chat => chat.chat_type === 'general') || group.chats?.[0];
+        const lastMessage = generalChat?.last_message || 'No messages yet';
+        const unreadCount = generalChat?.unread_count || 0;
+        const messageCount = generalChat?.message_count || 0;
         
         return `
             <div class="group-item ${isActive ? 'active' : ''}" data-group-id="${group.group_id}">
@@ -222,12 +261,12 @@ function displayGroups(groups) {
                         <i class="fas fa-users"></i>
                         ${group.member_count || 0}
                     </div>
-                    ${group.unread_count > 0 ? `
-                        <div class="unread-badge">${group.unread_count}</div>
+                    ${unreadCount > 0 ? `
+                        <div class="unread-badge">${unreadCount}</div>
                     ` : ''}
                 </div>
                 <div class="last-message">
-                    ${group.last_message || 'No messages yet'}
+                    ${lastMessage}
                 </div>
             </div>
         `;
@@ -250,8 +289,8 @@ function displayGroups(groups) {
             // Load or create chat for this group
             await loadOrCreateChat();
             
-            // Load messages
-            await loadMessages();
+            // Start polling for new messages
+            startMessagePolling();
             
             // Update groups list to show active state
             updateGroupsList();
@@ -268,24 +307,16 @@ function displayGroups(groups) {
     
     async function loadOrCreateChat() {
         try {
-            // First, try to get existing chats for this group
-            const response = await fetch(`${API_BASE_URL}/groups/${currentGroup.group_id}/chats`);
-            
-            if (response.ok) {
-                const data = await response.json();
-                const chats = data.chats || [];
-                
-                // Use the general chat or create one if none exists
-                if (chats.length > 0) {
-                    currentChat = chats.find(chat => chat.chat_type === 'general') || chats[0];
-                } else {
-                    // Create a new general chat
-                    await createGeneralChat();
-                }
+            // Use existing chats or create a general chat
+            if (currentGroup.chats && currentGroup.chats.length > 0) {
+                currentChat = currentGroup.chats.find(chat => chat.chat_type === 'general') || currentGroup.chats[0];
             } else {
                 // Create a new general chat
                 await createGeneralChat();
             }
+            
+            // Load messages for the selected chat
+            await loadMessages();
             
         } catch (error) {
             console.error('Error loading/creating chat:', error);
@@ -294,74 +325,8 @@ function displayGroups(groups) {
         }
     }
     
-async function createGeneralChat() {
-    try {
-        // First, ensure the user has a profile
-        await ensureUserProfile();
-        
-        const response = await fetch(`${API_BASE_URL}/groups/${currentGroup.group_id}/chats/create`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: 'General Chat',
-                chat_type: 'general',
-                created_by: currentUser.id
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            currentChat = data.chat;
-        } else {
-            // If creation fails due to profile issue, try alternative approach
-            await createChatWithFallback();
-        }
-    } catch (error) {
-        console.error('Error creating chat:', error);
-        // Try fallback method
-        await createChatWithFallback();
-    }
-}
-
-async function ensureUserProfile() {
-    try {
-        // Check if user has a profile
-        const response = await fetch(`${API_BASE_URL}/profiles/user/${currentUser.id}`);
-        if (!response.ok) {
-            // Create a basic profile if it doesn't exist
-            await fetch(`${API_BASE_URL}/profiles`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user_id: currentUser.id,
-                    name: currentUser.name || currentUser.email,
-                    email: currentUser.email,
-                    role: 'student',
-                    faculty: 'Not specified',
-                    course: 'Not specified',
-                    year_of_study: '1st Year',
-                    phone: 'Not provided',
-                    terms_agreed: true
-                })
-            });
-        }
-    } catch (error) {
-        console.error('Error ensuring user profile:', error);
-    }
-}
-
-async function createChatWithFallback() {
-    try {
-        // Alternative: Use a system user or group creator as fallback
-        const groupResponse = await fetch(`${API_BASE_URL}/groups/${currentGroup.group_id}`);
-        if (groupResponse.ok) {
-            const groupData = await groupResponse.json();
-            const creatorId = groupData.group.creator_id;
-            
+    async function createGeneralChat() {
+        try {
             const response = await fetch(`${API_BASE_URL}/groups/${currentGroup.group_id}/chats/create`, {
                 method: 'POST',
                 headers: {
@@ -370,20 +335,31 @@ async function createChatWithFallback() {
                 body: JSON.stringify({
                     title: 'General Chat',
                     chat_type: 'general',
-                    created_by: creatorId // Use group creator as fallback
+                    created_by: currentUser.id,
+                    user_name: currentUser.name,
+                    user_email: currentUser.email
                 })
             });
             
             if (response.ok) {
                 const data = await response.json();
                 currentChat = data.chat;
+                
+                // Update the group's chats array
+                if (!currentGroup.chats) {
+                    currentGroup.chats = [];
+                }
+                currentGroup.chats.push(currentChat);
+                
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to create chat');
             }
+        } catch (error) {
+            console.error('Error creating chat:', error);
+            throw error;
         }
-    } catch (fallbackError) {
-        console.error('Fallback chat creation also failed:', fallbackError);
-        throw fallbackError;
     }
-}
     
     async function loadMessages() {
         try {
@@ -414,13 +390,19 @@ async function createChatWithFallback() {
             return;
         }
         
-        messagesList.innerHTML = messages.map(message => createMessageElement(message)).join('');
+        // Sort messages by creation time (oldest first)
+        const sortedMessages = [...messages].sort((a, b) => 
+            new Date(a.created_at) - new Date(b.created_at)
+        );
+        
+        messagesList.innerHTML = sortedMessages.map(message => createMessageElement(message)).join('');
         scrollToBottom();
     }
     
     function createMessageElement(message) {
         const isOwn = message.sender_id === currentUser.id;
-        const senderInitials = getInitials(message.sender_name || 'U');
+        const senderName = message.profiles?.name || 'Unknown User';
+        const senderInitials = getInitials(senderName);
         const messageTime = formatMessageTime(message.created_at);
         
         let messageContent = '';
@@ -450,15 +432,23 @@ async function createChatWithFallback() {
             `;
         }
         
+        // Add edited indicator if message was edited
+        const editedIndicator = message.is_edited ? '<span class="edited-indicator">(edited)</span>' : '';
+        
         return `
-            <div class="message ${isOwn ? 'own' : 'other'}">
+            <div class="message ${isOwn ? 'own' : 'other'}" data-message-id="${message.id}">
                 <div class="message-avatar">${senderInitials}</div>
                 <div class="message-content">
                     <div class="message-header">
-                        <div class="message-sender">${isOwn ? 'You' : escapeHtml(message.sender_name || 'Unknown')}</div>
-                        <div class="message-time">${messageTime}</div>
+                        <div class="message-sender">${isOwn ? 'You' : escapeHtml(senderName)}</div>
+                        <div class="message-time">${messageTime} ${editedIndicator}</div>
                     </div>
                     ${messageContent}
+                    ${message.reply_to ? `
+                        <div class="message-reply">
+                            <div class="reply-content">${escapeHtml(message.reply_to.content || '')}</div>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -485,7 +475,8 @@ async function createChatWithFallback() {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
@@ -495,8 +486,11 @@ async function createChatWithFallback() {
             adjustTextareaHeight();
             updateSendButtonState();
             
-            // Reload messages to show the new one
-            await loadMessages();
+            // Add message to local state and UI immediately
+            messages.push(result.message_data);
+            displayMessages(messages);
+            
+            showSuccess('Message sent!');
             
         } catch (error) {
             console.error('Error sending message:', error);
@@ -509,9 +503,9 @@ async function createChatWithFallback() {
         if (!file || !currentChat) return;
         
         try {
-            // In a real implementation, you would upload the file to a storage service first
-            // For now, we'll simulate the file upload and create a message
-            
+            // In a real implementation, upload file to storage service first
+            // For demo, we'll use a mock file URL
+            const fileUrl = await uploadFileToStorage(file);
             const fileDescription = document.getElementById('fileDescription').value.trim();
             
             const messageData = {
@@ -522,7 +516,7 @@ async function createChatWithFallback() {
                 document_name: file.name,
                 document_size: file.size,
                 document_type: file.type,
-                document_url: URL.createObjectURL(file) // Temporary URL for demo
+                document_url: fileUrl
             };
             
             const response = await fetch(`${API_BASE_URL}/chats/${currentChat.id}/messages`, {
@@ -534,11 +528,18 @@ async function createChatWithFallback() {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
+            const result = await response.json();
+            
             closeFileUploadModal();
-            await loadMessages();
+            
+            // Add message to local state and UI
+            messages.push(result.message_data);
+            displayMessages(messages);
+            
             showSuccess('File shared successfully!');
             
         } catch (error) {
@@ -554,6 +555,9 @@ async function createChatWithFallback() {
         if (!file || !noteTitle || !currentChat) return;
         
         try {
+            // Upload file to storage service first
+            const fileUrl = await uploadFileToStorage(file);
+            
             const noteData = {
                 chat_id: currentChat.id,
                 uploaded_by: currentUser.id,
@@ -562,8 +566,8 @@ async function createChatWithFallback() {
                 file_name: file.name,
                 file_size: file.size,
                 file_type: file.type,
-                file_url: URL.createObjectURL(file), // Temporary URL for demo
-                subject_area: document.getElementById('noteSubject').value.trim()
+                file_url: fileUrl,
+                subject_area: document.getElementById('noteSubject').value.trim() || currentGroup.subject
             };
             
             const response = await fetch(`${API_BASE_URL}/chats/${currentChat.id}/share-note`, {
@@ -575,16 +579,83 @@ async function createChatWithFallback() {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
             
+            const result = await response.json();
+            
             closeNoteUploadModal();
-            await loadMessages();
+            
+            // Add the auto-generated message to local state and UI
+            messages.push(result.message);
+            displayMessages(messages);
+            
             showSuccess('Note shared successfully!');
             
         } catch (error) {
             console.error('Error uploading note:', error);
             showError('Failed to share note. Please try again.');
+        }
+    }
+    
+    // Simulate file upload to storage service
+    async function uploadFileToStorage(file) {
+        // In a real implementation, you would upload to Supabase Storage, AWS S3, etc.
+        // For demo purposes, we'll return a mock URL
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // Create a blob URL for the file (this is temporary for demo)
+                const blobUrl = URL.createObjectURL(file);
+                resolve(blobUrl);
+                
+                // In production, you would use:
+                // const { data, error } = await supabase.storage
+                //   .from('chat-files')
+                //   .upload(`files/${file.name}-${Date.now()}`, file);
+                // return data?.path;
+            }, 1000);
+        });
+    }
+    
+    // Message polling for real-time updates
+    function startMessagePolling() {
+        // Clear existing interval
+        if (messagePollingInterval) {
+            clearInterval(messagePollingInterval);
+        }
+        
+        // Poll for new messages every 3 seconds
+        messagePollingInterval = setInterval(async () => {
+            if (currentChat) {
+                await checkForNewMessages();
+            }
+        }, 3000);
+    }
+    
+    async function checkForNewMessages() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/chats/${currentChat.id}/messages?user_id=${currentUser.id}&limit=100`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                const newMessages = data.messages || [];
+                
+                // Check if we have new messages
+                if (newMessages.length !== messages.length) {
+                    messages = newMessages;
+                    displayMessages(messages);
+                }
+            }
+        } catch (error) {
+            console.error('Error checking for new messages:', error);
+        }
+    }
+    
+    function stopMessagePolling() {
+        if (messagePollingInterval) {
+            clearInterval(messagePollingInterval);
+            messagePollingInterval = null;
         }
     }
     
@@ -604,6 +675,9 @@ async function createChatWithFallback() {
         if (window.innerWidth <= 768) {
             document.querySelector('.chat-sidebar').classList.add('active');
         }
+        
+        // Stop message polling when leaving chat
+        stopMessagePolling();
     }
     
     function updateChatHeader() {
@@ -648,6 +722,10 @@ async function createChatWithFallback() {
                 <div class="group-detail-item">
                     <span class="detail-label">Created:</span>
                     <span class="detail-value">${formatDate(currentGroup.created_at)}</span>
+                </div>
+                <div class="group-detail-item">
+                    <span class="detail-label">Active Chats:</span>
+                    <span class="detail-value">${currentGroup.total_chats || 0}</span>
                 </div>
             </div>
         `;
@@ -725,15 +803,20 @@ async function createChatWithFallback() {
                             <p>No notes shared yet</p>
                         </div>
                     ` : `
-                        <div class="members-list">
+                        <div class="notes-list">
                             ${notes.map(note => `
-                                <div class="member-item">
+                                <div class="note-item">
                                     <div class="file-icon">
                                         <i class="fas fa-file-alt"></i>
                                     </div>
-                                    <div class="member-details">
-                                        <div class="member-name">${escapeHtml(note.title)}</div>
-                                        <div class="member-role">By ${escapeHtml(note.profiles?.name || 'Unknown')}</div>
+                                    <div class="note-details">
+                                        <div class="note-title">${escapeHtml(note.title)}</div>
+                                        <div class="note-info">
+                                            <span>By ${escapeHtml(note.profiles?.name || 'Unknown')}</span>
+                                            <span>• ${formatFileSize(note.file_size)}</span>
+                                            <span>• ${formatDate(note.created_at)}</span>
+                                        </div>
+                                        ${note.description ? `<div class="note-description">${escapeHtml(note.description)}</div>` : ''}
                                     </div>
                                     <button class="download-btn" onclick="downloadFile('${note.file_url}', '${note.file_name}')">
                                         <i class="fas fa-download"></i>
@@ -772,6 +855,7 @@ async function createChatWithFallback() {
         closeModal(fileUploadModal);
         document.getElementById('fileUploadForm').reset();
         document.getElementById('filePreview').style.display = 'none';
+        confirmFileUpload.disabled = true;
     }
     
     function openNoteUploadModal() {
@@ -786,6 +870,7 @@ async function createChatWithFallback() {
         closeModal(noteUploadModal);
         document.getElementById('noteUploadForm').reset();
         document.getElementById('notePreview').style.display = 'none';
+        confirmNoteUpload.disabled = true;
     }
     
     function openModal(modal) {
@@ -812,11 +897,6 @@ async function createChatWithFallback() {
     function handleMessageInput() {
         adjustTextareaHeight();
         updateSendButtonState();
-        
-        // Handle typing indicators (simplified)
-        if (messageInput.value.trim()) {
-            // In a real app, you would send a typing indicator to the server
-        }
     }
     
     function handleMessageKeydown(e) {
@@ -842,9 +922,16 @@ async function createChatWithFallback() {
             document.getElementById('noteFileName').textContent = file.name;
             document.getElementById('noteFileSize').textContent = formatFileSize(file.size);
             document.getElementById('notePreview').style.display = 'flex';
+            // Enable upload button only if title is filled
             confirmNoteUpload.disabled = !document.getElementById('noteTitle').value.trim();
         }
     }
+    
+    // Add event listener for note title input
+    document.getElementById('noteTitle')?.addEventListener('input', function() {
+        const fileSelected = noteFile.files.length > 0;
+        confirmNoteUpload.disabled = !(fileSelected && this.value.trim());
+    });
     
     // Utility Functions
     function adjustTextareaHeight() {
@@ -857,15 +944,17 @@ async function createChatWithFallback() {
     }
     
     function scrollToBottom() {
-        messagesScroll.scrollTop = messagesScroll.scrollHeight;
+        if (messagesScroll) {
+            messagesScroll.scrollTop = messagesScroll.scrollHeight;
+        }
     }
     
     function filterGroups() {
         const searchTerm = groupSearch.value.toLowerCase();
         const filteredGroups = userGroups.filter(group => 
             group.group_name.toLowerCase().includes(searchTerm) ||
-            group.subject.toLowerCase().includes(searchTerm) ||
-            group.faculty.toLowerCase().includes(searchTerm)
+            (group.subject && group.subject.toLowerCase().includes(searchTerm)) ||
+            (group.faculty && group.faculty.toLowerCase().includes(searchTerm))
         );
         displayGroups(filteredGroups);
     }
@@ -912,6 +1001,7 @@ async function createChatWithFallback() {
     }
     
     function escapeHtml(unsafe) {
+        if (!unsafe) return '';
         return unsafe
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -993,6 +1083,9 @@ async function createChatWithFallback() {
     }
     
     function showToast(message, type = 'info') {
+        // Remove existing toasts
+        document.querySelectorAll('.toast-notification').forEach(toast => toast.remove());
+        
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
         toast.innerHTML = `
@@ -1049,7 +1142,14 @@ async function createChatWithFallback() {
             welcomeScreen.style.display = 'flex';
             activeChat.style.display = 'none';
             currentGroup = null;
+            currentChat = null;
+            stopMessagePolling();
             updateGroupsList();
         }
+    });
+    
+    // Clean up when leaving the page
+    window.addEventListener('beforeunload', () => {
+        stopMessagePolling();
     });
 });

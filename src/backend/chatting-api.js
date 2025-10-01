@@ -1,5 +1,4 @@
-
-// chatting-api.js
+// chatting-api.js - UPDATED VERSION
 const express = require('express');
 const router = express.Router();
 const { createClient } = require('@supabase/supabase-js');
@@ -16,10 +15,57 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
+// Helper function to ensure user has a profile
+async function ensureUserProfile(user_id, user_name = 'User', user_email = null) {
+  try {
+    // Check if profile exists
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('profiles')
+      .select('user_id, name, email')
+      .eq('user_id', user_id)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = not found
+      throw checkError;
+    }
+
+    // If profile doesn't exist, create one
+    if (!existingProfile) {
+      const { data: newProfile, error: createError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: user_id,
+          name: user_name,
+          email: user_email || `${user_id}@user.com`,
+          role: 'student',
+          faculty: 'Not specified',
+          course: 'Not specified',
+          year_of_study: '1st Year',
+          phone: 'Not provided',
+          terms_agreed: true,
+          terms_agreed_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Profile creation error:', createError);
+        throw createError;
+      }
+      return newProfile;
+    }
+
+    return existingProfile;
+  } catch (error) {
+    console.error('Error ensuring user profile:', error);
+    throw error;
+  }
+}
+
 // Create a new chat for a group
 router.post('/groups/:group_id/chats/create', async (req, res) => {
   const { group_id } = req.params;
-  const { title, chat_type = 'general', created_by } = req.body;
+  const { title, chat_type = 'general', created_by, user_name, user_email } = req.body;
 
   if (!created_by) {
     return res.status(400).json({ error: 'created_by is required' });
@@ -30,6 +76,9 @@ router.post('/groups/:group_id/chats/create', async (req, res) => {
   }
 
   try {
+    // Ensure user has a profile
+    await ensureUserProfile(created_by, user_name, user_email);
+
     // Verify user is a member of the group
     const { data: membership, error: memberError } = await supabase
       .from('group_members')
@@ -48,14 +97,11 @@ router.post('/groups/:group_id/chats/create', async (req, res) => {
       .from('chatting')
       .insert({
         group_id: group_id,
-        title: title,
+        title: title || 'General Chat',
         chat_type: chat_type,
         created_by: created_by
       })
-      .select(`
-        *,
-        profiles!created_by (name, email)
-      `)
+      .select()
       .single();
 
     if (error) throw error;
@@ -94,42 +140,55 @@ router.get('/groups/:group_id/chats', async (req, res) => {
     }
 
     // Get all chats for the group
-    const { data, error } = await supabase
+    const { data: chats, error: chatsError } = await supabase
       .from('chatting')
       .select(`
         *,
-        profiles!created_by (name),
-        chat_messages!inner (
-          id,
-          created_at
-        )
+        profiles!created_by (name, email)
       `)
       .eq('group_id', group_id)
       .eq('is_active', true)
       .order('last_message_at', { ascending: false });
 
-    if (error) throw error;
+    if (chatsError) throw chatsError;
 
-    // Get unread counts for each chat
-    const chatsWithUnread = await Promise.all(
-      (data || []).map(async (chat) => {
+    // Get message counts and last messages for each chat
+    const chatsWithDetails = await Promise.all(
+      (chats || []).map(async (chat) => {
+        // Get last message
+        const { data: lastMessage } = await supabase
+          .from('chat_messages')
+          .select('content, created_at')
+          .eq('chat_id', chat.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        // Get message count
+        const { count: messageCount } = await supabase
+          .from('chat_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('chat_id', chat.id);
+
+        // Get unread count (simplified - messages from last 24 hours)
         const { count: unreadCount } = await supabase
           .from('chat_messages')
           .select('*', { count: 'exact', head: true })
           .eq('chat_id', chat.id)
-          .gt('created_at', await getLastReadAt(chat.id, user_id));
+          .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
         return {
           ...chat,
-          unread_count: unreadCount || 0,
-          message_count: chat.chat_messages?.length || 0
+          last_message: lastMessage?.content || 'No messages yet',
+          message_count: messageCount || 0,
+          unread_count: unreadCount || 0
         };
       })
     );
 
     res.status(200).json({
-      chats: chatsWithUnread,
-      count: chatsWithUnread.length
+      chats: chatsWithDetails,
+      count: chatsWithDetails.length
     });
   } catch (err) {
     console.error('Error fetching group chats:', err);
@@ -147,12 +206,21 @@ router.get('/chats/:chat_id/messages', async (req, res) => {
   }
 
   try {
-    // Verify user has access to the chat
+    // Verify user has access to the chat through group membership
+    const { data: chat, error: chatError } = await supabase
+      .from('chatting')
+      .select('group_id')
+      .eq('id', chat_id)
+      .single();
+
+    if (chatError) throw chatError;
+
     const { data: access, error: accessError } = await supabase
-      .from('chat_participants')
+      .from('group_members')
       .select('id')
-      .eq('chat_id', chat_id)
+      .eq('group_id', chat.group_id)
       .eq('user_id', user_id)
+      .eq('status', 'active')
       .single();
 
     if (accessError || !access) {
@@ -209,12 +277,24 @@ router.post('/chats/:chat_id/messages', async (req, res) => {
   }
 
   try {
-    // Verify user has access to the chat
+    // Ensure user has a profile
+    await ensureUserProfile(sender_id);
+
+    // Verify user has access to the chat through group membership
+    const { data: chat, error: chatError } = await supabase
+      .from('chatting')
+      .select('group_id')
+      .eq('id', chat_id)
+      .single();
+
+    if (chatError) throw chatError;
+
     const { data: access, error: accessError } = await supabase
-      .from('chat_participants')
+      .from('group_members')
       .select('id')
-      .eq('chat_id', chat_id)
+      .eq('group_id', chat.group_id)
       .eq('user_id', sender_id)
+      .eq('status', 'active')
       .single();
 
     if (accessError || !access) {
@@ -237,13 +317,7 @@ router.post('/chats/:chat_id/messages', async (req, res) => {
       })
       .select(`
         *,
-        profiles!sender_id (name, email, role),
-        reply_to:chat_messages!reply_to_id (
-          id,
-          content,
-          sender_id,
-          profiles!sender_id (name)
-        )
+        profiles!sender_id (name, email, role)
       `)
       .single();
 
@@ -271,12 +345,24 @@ router.post('/chats/:chat_id/share-note', async (req, res) => {
   }
 
   try {
-    // Verify user has access to the chat
+    // Ensure user has a profile
+    await ensureUserProfile(uploaded_by);
+
+    // Verify user has access to the chat through group membership
+    const { data: chat, error: chatError } = await supabase
+      .from('chatting')
+      .select('group_id')
+      .eq('id', chat_id)
+      .single();
+
+    if (chatError) throw chatError;
+
     const { data: access, error: accessError } = await supabase
-      .from('chat_participants')
+      .from('group_members')
       .select('id')
-      .eq('chat_id', chat_id)
+      .eq('group_id', chat.group_id)
       .eq('user_id', uploaded_by)
+      .eq('status', 'active')
       .single();
 
     if (accessError || !access) {
@@ -352,7 +438,10 @@ router.post('/messages/:message_id/reactions', async (req, res) => {
   }
 
   try {
-    // Verify user has access to the message
+    // Ensure user has a profile
+    await ensureUserProfile(user_id);
+
+    // Verify user has access to the message through group membership
     const { data: message, error: messageError } = await supabase
       .from('chat_messages')
       .select('chat_id')
@@ -363,11 +452,20 @@ router.post('/messages/:message_id/reactions', async (req, res) => {
       return res.status(404).json({ error: 'Message not found' });
     }
 
+    const { data: chat, error: chatError } = await supabase
+      .from('chatting')
+      .select('group_id')
+      .eq('id', message.chat_id)
+      .single();
+
+    if (chatError) throw chatError;
+
     const { data: access, error: accessError } = await supabase
-      .from('chat_participants')
+      .from('group_members')
       .select('id')
-      .eq('chat_id', message.chat_id)
+      .eq('group_id', chat.group_id)
       .eq('user_id', user_id)
+      .eq('status', 'active')
       .single();
 
     if (accessError || !access) {
@@ -412,12 +510,21 @@ router.get('/chats/:chat_id/participants', async (req, res) => {
   }
 
   try {
-    // Verify user has access to the chat
+    // Verify user has access to the chat through group membership
+    const { data: chat, error: chatError } = await supabase
+      .from('chatting')
+      .select('group_id')
+      .eq('id', chat_id)
+      .single();
+
+    if (chatError) throw chatError;
+
     const { data: access, error: accessError } = await supabase
-      .from('chat_participants')
+      .from('group_members')
       .select('id')
-      .eq('chat_id', chat_id)
+      .eq('group_id', chat.group_id)
       .eq('user_id', user_id)
+      .eq('status', 'active')
       .single();
 
     if (accessError || !access) {
@@ -457,12 +564,21 @@ router.get('/chats/:chat_id/notes', async (req, res) => {
   }
 
   try {
-    // Verify user has access to the chat
+    // Verify user has access to the chat through group membership
+    const { data: chat, error: chatError } = await supabase
+      .from('chatting')
+      .select('group_id')
+      .eq('id', chat_id)
+      .single();
+
+    if (chatError) throw chatError;
+
     const { data: access, error: accessError } = await supabase
-      .from('chat_participants')
+      .from('group_members')
       .select('id')
-      .eq('chat_id', chat_id)
+      .eq('group_id', chat.group_id)
       .eq('user_id', user_id)
+      .eq('status', 'active')
       .single();
 
     if (accessError || !access) {
@@ -491,30 +607,6 @@ router.get('/chats/:chat_id/notes', async (req, res) => {
   }
 });
 
-// Helper functions
-async function getLastReadAt(chat_id, user_id) {
-  const { data } = await supabase
-    .from('chat_participants')
-    .select('last_read_at')
-    .eq('chat_id', chat_id)
-    .eq('user_id', user_id)
-    .single();
-
-  return data?.last_read_at || new Date(0).toISOString();
-}
-
-async function markMessagesAsRead(chat_id, user_id) {
-  // Update last_read_at for the participant
-  await supabase
-    .from('chat_participants')
-    .update({ last_read_at: new Date().toISOString() })
-    .eq('chat_id', chat_id)
-    .eq('user_id', user_id);
-
-  // Update read_by array for messages (this is a simplified approach)
-  // In a production app, you might want a separate table for read receipts
-}
-
 // Delete a message
 router.delete('/messages/:message_id', async (req, res) => {
   const { message_id } = req.params;
@@ -525,6 +617,9 @@ router.delete('/messages/:message_id', async (req, res) => {
   }
 
   try {
+    // Ensure user has a profile
+    await ensureUserProfile(user_id);
+
     // Verify user owns the message
     const { data: message, error: messageError } = await supabase
       .from('chat_messages')
@@ -567,6 +662,9 @@ router.patch('/messages/:message_id', async (req, res) => {
   }
 
   try {
+    // Ensure user has a profile
+    await ensureUserProfile(user_id);
+
     // Verify user owns the message
     const { data: message, error: messageError } = await supabase
       .from('chat_messages')
@@ -602,6 +700,80 @@ router.patch('/messages/:message_id', async (req, res) => {
     });
   } catch (err) {
     console.error('Error updating message:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Helper functions
+async function getLastReadAt(chat_id, user_id) {
+  const { data } = await supabase
+    .from('chat_participants')
+    .select('last_read_at')
+    .eq('chat_id', chat_id)
+    .eq('user_id', user_id)
+    .single();
+
+  return data?.last_read_at || new Date(0).toISOString();
+}
+
+async function markMessagesAsRead(chat_id, user_id) {
+  // Update last_read_at for the participant
+  await supabase
+    .from('chat_participants')
+    .update({ last_read_at: new Date().toISOString() })
+    .eq('chat_id', chat_id)
+    .eq('user_id', user_id);
+}
+
+// Get user's unread message counts across all chats
+router.get('/users/:user_id/unread-counts', async (req, res) => {
+  const { user_id } = req.params;
+
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  try {
+    // Get all groups the user is a member of
+    const { data: userGroups, error: groupsError } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', user_id)
+      .eq('status', 'active');
+
+    if (groupsError) throw groupsError;
+
+    const groupIds = userGroups.map(g => g.group_id);
+
+    if (groupIds.length === 0) {
+      return res.status(200).json({ unread_counts: {} });
+    }
+
+    // Get all chats for these groups
+    const { data: chats, error: chatsError } = await supabase
+      .from('chatting')
+      .select('id, group_id')
+      .in('group_id', groupIds)
+      .eq('is_active', true);
+
+    if (chatsError) throw chatsError;
+
+    // Get unread counts for each chat
+    const unreadCounts = {};
+    for (const chat of chats || []) {
+      const lastRead = await getLastReadAt(chat.id, user_id);
+      const { count } = await supabase
+        .from('chat_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('chat_id', chat.id)
+        .gt('created_at', lastRead);
+
+      unreadCounts[chat.id] = count || 0;
+    }
+
+    res.status(200).json({ unread_counts: unreadCounts });
+  } catch (err) {
+    console.error('Error fetching unread counts:', err);
     res.status(500).json({ error: err.message });
   }
 });
