@@ -4,20 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wits - Student Dashboard</title>
-    <meta name="description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta name="author" content="Wits">
+    <meta name="description" content="Student Dashboard - Overview of your academic journey">
     
-    <meta property="og:title" content="Wits - Campus Study Buddy">
-    <meta property="og:description" content="Find your study partner. Master your modules. Level up your academic life.">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="../images/icon.png" type="image/png">
-    <link rel="stylesheet" href="../css/landing.css">
-    <link rel="stylesheet" href="../css/student-dash.css">
-    <link rel="stylesheet" href="../css/profile.css">
-    <link rel="stylesheet" href="../css/form-status.css">
-    <link rel="stylesheet" href="../css/profile.css">
-    <!-- Font Awesome for icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/student-dash.css">
+    <link rel="stylesheet" href="../css/student-dash2.css">
+    <link rel="stylesheet" href="../css/profile.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -30,17 +29,16 @@
         </header>
         
         <ul class="nav-links">
-            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
-            <li><a href="student-participants.html#">Participants</a></li>
-            <li><a href="student-groups.html#">Groups</a></li>
-            <li><a href="student-chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-progress.html#">Progress</a></li>
-            <li><a href="student-calendar.html#">Calendar</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="student-dash.html" class="active">Dashboard</a></li>
+            <li><a href="student-participants.html">Participants</a></li>
+            <li><a href="student-groups.html">Groups</a></li>
+            <li><a href="student-chatroom.html">ChatRoom</a></li>
+            <li><a href="student-progress.html">Progress</a></li>
+            <li><a href="student-calendar.html">Calendar</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
-        <!-- Update the user-controls section -->
         <div class="user-controls">
             <a href="student-notifications.html" class="nav-btn notification-btn">
                 <i class="fas fa-bell"></i>
@@ -71,14 +69,14 @@
         </header>
         
         <ul class="mobile-nav-links">
-            <li><a href="Student-dash.html#" class="active">Dashboard</a></li>
-            <li><a href="student-participants.html#">Participants</a></li>
-            <li><a href="student-groups.html#">Groups</a></li>
-            <li><a href="student-chatroom.html#">ChatRoom</a></li>
-            <li><a href="student-progress.html#">Progress</a></li>
-            <li><a href="student-calendar.html#">Calendar</a></li>
-            <li><a href="student-weather.html#">Weather</a></li>
-            <li><a href="student-map.html#">Campus Map</a></li>
+            <li><a href="student-dash.html" class="active">Dashboard</a></li>
+            <li><a href="student-participants.html">Participants</a></li>
+            <li><a href="student-groups.html">Groups</a></li>
+            <li><a href="student-chatroom.html">ChatRoom</a></li>
+            <li><a href="student-progress.html">Progress</a></li>
+            <li><a href="student-calendar.html">Calendar</a></li>
+            <li><a href="student-weather.html">Weather</a></li>
+            <li><a href="student-map.html">Campus Map</a></li>
         </ul>
         
         <div class="mobile-user-controls">
@@ -86,39 +84,178 @@
                 <i class="fas fa-bell"></i>
                 <span>Notifications</span>
             </a>
-            <a href="student-profile.html" class="btn btn-outline mobile-profile-btn active">
+            <a href="student-profile.html" class="btn btn-outline mobile-profile-btn">
                 <i class="fas fa-user-circle"></i>
                 <span>Profile</span>
             </a>
         </div>
     </nav>
 
-    <main>
-    <!-- Hero Section with Image -->
-        <section class="hero" id="about">
-            <article class="hero-container">
-                <section class="hero-content">
-                    <h1 class="animate-on-scroll"><mark class="gradient-text">Welcome To Student Dashboard <span id="welcomeName"> Student</span>!</mark></h1>
-                    <p class="animate-on-scroll">Connect with fellow students, join study groups, and master your modules together. Wits makes collaborative learning as easy as creating a study session.</p>
-                    <aside class="auth-buttons animate-on-scroll">
-                        <button class="btn btn-primary" onclick="location.href='student-participants.html'">Connect With Students And Tutors</button>
-    
-                    </aside>
-                </section>
-                <figure class="hero-image animate-on-scroll">
-                    <img src="../images/display2.jpg" 
-                         alt="Students studying together" />
-                </figure>
-            </article>
-            <div class="hero-particles">
-                <div class="particle particle-1"></div>
-                <div class="particle particle-2"></div>
-                <div class="particle particle-3"></div>
+    <!-- Main Content -->
+    <main class="dashboard-container">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1>Welcome back, <span id="welcomeName">Student</span>!</h1>
+                <p>Here's an overview of your academic journey</p>
+                <div class="date-display">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate"></span>
+                </div>
+            </div>
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="modulesCount">0</div>
+                        <div class="stat-label">Active Modules</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="connectionsCount">0</div>
+                        <div class="stat-label">Connections</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="upcomingEvents">0</div>
+                        <div class="stat-label">Upcoming Events</div>
+                    </div>
+                </div>
             </div>
         </section>
 
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Progress Overview -->
+            <section class="dashboard-card progress-overview">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-line"></i> Progress Overview</h2>
+                    <a href="student-progress.html" class="view-all">View All</a>
+                </div>
+                <div class="card-content">
+                    <div class="progress-chart-container">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                    <div class="progress-stats">
+                        <div class="progress-stat">
+                            <div class="progress-value" id="overallProgress">0%</div>
+                            <div class="progress-label">Overall Progress</div>
+                        </div>
+                        <div class="progress-stat">
+                            <div class="progress-value" id="completedTopics">0</div>
+                            <div class="progress-label">Topics Completed</div>
+                        </div>
+                        <div class="progress-stat">
+                            <div class="progress-value" id="rewardsEarned">0</div>
+                            <div class="progress-label">Rewards Earned</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upcoming Events -->
+            <section class="dashboard-card upcoming-events">
+                <div class="card-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Upcoming Events</h2>
+                    <a href="student-calendar.html" class="view-all">View All</a>
+                </div>
+                <div class="card-content">
+                    <div class="events-list" id="eventsList">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Loading events...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Study Groups -->
+            <section class="dashboard-card study-groups">
+                <div class="card-header">
+                    <h2><i class="fas fa-users"></i> My Study Groups</h2>
+                    <a href="student-groups.html" class="view-all">View All</a>
+                </div>
+                <div class="card-content">
+                    <div class="groups-list" id="groupsList">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Loading groups...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Connections -->
+            <section class="dashboard-card recent-connections">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-friends"></i> Recent Connections</h2>
+                    <a href="student-participants.html" class="view-all">View All</a>
+                </div>
+                <div class="card-content">
+                    <div class="connections-list" id="connectionsList">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Loading connections...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Module Progress -->
+            <section class="dashboard-card module-progress">
+                <div class="card-header">
+                    <h2><i class="fas fa-book-open"></i> Module Progress</h2>
+                    <a href="student-progress.html" class="view-all">View All</a>
+                </div>
+                <div class="card-content">
+                    <div class="modules-list" id="modulesList">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Loading modules...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="dashboard-card quick-actions">
+                <div class="card-header">
+                    <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                </div>
+                <div class="card-content">
+                    <div class="action-buttons">
+                        <a href="student-progress.html#addModule" class="action-btn">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Module</span>
+                        </a>
+                        <a href="student-groups.html" class="action-btn">
+                            <i class="fas fa-search"></i>
+                            <span>Find Groups</span>
+                        </a>
+                        <a href="student-participants.html" class="action-btn">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Connect</span>
+                        </a>
+                        <a href="student-calendar.html" class="action-btn">
+                            <i class="fas fa-calendar-plus"></i>
+                            <span>Add Event</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
-    
+
     <!-- Footer -->
     <footer class="footer">
         <article class="container">
@@ -133,10 +270,10 @@
                 <article class="footer-column">
                     <h3>For Students</h3>
                     <ul class="footer-links">
-                        <li><a href="#">Find Study Partners</a></li>
-                        <li><a href="#">Join Study Groups</a></li>
-                        <li><a href="#">Track Progress</a></li>
-                        <li><a href="#">Plan Sessions</a></li>
+                        <li><a href="student-participants.html">Find Study Partners</a></li>
+                        <li><a href="student-groups.html">Join Study Groups</a></li>
+                        <li><a href="student-progress.html">Track Progress</a></li>
+                        <li><a href="student-calendar.html">Plan Sessions</a></li>
                     </ul>
                 </article>
                 <article class="footer-column">
@@ -166,10 +303,7 @@
 
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
-    <script src="../js/main.js"></script>
-    <script src="../js/landing.js"></script>
-    <script src="../js/weather.js"></script>
     <script src="../js/student-dash.js"></script>
-     <script src="../js/notifications.js"></script>
+    <script src="../js/notifications.js"></script>
 </body>
 </html>
