@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="../css/student-dash.css">
     <link rel="stylesheet" href="../css/chat.css">
     <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="../css/ai.css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -99,6 +100,14 @@
                 </button>
             </div>
             
+            <!-- AI Chat Button -->
+            <div class="ai-chat-button-container">
+                <button class="btn btn-primary" id="openAIChatBtn">
+                    <i class="fas fa-robot"></i>
+                    Ask AI Assistant
+                </button>
+            </div>
+            
             <div class="sidebar-search">
                 <i class="fas fa-search"></i>
                 <input type="text" id="groupSearch" placeholder="Search groups...">
@@ -127,7 +136,7 @@
 
         <!-- Main Chat Area -->
         <section class="chat-main">
-                        <!-- Active Chat Area -->
+            <!-- Active Chat Area -->
             <div class="active-chat" id="activeChat">
                 <!-- Chat Header -->
                 <div class="chat-header">
@@ -248,6 +257,72 @@
             </div>
         </aside>
     </main>
+
+    <!-- AI Chat Modal -->
+    <div class="modal" id="aiChatModal">
+        <div class="modal-content ai-modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-robot"></i> AI Study Assistant</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body ai-modal-body">
+                <div class="ai-chat-container">
+                    <div class="ai-messages" id="aiMessages">
+                        <div class="ai-welcome-message">
+                            <div class="ai-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="ai-message-content">
+                                <h4>Hello! I'm your AI Study Assistant</h4>
+                                <p>I can help you with:</p>
+                                <ul>
+                                    <li>Explaining complex concepts</li>
+                                    <li>Solving math and science problems</li>
+                                    <li>Proofreading and editing</li>
+                                    <li>Study strategies and tips</li>
+                                    <li>Research assistance</li>
+                                </ul>
+                                <p>What would you like to know today?</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-typing-indicator" id="aiTypingIndicator" style="display: none;">
+                        <div class="ai-typing-dots">
+                            <div class="ai-typing-dot"></div>
+                            <div class="ai-typing-dot"></div>
+                            <div class="ai-typing-dot"></div>
+                        </div>
+                        <span>AI is thinking...</span>
+                    </div>
+                    
+                    <div class="ai-input-container">
+                        <div class="ai-input-wrapper">
+                            <textarea 
+                                id="aiMessageInput" 
+                                placeholder="Ask me anything about your studies..."
+                                rows="1"
+                            ></textarea>
+                            <button class="btn btn-primary" id="sendAIMessageBtn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="ai-suggestions">
+                            <button class="ai-suggestion-btn" data-question="Explain quantum physics in simple terms">
+                                Explain quantum physics
+                            </button>
+                            <button class="ai-suggestion-btn" data-question="Help me solve this math problem: 2x + 5 = 15">
+                                Solve math problem
+                            </button>
+                            <button class="ai-suggestion-btn" data-question="What are effective study techniques for exams?">
+                                Study techniques
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- File Upload Modal -->
     <div class="modal" id="fileUploadModal">
@@ -381,6 +456,7 @@
     <!-- JavaScript Files -->
     <script src="../js/auth.js"></script>
     <script src="../js/chat.js"></script>
+    <script src="../js/ai.js"></script>
     <script src="../js/notifications.js"></script>
 </body>
 </html>
