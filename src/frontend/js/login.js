@@ -188,16 +188,31 @@ function createResendLink(email) {
  * @returns {string} - URL path to appropriate dashboard
  */
 function getDashboardUrlByRole(role) {
-    // Normalize role to lowercase for case-insensitive comparison
-    const normalizedRole = role ? role.toLowerCase() : 'student';
-    
+  // Normalize role to lowercase for case-insensitive comparison
+  const normalizedRole = role ? role.toLowerCase() : 'student';
+  
+  // Check if we're in production (Azure) or local development
+  const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+  
+  if (isProduction) {
+    // Production environment - use absolute paths with /html
     switch (normalizedRole) {
-        case 'tutor':
-            return '../html/tutor-dash.html';
-        case 'student':
-        default:
-            return '../html/student-dash.html';
+      case 'tutor':
+        return '/html/tutor-dash.html';
+      case 'student':
+      default:
+        return '/html/student-dash.html';
     }
+  } else {
+    // Local development
+    switch (normalizedRole) {
+      case 'tutor':
+        return '../html/tutor-dash.html';
+      case 'student':
+      default:
+        return '../html/student-dash.html';
+    }
+  }
 }
 
 /**
