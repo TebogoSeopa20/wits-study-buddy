@@ -40,8 +40,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set current date
         setCurrentDate();
         
-        // Check authentication using auth.js
-        checkAuth();
+        // Check authentication and handle Google login data
+        checkAuthAndGoogleLogin();
         
         // Initialize mobile menu
         initMobileMenu();
@@ -53,33 +53,34 @@ document.addEventListener('DOMContentLoaded', function() {
         setupLogout();
     }
     
-    // Set current date
-    function setCurrentDate() {
-        const now = new Date();
-        const options = { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        };
-        currentDate.textContent = now.toLocaleDateString('en-US', options);
-    }
-    
-    // Check authentication using auth.js methods
-    function checkAuth() {
-        // Use auth.js to check if user is logged in
-        if (!auth.isLoggedIn()) {
-            console.log('User not logged in, redirecting to login page');
-            window.location.href = 'student-login.html';
-            return;
+    // Check authentication and handle Google login data
+    function checkAuthAndGoogleLogin() {
+        // Check if we're coming from a Google login with user data
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get('success');
+        const userData = urlParams.get('userData');
+        
+        // If we have user data from Google login, store it
+        if (success === 'true' && userData) {
+            try {
+                const parsedUserData = JSON.parse(decodeURIComponent(userData));
+                auth.handleGoogleLogin(parsedUserData);
+                
+                // Clean up the URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
+                console.log('Google login data processed successfully');
+            } catch (error) {
+                console.error('Error processing Google login data:', error);
+            }
         }
         
-        // Get user data using auth.js method
+        // Get current user from auth system
         currentUser = auth.getCurrentUser();
         
         if (!currentUser) {
-            console.error('No user data found in sessionStorage');
-            logout();
+            console.log('User not logged in, redirecting to login page');
+            window.location.href = 'login.html';
             return;
         }
         
@@ -91,13 +92,29 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Update welcome message with user data
-        welcomeName.textContent = currentUser.name || currentUser.email || 'Student';
+        // Update welcome message with user's first name
+        if (welcomeName && currentUser.name) {
+            welcomeName.textContent = currentUser.name.split(' ')[0]; // First name only
+        }
         
         // Log user info for debugging
         console.log('Logged in user:', currentUser);
         console.log('User role:', currentUser.role);
         console.log('Student number:', currentUser.studentNumber);
+    }
+    
+    // Set current date
+    function setCurrentDate() {
+        const now = new Date();
+        const options = { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+        if (currentDate) {
+            currentDate.textContent = now.toLocaleDateString('en-US', options);
+        }
     }
     
     // Initialize mobile menu
@@ -126,24 +143,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set up logout functionality
     function setupLogout() {
-        const logoutButton = document.getElementById('logoutButton');
-        
-        if (logoutButton) {
-            logoutButton.addEventListener('click', logout);
-        }
+        const logoutButtons = document.querySelectorAll('#logoutButton, #mobileLogoutButton');
+        logoutButtons.forEach(button => {
+            if (button) {
+                button.addEventListener('click', logout);
+            }
+        });
     }
     
-    // Logout function using auth.js
+    // Logout function
     function logout() {
         if (confirm('Are you sure you want to logout?')) {
-            const success = auth.handleLogout();
-            if (success) {
-                console.log('Logout successful');
-                window.location.href = 'student-login.html';
-            } else {
-                console.error('Logout failed');
-                alert('Logout failed. Please try again.');
-            }
+            auth.handleLogout();
+            window.location.href = 'login.html';
         }
     }
     
@@ -151,17 +163,10 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadDashboardData() {
         try {
             // Verify user is still logged in
-            if (!auth.isLoggedIn()) {
-                console.log('Session expired during data loading');
-                window.location.href = 'student-login.html';
-                return;
-            }
-            
-            // Refresh user data
             currentUser = auth.getCurrentUser();
             if (!currentUser) {
-                console.error('User data lost during session');
-                logout();
+                console.log('User not logged in, redirecting to login page');
+                window.location.href = 'login.html';
                 return;
             }
             

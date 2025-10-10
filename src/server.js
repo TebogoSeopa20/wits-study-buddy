@@ -97,16 +97,31 @@ app.use((req, res, next) => {
 });
 
 // Helper function to get dashboard URL by role
+// Helper function to get dashboard URL by role
 function getDashboardUrlByRole(role) {
   const normalizedRole = role ? role.toLowerCase() : 'student';
-  const baseUrl = process.env.BASE_URL; // <--- This is the key!
+  const baseUrl = process.env.BASE_URL || (process.env.NODE_ENV === 'production' 
+    ? `https://${process.env.WEBSITE_HOSTNAME}`
+    : 'http://localhost:3000');
 
-  switch (normalizedRole) {
-    case 'tutor':
-      return `${baseUrl}/tutor-dash.html`;
-    case 'student':
-    default:
-      return `${baseUrl}/Student-dash.html`; // <--- Note the case sensitivity
+  // In production, we need to include the /html path
+  if (process.env.NODE_ENV === 'production') {
+    switch (normalizedRole) {
+      case 'tutor':
+        return `${baseUrl}/html/tutor-dash.html`;
+      case 'student':
+      default:
+        return `${baseUrl}/html/student-dash.html`;
+    }
+  } else {
+    // Local development
+    switch (normalizedRole) {
+      case 'tutor':
+        return `${baseUrl}/tutor-dash.html`;
+      case 'student':
+      default:
+        return `${baseUrl}/Student-dash.html`;
+    }
   }
 }
 
