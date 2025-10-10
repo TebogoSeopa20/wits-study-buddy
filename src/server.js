@@ -111,7 +111,7 @@ function getDashboardUrlByRole(role) {
         return `${baseUrl}/html/tutor-dash.html`;
       case 'student':
       default:
-        return `${baseUrl}/html/student-dash.html`;
+        return `${baseUrl}/html/Student-dash.html`;
     }
   } else {
     // Local development
