@@ -84,28 +84,28 @@ function handleGoogleLoginCallback() {
             const parsedUserData = JSON.parse(decodeURIComponent(userData));
             
             // Store user data using auth.js
-            if (auth.handleGoogleLogin(parsedUserData)) {
-                if (formStatus) {
-                    formStatus.textContent = 'Google login successful! Redirecting...';
-                    formStatus.className = 'form-status-message success';
-                }
-                
-                // Get the user's role
-                const userRole = parsedUserData.user_metadata?.role || 'student';
-                
-                // Get the appropriate dashboard URL based on role
-                const dashboardUrl = getDashboardUrlByRole(userRole);
-                
-                // Redirect to the appropriate dashboard
-                setTimeout(() => {
-                    window.location.href = dashboardUrl;
-                }, 1500);
+            if (auth && auth.handleGoogleLogin) {
+                auth.handleGoogleLogin(parsedUserData);
             } else {
-                if (formStatus) {
-                    formStatus.textContent = 'Failed to process Google login. Please try again.';
-                    formStatus.className = 'form-status-message error';
-                }
+                // Fallback if auth.js is not available
+                storeUserInSession(parsedUserData);
             }
+            
+            if (formStatus) {
+                formStatus.textContent = 'Google login successful! Redirecting...';
+                formStatus.className = 'form-status-message success';
+            }
+            
+            // Get the user's role
+            const userRole = parsedUserData.user_metadata?.role || 'student';
+            
+            // Get the appropriate dashboard URL based on role
+            const dashboardUrl = getDashboardUrlByRole(userRole);
+            
+            // Redirect to the appropriate dashboard
+            setTimeout(() => {
+                window.location.href = dashboardUrl;
+            }, 1500);
         } catch (parseError) {
             console.error('Error parsing Google user data:', parseError);
             if (formStatus) {
@@ -183,34 +183,31 @@ function createResendLink(email) {
 }
 
 /**
- * Get dashboard URL based on user role
+ * FIXED: Get dashboard URL based on user role for both production and development
  * @param {string} role - User role (student, tutor)
  * @returns {string} - URL path to appropriate dashboard
  */
 function getDashboardUrlByRole(role) {
-  // Normalize role to lowercase for case-insensitive comparison
   const normalizedRole = role ? role.toLowerCase() : 'student';
-  
-  // Check if we're in production (Azure) or local development
   const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
   
   if (isProduction) {
-    // Production environment - use absolute paths with /html
+    // Production environment - serve from root
     switch (normalizedRole) {
       case 'tutor':
-        return '/html/tutor-dash.html';
+        return '/tutor-dash.html';
       case 'student':
       default:
-        return '/html/student-dash.html';
+        return '/Student-dash.html';
     }
   } else {
-    // Local development
+    // Local development - use /html subdirectory
     switch (normalizedRole) {
       case 'tutor':
         return '../html/tutor-dash.html';
       case 'student':
       default:
-        return '../html/student-dash.html';
+        return '../html/Student-dash.html';
     }
   }
 }
