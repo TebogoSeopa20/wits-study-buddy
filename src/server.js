@@ -101,9 +101,15 @@ app.use('/api/reminders', remindersApi);
 app.use('/api/progress', progressApi);
 app.use('/api/external', groupsApi);
 
-// Static files with caching
-app.use(express.static(path.join(__dirname, 'frontend'), { maxAge: '1d' }));
-app.use(express.static(path.join(__dirname, 'frontend', 'html'), { maxAge: '1d' }));
+// Static files with caching - handle both development and production
+if (process.env.NODE_ENV === 'production') {
+  // In production, serve HTML files from root and static assets from their folders
+  app.use(express.static(path.join(__dirname, 'frontend'), { maxAge: '1d' }));
+} else {
+  // In development, use the /html subdirectory structure
+  app.use(express.static(path.join(__dirname, 'frontend'), { maxAge: '1d' }));
+  app.use(express.static(path.join(__dirname, 'frontend', 'html'), { maxAge: '1d' }));
+}
 
 // Minimal logging
 app.use((req, res, next) => {
@@ -118,6 +124,30 @@ app.use((req, res, next) => {
   if (req.url.endsWith('.css')) res.type('text/css');
   next();
 });
+
+// ============================================
+// PRODUCTION HTML ROUTES - Serve from root
+// ============================================
+if (process.env.NODE_ENV === 'production') {
+  app.get('/Student-dash.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'html', 'Student-dash.html'));
+  });
+  
+  app.get('/tutor-dash.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'html', 'tutor-dash.html'));
+  });
+  
+  // Add other dashboard pages as needed
+  app.get('/student-*.html', (req, res) => {
+    const fileName = req.path.substring(1); // Remove leading slash
+    res.sendFile(path.join(__dirname, 'frontend', 'html', fileName));
+  });
+  
+  app.get('/tutor-*.html', (req, res) => {
+    const fileName = req.path.substring(1); // Remove leading slash
+    res.sendFile(path.join(__dirname, 'frontend', 'html', fileName));
+  });
+}
 
 // ============================================
 // 🚀 ULTRA-FAST AI CHAT WITH STREAMING
@@ -441,19 +471,24 @@ app.get('/api/market/analytics', (req, res) => {
 });
 
 // ============================================
-// AUTH ENDPOINTS (Optimized)
+// FIXED: Dashboard URL Function
 // ============================================
 function getDashboardUrl(role) {
   const r = (role || 'student').toLowerCase();
   const base = process.env.BASE_URL || (process.env.NODE_ENV === 'production' 
     ? `https://${process.env.WEBSITE_HOSTNAME}` : 'http://localhost:3000');
   
+  // In production, serve from root, not /html subdirectory
   if (process.env.NODE_ENV === 'production') {
-    return r === 'tutor' ? `${base}/html/tutor-dash.html` : `${base}/html/Student-dash.html`;
+    return r === 'tutor' ? `${base}/tutor-dash.html` : `${base}/Student-dash.html`;
   }
-  return r === 'tutor' ? `${base}/tutor-dash.html` : `${base}/Student-dash.html`;
+  // In development, use the /html path structure
+  return r === 'tutor' ? `${base}/html/tutor-dash.html` : `${base}/html/Student-dash.html`;
 }
 
+// ============================================
+// AUTH ENDPOINTS (Optimized)
+// ============================================
 app.get('/auth/google', (req, res) => {
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.append('client_id', clientId);
@@ -515,7 +550,13 @@ app.get('/auth/google/callback', async (req, res) => {
     req.session.refresh_token = sessionData.session.refresh_token;
     
     const role = sessionData.user?.user_metadata?.role || 'student';
-    const redirectTo = req.session.redirectAfterLogin || getDashboardUrl(role);
+    let redirectTo = req.session.redirectAfterLogin || getDashboardUrl(role);
+    
+    // FIX: Ensure correct URL format in production
+    if (process.env.NODE_ENV === 'production') {
+      redirectTo = redirectTo.replace('/html/', '/');
+    }
+    
     delete req.session.redirectAfterLogin;
     
     const userData2 = encodeURIComponent(JSON.stringify({ ...sessionData.user, session: sessionData.session }));
@@ -707,4 +748,5 @@ app.get('/market', (req, res) => res.sendFile(path.join(__dirname, 'frontend', '
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`⚡ Server running on port ${PORT} - ULTRA OPTIMIZED`);
+  console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
