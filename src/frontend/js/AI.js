@@ -1,7 +1,7 @@
 // AI Chat Functionality with Gemini 2.5 Integration
 class AIChat {
     constructor() {
-        this.apiKey = 'AIzaSyA5m464C5MoTjzvhszs3G5Akbdwc3lU0Jo';
+        this.apiKey = 'apiKey';
         this.apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
         this.conversationHistory = [];
         this.isProcessing = false;
