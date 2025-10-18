@@ -22,6 +22,25 @@ const messagesApi = require('./backend/chatting-api');
 const app = express();
 
 // ============================================
+// ENVIRONMENT VARIABLES VALIDATION
+// ============================================
+console.log('🔧 Environment Check:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('BASE_URL:', process.env.BASE_URL);
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'Set' : 'Missing');
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Missing');
+
+// Validate critical environment variables
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    console.error('❌ Missing Supabase environment variables');
+    process.exit(1);
+}
+
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.error('❌ Missing Google OAuth environment variables');
+}
+
+// ============================================
 // CRITICAL OPTIMIZATION: Singleton Gemini Client
 // ============================================
 let geminiClient = null;
@@ -29,21 +48,25 @@ let GoogleGenerativeAI = null;
 
 const initializeGemini = async () => {
   if (!geminiClient && process.env.GEMINI_API_KEY) {
-    if (!GoogleGenerativeAI) {
-      const module = await import('@google/generative-ai');
-      GoogleGenerativeAI = module.GoogleGenerativeAI;
-    }
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    geminiClient = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        temperature: 0.7,
-        topP: 0.95,
-        topK: 40,
-        maxOutputTokens: 2048,
+    try {
+      if (!GoogleGenerativeAI) {
+        const module = await import('@google/generative-ai');
+        GoogleGenerativeAI = module.GoogleGenerativeAI;
       }
-    });
-    console.log('✅ Gemini client initialized');
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      geminiClient = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          temperature: 0.7,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 2048,
+        }
+      });
+      console.log('✅ Gemini client initialized');
+    } catch (error) {
+      console.error('❌ Gemini initialization failed:', error.message);
+    }
   }
   return geminiClient;
 };
@@ -51,25 +74,51 @@ const initializeGemini = async () => {
 // Initialize immediately
 initializeGemini().catch(console.error);
 
-// Supabase clients (singleton)
+// ============================================
+// SUPABASE CLIENTS INITIALIZATION
+// ============================================
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }
-});
+let supabaseAdmin, supabase;
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }
-});
+try {
+  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
+    auth: { 
+      autoRefreshToken: true, 
+      persistSession: true, 
+      detectSessionInUrl: false 
+    }
+  });
 
-// Google OAuth
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { 
+      autoRefreshToken: true, 
+      persistSession: true, 
+      detectSessionInUrl: false 
+    }
+  });
+  console.log('✅ Supabase clients initialized successfully');
+} catch (error) {
+  console.error('❌ Supabase client initialization failed:', error.message);
+  // Create fallback clients without auth features
+  supabaseAdmin = createClient(supabaseUrl, supabaseAnonKey);
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+}
+
+// ============================================
+// GOOGLE OAUTH CONFIGURATION
+// ============================================
 const clientId = process.env.GOOGLE_CLIENT_ID;
 const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const redirectUrl = process.env.NODE_ENV === 'production' 
   ? process.env.PRODUCTION_REDIRECT_URL
   : 'http://localhost:3000/auth/google/callback';
+
+console.log('🔐 OAuth Configuration:');
+console.log('Redirect URL:', redirectUrl);
+console.log('Client ID:', clientId ? 'Set' : 'Missing');
 
 // ============================================
 // OPTIMIZED MIDDLEWARE
@@ -78,7 +127,7 @@ app.use(bodyParser.json({ limit: '1mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '1mb' }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key-for-development',
   resave: false,
   saveUninitialized: false,
   cookie: { 
@@ -88,6 +137,23 @@ app.use(session({
     httpOnly: true
   }
 }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
+// CORS middleware for production
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.header('Access-Control-Allow-Origin', process.env.BASE_URL);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  next();
+});
 
 // Mount API routes
 app.use('/api', usersApi);
@@ -101,25 +167,24 @@ app.use('/api/reminders', remindersApi);
 app.use('/api/progress', progressApi);
 app.use('/api/external', groupsApi);
 
-// Static files with caching - handle both development and production
+// ============================================
+// STATIC FILE SERVING - PRODUCTION OPTIMIZED
+// ============================================
 if (process.env.NODE_ENV === 'production') {
-  // In production, serve HTML files from root and static assets from their folders
-  app.use(express.static(path.join(__dirname, 'frontend'), { maxAge: '1d' }));
+  console.log('🚀 Running in PRODUCTION mode');
+  // In production, serve all static files from frontend directory
+  app.use(express.static(path.join(__dirname, 'frontend'), { 
+    maxAge: '1d',
+    index: false 
+  }));
 } else {
+  console.log('💻 Running in DEVELOPMENT mode');
   // In development, use the /html subdirectory structure
   app.use(express.static(path.join(__dirname, 'frontend'), { maxAge: '1d' }));
   app.use(express.static(path.join(__dirname, 'frontend', 'html'), { maxAge: '1d' }));
 }
 
-// Minimal logging
-app.use((req, res, next) => {
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`${req.method} ${req.url}`);
-  }
-  next();
-});
-
-// CSS MIME type
+// CSS MIME type fix
 app.use((req, res, next) => {
   if (req.url.endsWith('.css')) res.type('text/css');
   next();
@@ -129,6 +194,7 @@ app.use((req, res, next) => {
 // PRODUCTION HTML ROUTES - Serve from root
 // ============================================
 if (process.env.NODE_ENV === 'production') {
+  // Serve main dashboard files
   app.get('/Student-dash.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'html', 'Student-dash.html'));
   });
@@ -136,21 +202,48 @@ if (process.env.NODE_ENV === 'production') {
   app.get('/tutor-dash.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'html', 'tutor-dash.html'));
   });
-  
-  // Add other dashboard pages as needed
-  app.get('/student-*.html', (req, res) => {
-    const fileName = req.path.substring(1); // Remove leading slash
-    res.sendFile(path.join(__dirname, 'frontend', 'html', fileName));
+
+  // Serve all student pages
+  const studentPages = [
+    'student-participants', 'student-groups', 'student-chatroom', 
+    'student-progress', 'student-calendar', 'student-weather', 
+    'student-map', 'student-notifications', 'student-profile'
+  ];
+
+  studentPages.forEach(page => {
+    app.get(`/${page}.html`, (req, res) => {
+      res.sendFile(path.join(__dirname, 'frontend', 'html', `${page}.html`));
+    });
   });
-  
-  app.get('/tutor-*.html', (req, res) => {
-    const fileName = req.path.substring(1); // Remove leading slash
-    res.sendFile(path.join(__dirname, 'frontend', 'html', fileName));
+
+  // Serve tutor pages
+  const tutorPages = [
+    'tutor-participants', 'tutor-groups', 'tutor-chatroom',
+    'tutor-progress', 'tutor-calendar', 'tutor-sessions'
+  ];
+
+  tutorPages.forEach(page => {
+    app.get(`/${page}.html`, (req, res) => {
+      res.sendFile(path.join(__dirname, 'frontend', 'html', `${page}.html`));
+    });
   });
 }
 
 // ============================================
-// 🚀 ULTRA-FAST AI CHAT WITH STREAMING
+// HEALTH CHECK ENDPOINT
+// ============================================
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+    baseUrl: process.env.BASE_URL,
+    supabase: process.env.SUPABASE_URL ? 'Configured' : 'Missing'
+  });
+});
+
+// ============================================
+// AI CHAT ENDPOINT
 // ============================================
 app.post("/api/chat", async (req, res) => {
   const { message, context } = req.body;
@@ -159,16 +252,20 @@ app.post("/api/chat", async (req, res) => {
     return res.status(400).json({ error: "Message required" });
   }
 
-  // Set SSE headers immediately
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache, no-transform',
-    'Connection': 'keep-alive',
-    'X-Accel-Buffering': 'no'
-  });
-
   try {
     const model = await initializeGemini();
+    
+    if (!model) {
+      return res.status(503).json({ error: "AI service temporarily unavailable" });
+    }
+
+    // Set SSE headers
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    });
 
     const prompt = `You are a professional Academic Tutor for Wits Study Buddy.
 
@@ -208,7 +305,7 @@ Question: ${message}`;
 });
 
 // ============================================
-// 🚀 ULTRA-FAST URL SCANNING
+// SECURITY SCANNING ENDPOINTS
 // ============================================
 app.post("/api/scan/url", async (req, res) => {
   let { url } = req.body;
@@ -225,6 +322,10 @@ app.post("/api/scan/url", async (req, res) => {
 
   try {
     const model = await initializeGemini();
+    
+    if (!model) {
+      return res.status(503).json({ error: "AI service unavailable" });
+    }
 
     const prompt = `Analyze this URL for security threats: ${url}
 
@@ -259,9 +360,6 @@ Respond with ONLY valid JSON:
   }
 });
 
-// ============================================
-// 🚀 ULTRA-FAST MESSAGE SCANNING
-// ============================================
 app.post("/api/scan/message", async (req, res) => {
   const { content } = req.body;
 
@@ -269,6 +367,10 @@ app.post("/api/scan/message", async (req, res) => {
 
   try {
     const model = await initializeGemini();
+    
+    if (!model) {
+      return res.status(503).json({ error: "AI service unavailable" });
+    }
 
     const prompt = `Analyze this message for scams: "${content}"
 
@@ -363,7 +465,7 @@ function getFallbackMessage(msg) {
 }
 
 // ============================================
-// MARKET ENDPOINTS (Unchanged)
+// MARKET ENDPOINTS
 // ============================================
 let userPoints = { 'user123': { points: 1250, redeemedDiscounts: [], activeDiscounts: [] } };
 
@@ -471,12 +573,16 @@ app.get('/api/market/analytics', (req, res) => {
 });
 
 // ============================================
-// FIXED: Dashboard URL Function
+// FIXED DASHBOARD URL FUNCTION
 // ============================================
 function getDashboardUrl(role) {
   const r = (role || 'student').toLowerCase();
+  
+  // Use the BASE_URL from environment variables
   const base = process.env.BASE_URL || (process.env.NODE_ENV === 'production' 
     ? `https://${process.env.WEBSITE_HOSTNAME}` : 'http://localhost:3000');
+  
+  console.log(`📊 Dashboard URL for ${r}: ${base}`);
   
   // In production, serve from root, not /html subdirectory
   if (process.env.NODE_ENV === 'production') {
@@ -487,9 +593,13 @@ function getDashboardUrl(role) {
 }
 
 // ============================================
-// AUTH ENDPOINTS (Optimized)
+// AUTH ENDPOINTS (OPTIMIZED)
 // ============================================
 app.get('/auth/google', (req, res) => {
+  if (!clientId) {
+    return res.redirect('/login?error=oauth_not_configured');
+  }
+
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.append('client_id', clientId);
   url.searchParams.append('redirect_uri', redirectUrl);
@@ -497,15 +607,23 @@ app.get('/auth/google', (req, res) => {
   url.searchParams.append('scope', 'email profile');
   url.searchParams.append('prompt', 'select_account');
   
-  if (req.query.redirect) req.session.redirectAfterLogin = req.query.redirect;
+  if (req.query.redirect) {
+    req.session.redirectAfterLogin = req.query.redirect;
+  }
   
+  console.log('🔐 Initiating Google OAuth:', url.toString());
   res.redirect(url.toString());
 });
 
 app.get('/auth/google/callback', async (req, res) => {
-  if (!req.query.code) return res.redirect('/login?error=google_auth_failed');
+  if (!req.query.code) {
+    console.error('❌ Google OAuth callback missing code');
+    return res.redirect('/login?error=google_auth_failed');
+  }
   
   try {
+    console.log('🔄 Processing Google OAuth callback...');
+    
     const tokenResp = await axios.post('https://oauth2.googleapis.com/token', {
       code: req.query.code,
       client_id: clientId,
@@ -519,31 +637,52 @@ app.get('/auth/google/callback', async (req, res) => {
     });
     
     const { email, name, picture, sub: googleId } = userResp.data;
+    console.log(`👤 Google user: ${email} - ${name}`);
     
     if (!/^\d+@students\.wits\.ac\.za$/i.test(email)) {
+      console.error('❌ Invalid email domain:', email);
       return res.redirect('/login?error=invalid_email');
     }
     
-    const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
+    // Check if user exists in Supabase
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (userError) {
+      console.error('❌ Supabase user list error:', userError);
+      throw userError;
+    }
+    
     const existing = userData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
     
     if (!existing) {
+      console.log('🆕 New user, redirecting to signup');
       const profile = { email, name, picture, googleId };
       const token = jwt.sign(profile, process.env.SESSION_SECRET, { expiresIn: '15m' });
       req.session.googleProfile = profile;
       return res.redirect(`/signupGoogle?token=${token}`);
     }
     
-    const { data: signInData } = await supabaseAdmin.auth.admin.generateLink({
+    console.log('✅ Existing user, generating login link');
+    const { data: signInData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'magiclink',
       email
     });
     
+    if (linkError) {
+      console.error('❌ Supabase link generation error:', linkError);
+      throw linkError;
+    }
+    
     const authToken = new URL(signInData.properties.action_link).searchParams.get('token');
-    const { data: sessionData } = await supabase.auth.verifyOtp({
+    const { data: sessionData, error: sessionError } = await supabase.auth.verifyOtp({
       token_hash: authToken,
       type: 'magiclink'
     });
+    
+    if (sessionError) {
+      console.error('❌ Session creation error:', sessionError);
+      throw sessionError;
+    }
     
     req.session.user = sessionData.user;
     req.session.access_token = sessionData.session.access_token;
@@ -552,17 +691,23 @@ app.get('/auth/google/callback', async (req, res) => {
     const role = sessionData.user?.user_metadata?.role || 'student';
     let redirectTo = req.session.redirectAfterLogin || getDashboardUrl(role);
     
-    // FIX: Ensure correct URL format in production
+    // Ensure correct URL format in production
     if (process.env.NODE_ENV === 'production') {
       redirectTo = redirectTo.replace('/html/', '/');
     }
     
     delete req.session.redirectAfterLogin;
     
-    const userData2 = encodeURIComponent(JSON.stringify({ ...sessionData.user, session: sessionData.session }));
+    const userData2 = encodeURIComponent(JSON.stringify({ 
+      ...sessionData.user, 
+      session: sessionData.session 
+    }));
+    
+    console.log(`🔄 Redirecting to: ${redirectTo}`);
     res.redirect(`${redirectTo}?success=true&userData=${userData2}`);
+    
   } catch (error) {
-    console.error('Auth error:', error);
+    console.error('❌ Auth error:', error);
     res.redirect('/login?error=auth_failed');
   }
 });
@@ -571,12 +716,15 @@ app.get('/signupGoogle', (req, res) => {
   if (req.query.token) {
     try {
       req.session.googleProfile = jwt.verify(req.query.token, process.env.SESSION_SECRET);
-    } catch {
+    } catch (error) {
+      console.error('❌ Token verification failed:', error);
       return res.redirect('/login?error=invalid_token');
     }
   }
   
-  if (!req.session.googleProfile) return res.redirect('/login?error=missing_profile');
+  if (!req.session.googleProfile) {
+    return res.redirect('/login?error=missing_profile');
+  }
   
   res.sendFile(path.join(__dirname, 'frontend', 'html', 'signup.html'));
 });
@@ -593,56 +741,80 @@ app.post('/api/signup-google', async (req, res) => {
     return res.status(400).json({ message: 'All fields required' });
   }
   
-  const studentNumber = profile.email.split('@')[0];
-  const randomPass = Math.random().toString(36).slice(-10);
-  
-  const { data: newUser, error } = await supabaseAdmin.auth.admin.createUser({
-    email: profile.email,
-    password: randomPass,
-    email_confirm: true,
-    user_metadata: {
-      name: profile.name,
+  try {
+    const studentNumber = profile.email.split('@')[0];
+    const randomPass = Math.random().toString(36).slice(-10);
+    
+    const { data: newUser, error } = await supabaseAdmin.auth.admin.createUser({
       email: profile.email,
-      googleId: profile.googleId,
-      picture: profile.picture,
-      role,
-      authProvider: 'google',
-      studentNumber,
-      phone
+      password: randomPass,
+      email_confirm: true,
+      user_metadata: {
+        name: profile.name,
+        email: profile.email,
+        googleId: profile.googleId,
+        picture: profile.picture,
+        role,
+        authProvider: 'google',
+        studentNumber,
+        phone
+      }
+    });
+    
+    if (error) {
+      console.error('❌ User creation error:', error);
+      return res.status(400).json({ message: error.message });
     }
-  });
-  
-  if (error) return res.status(400).json({ message: error.message });
-  
-  await supabaseAdmin.from('profiles').insert({
-    user_id: newUser.user.id,
-    role, name: profile.name, email: profile.email, phone,
-    faculty, course, year_of_study,
-    terms_agreed: true,
-    terms_agreed_at: new Date().toISOString()
-  });
-  
-  const { data: signInData } = await supabaseAdmin.auth.admin.generateLink({
-    type: 'magiclink',
-    email: profile.email
-  });
-  
-  const authToken = new URL(signInData.properties.action_link).searchParams.get('token');
-  const { data: sessionData } = await supabase.auth.verifyOtp({
-    token_hash: authToken,
-    type: 'magiclink'
-  });
-  
-  req.session.user = sessionData.user;
-  req.session.access_token = sessionData.session.access_token;
-  req.session.refresh_token = sessionData.session.refresh_token;
-  delete req.session.googleProfile;
-  
-  res.status(201).json({ 
-    message: 'Account created', 
-    user: newUser.user,
-    redirectUrl: getDashboardUrl(role)
-  });
+    
+    await supabaseAdmin.from('profiles').insert({
+      user_id: newUser.user.id,
+      role, 
+      name: profile.name, 
+      email: profile.email, 
+      phone,
+      faculty, 
+      course, 
+      year_of_study,
+      terms_agreed: true,
+      terms_agreed_at: new Date().toISOString()
+    });
+    
+    const { data: signInData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'magiclink',
+      email: profile.email
+    });
+    
+    if (linkError) {
+      console.error('❌ Link generation error:', linkError);
+      throw linkError;
+    }
+    
+    const authToken = new URL(signInData.properties.action_link).searchParams.get('token');
+    const { data: sessionData, error: sessionError } = await supabase.auth.verifyOtp({
+      token_hash: authToken,
+      type: 'magiclink'
+    });
+    
+    if (sessionError) {
+      console.error('❌ Session creation error:', sessionError);
+      throw sessionError;
+    }
+    
+    req.session.user = sessionData.user;
+    req.session.access_token = sessionData.session.access_token;
+    req.session.refresh_token = sessionData.session.refresh_token;
+    delete req.session.googleProfile;
+    
+    res.status(201).json({ 
+      message: 'Account created', 
+      user: newUser.user,
+      redirectUrl: getDashboardUrl(role)
+    });
+    
+  } catch (error) {
+    console.error('❌ Signup error:', error);
+    res.status(500).json({ message: 'Account creation failed' });
+  }
 });
 
 app.post('/api/signup', async (req, res) => {
@@ -653,39 +825,57 @@ app.post('/api/signup', async (req, res) => {
     return res.status(400).json({ message: 'Validation failed' });
   }
   
-  const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
-  if (userData?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase())) {
-    return res.status(409).json({ message: 'Email already registered' });
-  }
-  
-  const baseUrl = process.env.NODE_ENV === 'production'
-    ? 'https://' + req.get('host')
-    : `${req.protocol}://${req.get('host')}`;
-  
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { name, email, role, phone },
-      emailRedirectTo: `${baseUrl}/login?verified=true`
+  try {
+    const { data: userData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (listError) {
+      console.error('❌ User list error:', listError);
+      throw listError;
     }
-  });
-  
-  if (error) return res.status(400).json({ message: error.message });
-  if (!data?.user) return res.status(500).json({ message: 'No user data' });
-  
-  await supabaseAdmin.from('profiles').insert({
-    user_id: data.user.id,
-    role, name, email, phone, faculty, course, year_of_study,
-    terms_agreed: true,
-    terms_agreed_at: new Date().toISOString()
-  });
-  
-  res.status(201).json({ 
-    message: 'Account created. Check email to verify.', 
-    user: data.user,
-    emailConfirmationRequired: true
-  });
+    
+    if (userData?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase())) {
+      return res.status(409).json({ message: 'Email already registered' });
+    }
+    
+    const baseUrl = process.env.NODE_ENV === 'production'
+      ? 'https://' + req.get('host')
+      : `${req.protocol}://${req.get('host')}`;
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, email, role, phone },
+        emailRedirectTo: `${baseUrl}/login?verified=true`
+      }
+    });
+    
+    if (error) {
+      console.error('❌ Signup error:', error);
+      return res.status(400).json({ message: error.message });
+    }
+    
+    if (!data?.user) {
+      return res.status(500).json({ message: 'No user data' });
+    }
+    
+    await supabaseAdmin.from('profiles').insert({
+      user_id: data.user.id,
+      role, name, email, phone, faculty, course, year_of_study,
+      terms_agreed: true,
+      terms_agreed_at: new Date().toISOString()
+    });
+    
+    res.status(201).json({ 
+      message: 'Account created. Check email to verify.', 
+      user: data.user,
+      emailConfirmationRequired: true
+    });
+    
+  } catch (error) {
+    console.error('❌ Signup process error:', error);
+    res.status(500).json({ message: 'Registration failed' });
+  }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -695,36 +885,51 @@ app.post('/api/login', async (req, res) => {
     return res.status(400).json({ message: 'Email and password required' });
   }
   
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  
-  if (error) {
-    if (error.message.includes('Email not confirmed')) {
-      return res.status(403).json({ message: 'Please confirm your email', emailVerified: false });
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      if (error.message.includes('Email not confirmed')) {
+        return res.status(403).json({ message: 'Please confirm your email', emailVerified: false });
+      }
+      console.error('❌ Login error:', error);
+      return res.status(400).json({ message: error.message });
     }
-    return res.status(400).json({ message: error.message });
+    
+    req.session.user = data.user;
+    req.session.access_token = data.session.access_token;
+    req.session.refresh_token = data.session.refresh_token;
+    
+    res.json({ 
+      message: 'Login successful', 
+      user: data.user,
+      session: data.session,
+      redirectUrl: getDashboardUrl(data.user?.user_metadata?.role)
+    });
+    
+  } catch (error) {
+    console.error('❌ Login process error:', error);
+    res.status(500).json({ message: 'Login failed' });
   }
-  
-  req.session.user = data.user;
-  req.session.access_token = data.session.access_token;
-  req.session.refresh_token = data.session.refresh_token;
-  
-  res.json({ 
-    message: 'Login successful', 
-    user: data.user,
-    session: data.session,
-    redirectUrl: getDashboardUrl(data.user?.user_metadata?.role)
-  });
 });
 
 app.post('/api/logout', async (req, res) => {
-  if (req.session.access_token) {
-    await supabase.auth.signOut();
+  try {
+    if (req.session.access_token) {
+      await supabase.auth.signOut();
+    }
+    
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('❌ Session destruction error:', err);
+        return res.status(500).json({ message: 'Logout failed' });
+      }
+      res.json({ message: 'Logged out' });
+    });
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    res.status(500).json({ message: 'Logout failed' });
   }
-  
-  req.session.destroy((err) => {
-    if (err) return res.status(500).json({ message: 'Logout failed' });
-    res.json({ message: 'Logged out' });
-  });
 });
 
 app.get('/api/auth/status', (req, res) => {
@@ -737,16 +942,45 @@ app.get('/api/auth/status', (req, res) => {
 // ============================================
 // HTML ROUTES
 // ============================================
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'html', 'landing.html')));
-app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'html', 'login.html')));
-app.get('/signup', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'html', 'signup.html')));
-app.get('/market', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'html', 'market.html')));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'html', 'landing.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'html', 'login.html'));
+});
+
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'html', 'signup.html'));
+});
+
+app.get('/market', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'html', 'market.html'));
+});
+
+// ============================================
+// ERROR HANDLING MIDDLEWARE
+// ============================================
+app.use((error, req, res, next) => {
+  console.error('🚨 Unhandled Error:', error);
+  res.status(500).json({ 
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : error.message
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).send('Page not found');
+});
 
 // ============================================
 // START SERVER
 // ============================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`⚡ Server running on port ${PORT} - ULTRA OPTIMIZED`);
+  console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 Base URL: ${process.env.BASE_URL || 'http://localhost:3000'}`);
+  console.log(`🔐 OAuth Redirect: ${redirectUrl}`);
 });
