@@ -93,17 +93,11 @@
     <main class="weather-container">
         <section class="current-weather">
             <div class="weather-header">
-            <div class="weather-header-content">
-                <h1>
-                <i class="fas fa-map-marker-alt"></i>
-                <span id="location">Loading location...</span>
-                </h1>
+                <h1><i class="fas fa-map-marker-alt"></i> <span id="location">Loading location...</span></h1>
                 <button id="refresh-btn" class="btn btn-primary">
-                <i class="fas fa-sync-alt"></i> Refresh
+                    <i class="fas fa-sync-alt"></i> Refresh
                 </button>
             </div>
-            </div>
-
             
             <div class="current-weather-card">
                 <div class="current-main">
@@ -146,6 +140,15 @@
                 </div>
             </div>
         </section>
+        
+        <!-- Split content section for recommendations and animation -->
+        <div class="weather-content-split">
+            
+            <!-- Weather animation container (right side) -->
+            <div class="weather-animation-container" id="weather-animation">
+                <!-- Animation elements will be inserted here by JavaScript -->
+            </div>
+        </div>
         
         <section class="forecast-section">
             <h2><i class="fas fa-calendar-alt"></i> 7-Day Forecast</h2>
