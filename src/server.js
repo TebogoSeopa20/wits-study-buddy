@@ -445,8 +445,7 @@ app.get('/api/market/analytics', (req, res) => {
 // ============================================
 function getDashboardUrl(role) {
   const r = (role || 'student').toLowerCase();
-  const base = process.env.BASE_URL || (process.env.NODE_ENV === 'production' 
-    ? `https://${process.env.WEBSITE_HOSTNAME}` : 'http://localhost:3000');
+  const base = process.env.BASE_URL || 'http://localhost:3000';
   
   if (process.env.NODE_ENV === 'production') {
     return r === 'tutor' ? `${base}/html/tutor-dash.html` : `${base}/html/Student-dash.html`;
