@@ -1,4 +1,4 @@
-// Clean Weather App for Wits University - No Study Recommendations
+// Weather App for Wits University with Study Recommendations
 class WeatherApp {
     constructor() {
         this.apiKey = '266ef1df752f036166fe196a91952eef';
@@ -112,32 +112,112 @@ class WeatherApp {
         this.visibilityElement.textContent = `${(data.visibility / 1000).toFixed(1)} km`;
         this.cloudsElement.textContent = `${data.clouds.all}%`;
 
-        // Update weather animation
-        this.updateWeatherAnimation(weather.id);
+        // Add study recommendations
+        this.addStudyRecommendations(data);
     }
     
-    updateWeatherAnimation(weatherId) {
-        const animationContainer = document.getElementById('weather-animation');
-        let animationIcon = 'cloud';
+    addStudyRecommendations(weatherData) {
+        const recommendationsContainer = document.getElementById('recommendations-container') || 
+            this.createRecommendationsContainer();
         
-        // Simple animation based on weather condition
-        if (weatherId >= 200 && weatherId < 300) {
-            animationIcon = 'bolt'; // Thunderstorm
-        } else if (weatherId >= 300 && weatherId < 600) {
-            animationIcon = 'cloud-rain'; // Rain
-        } else if (weatherId >= 600 && weatherId < 700) {
-            animationIcon = 'snowflake'; // Snow
-        } else if (weatherId === 800) {
-            animationIcon = 'sun'; // Clear
-        } else if (weatherId > 800) {
-            animationIcon = 'cloud'; // Clouds
+        const temp = weatherData.main.temp;
+        const weatherId = weatherData.weather[0].id;
+        const humidity = weatherData.main.humidity;
+        const windSpeed = weatherData.wind.speed * 3.6; // Convert to km/h
+        
+        let clothing = '';
+        let studyTips = '';
+        let hydration = '';
+        
+        // Temperature-based recommendations
+        if (temp > 30) {
+            clothing = 'Light, breathable clothing (shorts, t-shirts). Wear a hat and sunscreen.';
+            studyTips = 'Find air-conditioned study spaces like the library. Study during cooler morning/evening hours.';
+            hydration = 'Drink at least 3-4 liters of water today. Carry a water bottle at all times.';
+        } 
+        else if (temp > 20) {
+            clothing = 'Comfortable summer clothes (t-shirts, light pants/skirts). Bring a light jacket for evening.';
+            studyTips = 'Outdoor study in shaded areas can be pleasant. Use the campus gardens.';
+            hydration = 'Drink 2-3 liters of water. Keep hydrated especially between classes.';
+        }
+        else if (temp > 10) {
+            clothing = 'Layered clothing (light sweater/jacket over t-shirt). Comfortable pants.';
+            studyTips = 'Indoor study spaces will be comfortable. Open windows for fresh air.';
+            hydration = 'Drink 1.5-2 liters of water. Warm beverages can help stay hydrated.';
+        }
+        else {
+            clothing = 'Warm winter clothing (jacket, sweater, scarf). Gloves if very cold.';
+            studyTips = 'Find well-heated study spaces. Take breaks to move and warm up.';
+            hydration = 'Drink warm fluids (tea, hot water). Aim for 1.5 liters minimum.';
         }
         
-        animationContainer.innerHTML = `
-            <div class="weather-animation">
-                <i class="fas fa-${animationIcon}"></i>
+        // Weather condition adjustments
+        if (weatherId >= 200 && weatherId < 300) {
+            // Thunderstorm
+            clothing += ' Waterproof jacket or umbrella essential.';
+            studyTips = 'Best to study indoors today - use library or student centers. Thunderstorms may cause power fluctuations.';
+        } 
+        else if (weatherId >= 300 && weatherId < 600) {
+            // Rain/drizzle
+            clothing += ' Waterproof shoes and jacket recommended.';
+            studyTips = 'Indoor study recommended. The library will be busy - arrive early to get a good spot.';
+        }
+        else if (weatherId >= 600 && weatherId < 700) {
+            // Snow (unlikely in Johannesburg but included for completeness)
+            clothing += ' Warm, waterproof boots essential. Layer up.';
+            studyTips = 'Stay indoors for study. Campus may have reduced services - check announcements.';
+        }
+        else if (weatherId === 800) {
+            // Clear sky
+            if (temp > 25) {
+                studyTips += ' Consider outdoor study in shaded areas - use sunscreen and find spots near buildings for WiFi.';
+            }
+        }
+        
+        // High humidity adjustment
+        if (humidity > 70) {
+            if (temp > 25) {
+                clothing += ' Choose moisture-wicking fabrics to stay comfortable.';
+                hydration += ' Extra hydration needed in humid conditions - consider electrolyte drinks.';
+            } else if (temp < 15) {
+                clothing += ' Wear layers you can remove as humidity makes cold feel more intense.';
+            }
+        }
+        
+        // Windy conditions
+        if (windSpeed > 20) {
+            clothing += ' Secure loose items - windy conditions on campus.';
+            studyTips += ' Windy conditions may make outdoor study difficult - find a sheltered spot if studying outside.';
+        }
+        
+        // Create recommendations HTML
+        recommendationsContainer.innerHTML = `
+            <h3 style="color: var(--study-blue);"><i class="fas fa-graduation-cap" style="color: var(--study-gold);"></i> Study Recommendations</h3>
+            <div class="recommendation-card">
+                <h4><i class="fas fa-tshirt"></i> What to Wear</h4>
+                <p>${clothing}</p>
+            </div>
+            <div class="recommendation-card">
+                <h4><i class="fas fa-book"></i> Study Tips</h4>
+                <p>${studyTips}</p>
+            </div>
+            <div class="recommendation-card">
+                <h4><i class="fas fa-tint"></i> Hydration & Health</h4>
+                <p>${hydration}</p>
             </div>
         `;
+    }
+    
+    createRecommendationsContainer() {
+        const container = document.createElement('div');
+        container.id = 'recommendations-container';
+        container.className = 'recommendations-container';
+        
+        // Insert after the current weather section
+        const weatherContainer = document.querySelector('.weather-container');
+        weatherContainer.appendChild(container);
+        
+        return container;
     }
     
     updateForecast(data) {
@@ -246,7 +326,7 @@ class WeatherApp {
             '781': 'tornado',
             
             // Clear
-            '800': iconCode.includes('d') ? 'sun' : 'moon',
+            '800': iconCode.endsWith('d') ? 'sun' : 'moon',
             
             // Clouds
             '801': 'cloud-sun',
@@ -255,18 +335,16 @@ class WeatherApp {
             '804': 'cloud'
         };
         
-        const iconName = iconMap[weatherId] || 'cloud';
-        return `<i class="fas fa-${iconName}"></i>`;
+        const iconClass = iconMap[weatherId.toString()] || 'cloud';
+        return `<i class="fas fa-${iconClass}"></i>`;
     }
     
     showLoading() {
         this.loadingOverlay.classList.add('active');
-        this.refreshBtn.disabled = true;
     }
     
     hideLoading() {
         this.loadingOverlay.classList.remove('active');
-        this.refreshBtn.disabled = false;
     }
     
     showError(message) {
@@ -283,21 +361,16 @@ class WeatherApp {
         this.errorMessage.classList.remove('active');
     }
 }
-
+            // Logout functionality
+            const logoutButtons = document.querySelectorAll('#logoutButton, #mobileLogoutButton');
+            logoutButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    auth.handleLogout();
+                    window.location.href = 'login.html';
+                });
+            });
+            
 // Initialize the weather app when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new WeatherApp();
+    const weatherApp = new WeatherApp();
 });
-
-// Service Worker Registration for PWA functionality
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
-            });
-    });
-}
