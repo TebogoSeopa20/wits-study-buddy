@@ -56,7 +56,7 @@ jobs:
           echo "SESSION_SECRET=${{ secrets.SESSION_SECRET }}" >> .env
           echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
-          echo "PRODUCTION_REDIRECT_URL=https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/auth/google/callback" >> .env
+          echo "GOOGLE_CALLBACK_URL=https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net/auth/google/callback" >> .env
           echo "BASE_URL=https://wits-buddy-g9esajarfqe3dmh6.southafricanorth-01.azurewebsites.net" >> .env
           echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env
           echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
